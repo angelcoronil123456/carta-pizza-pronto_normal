@@ -859,7 +859,7 @@ ${contextoCarta}`;
 
     const res = await fetch('https://onrymhwvjbvkygsawaiv.supabase.co/functions/v1/chat-ia', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': 'sb_publishable_6F5blZ0ttgM8fklnbe6byg_raAZCzeX' },
+      headers: { 'Content-Type': 'application/json', 'apikey': 'sb_publishable_6F5blZ0ttgM8fklnbe6byg_raAZCzeX', 'Authorization': 'Bearer sb_publishable_6F5blZ0ttgM8fklnbe6byg_raAZCzeX' },
       body: JSON.stringify({
         system: systemPrompt,
         messages: asistenteChatHistory.slice(-8)
@@ -1161,6 +1161,55 @@ function showToast(msg){
   clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>el.classList.remove('show'),2200);
 }
+// ══ FUNCIONES LISTA DE GUARDADOS ══
+function renderLista() {
+  var body = document.getElementById('lista-body');
+  if (!body) return;
+  var items = Object.values(listaGuardados);
+  if (!items.length) {
+    body.innerHTML = '<div class="lista-empty"><div style="font-size:48px;margin-bottom:12px">🔖</div><div style="font-weight:700">Tu lista está vacía</div><div style="font-size:13px;margin-top:6px;opacity:.7">Guarda los platos que te apetezcan</div></div>';
+    return;
+  }
+  body.innerHTML = items.map(function(item) {
+    return '<div class="lista-item" id="lista-item-' + item.id + '">' +
+      '<img class="lista-item-img" src="' + item.img + '" alt="' + item.name + '" onerror="this.onerror=null">' +
+      '<div class="lista-item-info">' +
+      '<div class="lista-item-name">' + item.name + '</div>' +
+      '<div class="lista-item-price">' + Number(item.price).toFixed(2).replace('.',',') + ' €</div>' +
+      '</div>' +
+      '<button class="lista-item-remove" onclick="quitarDeLista(\'' + item.id + '\')">×</button>' +
+      '</div>';
+  }).join('');
+}
+
+function abrirLista() {
+  renderLista();
+  document.getElementById('lista-screen').classList.add('open');
+}
+
+function cerrarLista() {
+  document.getElementById('lista-screen').classList.remove('open');
+}
+
+function quitarDeLista(id) {
+  delete listaGuardados[id];
+  sessionStorage.setItem('listaGuardados', JSON.stringify(listaGuardados));
+  actualizarBtnGuardar(id);
+  actualizarListaBtn();
+  renderLista();
+}
+
+function limpiarLista() {
+  listaGuardados = {};
+  sessionStorage.setItem('listaGuardados', JSON.stringify(listaGuardados));
+  document.querySelectorAll('.btn-guardar.guardado').forEach(function(btn) {
+    btn.className = 'btn-guardar';
+    btn.innerHTML = '🔖 Guardar para pedir';
+  });
+  actualizarListaBtn();
+  cerrarLista();
+}
+
 </script>
 </body>
 </html>
