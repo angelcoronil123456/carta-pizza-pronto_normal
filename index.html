@@ -857,12 +857,10 @@ Cuando recomiendes platos, menciona el precio para que el cliente tenga toda la 
 
 ${contextoCarta}`;
 
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('https://onrymhwvjbvkygsawaiv.supabase.co/functions/v1/chat-ia', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'apikey': 'sb_publishable_6F5blZ0ttgM8fklnbe6byg_raAZCzeX' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 400,
         system: systemPrompt,
         messages: asistenteChatHistory.slice(-8)
       })
