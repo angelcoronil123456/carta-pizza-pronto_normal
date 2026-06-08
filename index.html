@@ -817,9 +817,7 @@ function enviarPreguntaRapida(pregunta) {
 
 // Generar contexto completo de la carta para la IA
 function generarContextoCarta() {
-  let contexto = 'Esta es la carta completa del restaurante:
-
-';
+  var contexto = 'Esta es la carta completa del restaurante:\n\n';
   Object.entries(MENU).forEach(([cat, items]) => {
     if (!items.length) return;
     contexto += `## ${cat.toUpperCase()}
@@ -829,11 +827,9 @@ function generarContextoCarta() {
       if (item.desc && item.desc.length > 5) contexto += ` | ${item.desc}`;
       if (item.allergens && item.allergens.length) contexto += ` | Alérgenos: ${item.allergens.join(' ')}`;
       if (item.badge) contexto += ` | ${item.badge === 'hot' ? '🔥 Más pedido' : item.badge === 'bestseller' ? '⭐ Popular' : '✨ Nuevo'}`;
-      contexto += '
-';
+      contexto += '\n';
     });
-    contexto += '
-';
+    contexto += '\n';
   });
   return contexto;
 }
@@ -1008,7 +1004,7 @@ function buildMenu() {
       const allergens = (item.allergens||[]).length ? `<div class="allergens">${(item.allergens||[]).map(a=>`<span class="allergen" title="${allergenLabel(a)}">${a}</span>`).join('')}</div>` : '';
       card.innerHTML=`
         <div class="dish-img-wrap">
-          <img class="dish-img" src="${item.img}" alt="${item.name}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80'">
+          <img class="dish-img" src="${item.img}" alt="${item.name}" loading="lazy" onerror="this.onerror=null">
           ${badgeHTML}
           <div class="video-btn" onclick="showVideo('${item.name}')">
             <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Ver vídeo
@@ -1055,7 +1051,7 @@ function buildHeroPlato(wrapId, cat) {
   wrap.innerHTML=`
     <div class="dish-hero" style="animation-delay:0s">
       <div style="position:relative;overflow:hidden">
-        <img class="dish-hero-img" src="${hero.img}" alt="${hero.name}" onerror="this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80'">
+        <img class="dish-hero-img" src="${hero.img}" alt="${hero.name}" onerror="this.onerror=null">
         ${hero.badge?`<div class="dish-badge badge-${hero.badge}" style="top:12px;left:12px;font-size:11px">${hero.badge==='hot'?'🔥':hero.badge==='new'?'✨':'⭐'} ${BADGE_LABELS[hero.badge]}</div>`:''}
         ${esChef?`<div style="position:absolute;top:12px;right:12px;background:#E65100;color:#fff;font-size:10px;font-weight:900;padding:4px 10px;border-radius:20px">👨‍🍳 Elección del chef</div>`:''}
       </div>
@@ -1115,132 +1111,6 @@ function allergenLabel(emoji) {
 function findItem(id) {
   for(const items of Object.values(MENU)){const found=items.find(i=>i.id===id);if(found) return found;}
 }
-
-// ══ ASISTENTE GENERAL IA ══
-let asistenteChatHistory = [];
-let asistenteVisible = false;
-
-// Mostrar botón después de 10 segundos
-setTimeout(() => {
-  const btn = document.getElementById('asistente-btn');
-  if (btn) btn.classList.add('visible');
-}, 10000);
-
-function abrirAsistente() {
-  document.getElementById('asistente-chat').classList.add('open');
-  document.getElementById('asistente-overlay').classList.add('open');
-  // Mensaje de bienvenida solo la primera vez
-  if (!asistenteVisible) {
-    asistenteVisible = true;
-    appendAsistenteMsg('¡Hola! 😊 Dime qué te apetece y te recomiendo algo de nuestra carta. También puedo ayudarte con alérgenos, ingredientes o lo que necesites.');
-  }
-  document.getElementById('asistente-input').focus();
-}
-
-function cerrarAsistente() {
-  document.getElementById('asistente-chat').classList.remove('open');
-  document.getElementById('asistente-overlay').classList.remove('open');
-}
-
-function appendAsistenteMsg(html, esUsuario = false, conBotones = false) {
-  const el = document.getElementById('asistente-messages');
-  if (esUsuario) {
-    el.innerHTML += `<div class="msg user"><div class="msg-bubble">${html}</div><div class="msg-avatar user-av">👤</div></div>`;
-  } else {
-    const botonesHTML = conBotones ? procesarRespuestaConBotones(html) : '';
-    el.innerHTML += `<div class="msg ai"><div class="msg-avatar">🍕</div><div><div class="msg-bubble">${html}</div>${botonesHTML}</div></div>`;
-  }
-  el.scrollTop = el.scrollHeight;
-}
-
-function showAsistenteTyping() {
-  const el = document.getElementById('asistente-messages');
-  el.innerHTML += `<div class="msg ai" id="asistente-typing"><div class="msg-avatar">🍕</div><div class="msg-bubble typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
-  el.scrollTop = el.scrollHeight;
-}
-function removeAsistenteTyping() {
-  const t = document.getElementById('asistente-typing');
-  if (t) t.remove();
-}
-
-function enviarPreguntaRapida(pregunta) {
-  document.getElementById('asistente-input').value = pregunta;
-  enviarMensajeAsistente();
-}
-
-// Generar contexto completo de la carta para la IA
-function generarContextoCarta() {
-  let contexto = 'Esta es la carta completa del restaurante:
-
-';
-  Object.entries(MENU).forEach(([cat, items]) => {
-    if (!items.length) return;
-    contexto += `## ${cat.toUpperCase()}
-`;
-    items.forEach(item => {
-      contexto += `- ${item.name}: ${item.price.toFixed(2)}€`;
-      if (item.desc && item.desc.length > 5) contexto += ` | ${item.desc}`;
-      if (item.allergens && item.allergens.length) contexto += ` | Alérgenos: ${item.allergens.join(' ')}`;
-      if (item.badge) contexto += ` | ${item.badge === 'hot' ? '🔥 Más pedido' : item.badge === 'bestseller' ? '⭐ Popular' : '✨ Nuevo'}`;
-      contexto += '
-';
-    });
-    contexto += '
-';
-  });
-  return contexto;
-}
-
-async function enviarMensajeAsistente() {
-  const input = document.getElementById('asistente-input');
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = '';
-  document.getElementById('asistente-send-btn').disabled = true;
-
-  appendAsistenteMsg(text, true);
-  asistenteChatHistory.push({ role: 'user', content: text });
-  showAsistenteTyping();
-
-  try {
-    const contextoCarta = generarContextoCarta();
-    const systemPrompt = `Eres el asistente virtual de Pizza Pronto, un restaurante italiano. 
-Tu trabajo es ayudar al cliente a elegir qué pedir.
-Cuando recomiendes platos, menciona SIEMPRE el nombre exacto del plato tal como aparece en la carta para que el sistema pueda mostrar el botón de guardar.
-Responde siempre en español, de forma amable, breve y útil (máximo 3-4 frases).
-Usa un tono cálido y cercano, como un buen camarero italiano.
-Si te preguntan por alérgenos o intolerancias, sé muy preciso y recomienda confirmar con el camarero.
-Cuando recomiendes platos, menciona el precio para que el cliente tenga toda la información.
-
-${contextoCarta}`;
-
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 400,
-        system: systemPrompt,
-        messages: asistenteChatHistory.slice(-8)
-      })
-    });
-    const data = await res.json();
-    removeAsistenteTyping();
-    const reply = data.content?.[0]?.text || 'Lo siento, no pude responder. ¡Pregunta al camarero!';
-    asistenteChatHistory.push({ role: 'assistant', content: reply });
-    appendAsistenteMsg(reply, false, true);
-  } catch(e) {
-    removeAsistenteTyping();
-    appendAsistenteMsg('En este momento no puedo responder. Consulta con el camarero.');
-  }
-  document.getElementById('asistente-send-btn').disabled = false;
-  document.getElementById('asistente-input').focus();
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  const input = document.getElementById('asistente-input');
-  if (input) input.addEventListener('keydown', e => { if(e.key==='Enter') enviarMensajeAsistente(); });
-});
 
 // ══ TRACKING DE COMPORTAMIENTO ══
 let vistaObserver;
@@ -1404,7 +1274,7 @@ async function cargarPlatoDia() {
     wrap.innerHTML = `
       <div class="plato-dia-banner" onclick="scrollToItem('${plato.id}')">
         <div class="plato-dia-inner">
-          <img class="plato-dia-img" src="${plato.imagen||''}" alt="${plato.nombre}" onerror="this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80'">
+          <img class="plato-dia-img" src="${plato.imagen||''}" alt="${plato.nombre}" onerror="this.onerror=null">
           <div style="flex:1">
             <span class="plato-dia-tag">🌟 Recomendado hoy</span>
             <div class="plato-dia-name">${plato.nombre}</div>
@@ -1445,7 +1315,7 @@ async function cargarMasPedidos() {
             const item = findItem(id);
             if (!item) return '';
             return `<div class="mas-pedido-chip" onclick="scrollToItem('${id}')">
-              <img class="mas-pedido-img" src="${item.img}" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80'">
+              <img class="mas-pedido-img" src="${item.img}" alt="${item.name}" onerror="this.onerror=null">
               <div class="mas-pedido-body">
                 <div class="mas-pedido-name">${item.name}</div>
                 <div class="mas-pedido-price">${item.price.toFixed(2).replace('.',',')} €</div>
@@ -1470,7 +1340,7 @@ function mostrarSugerenciaPostres() {
   const cards = postres.slice(0, 4);
   document.getElementById('sugerencia-cards').innerHTML = cards.map(item => `
     <div class="sugerencia-card">
-      <img class="sugerencia-card-img" src="${item.img}" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80'">
+      <img class="sugerencia-card-img" src="${item.img}" alt="${item.name}" onerror="this.onerror=null">
       <div class="sugerencia-card-body">
         <div class="sugerencia-card-name">${item.name}</div>
         <div class="sugerencia-card-price">${item.price.toFixed(2).replace('.',',')} €</div>
@@ -1578,7 +1448,7 @@ function renderLista() {
   }
   body.innerHTML = items.map(item => `
     <div class="lista-item" id="lista-item-${item.id}">
-      <img class="lista-item-img" src="${item.img}" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80'">
+      <img class="lista-item-img" src="${item.img}" alt="${item.name}" onerror="this.onerror=null">
       <div class="lista-item-info">
         <div class="lista-item-name">${item.name}</div>
         <div class="lista-item-price">${Number(item.price).toFixed(2).replace('.',',')} €</div>
