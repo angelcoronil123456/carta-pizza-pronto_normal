@@ -4,404 +4,132 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Pizza Pronto – Carta Digital</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root {
-  --red:#C8102E; --red-dark:#9b0c22; --red-light:#ff3d5a;
-  --cream:#FFF8F0; --warm:#FFF0DC; --green:#2E7D32; --gold:#F4A01C;
-  --dark:#1a1208; --text:#2d1f0e; --text-soft:#6b5040;
-  --radius:22px; --radius-sm:14px;
-}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --red:#C8102E;--red-dark:#9b0c22;--green:#2E7D32;
+  --dark:#1a1208;--text:#2d1f0e;--text-soft:#8a7560;
+  --cream:#fdf8f2;--gold:#c8982e;
+  --radius:20px;--radius-sm:14px;
+}
 body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;overflow-x:hidden}
 
-/* ── LOADING ── */
-#loading-screen{position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,#1a0a06,#3b0f15);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
-.loading-logo{font-size:64px;animation:pulse-logo 1.5s ease-in-out infinite}
-@keyframes pulse-logo{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
-.loading-title{font-family:'Playfair Display',serif;font-size:32px;font-weight:900;color:#fff}
-.loading-bar-wrap{width:200px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden}
-.loading-bar{height:100%;background:var(--gold);border-radius:2px;animation:lprog 1.5s ease-in-out infinite}
-@keyframes lprog{0%{width:0}70%{width:90%}100%{width:100%}}
-.loading-txt{color:rgba(255,255,255,.5);font-size:13px}
+/* LOADING */
+#loading-screen{position:fixed;inset:0;background:var(--dark);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999}
+.loading-logo{font-size:64px;margin-bottom:16px;animation:pulse 1.5s ease-in-out infinite}
+.loading-name{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;color:#fff;margin-bottom:24px}
+.loading-bar{width:160px;height:3px;background:rgba(255,255,255,.2);border-radius:10px;overflow:hidden}
+.loading-fill{height:100%;background:var(--gold);border-radius:10px;animation:loadFill 1.5s ease-in-out infinite}
+.loading-txt{color:rgba(255,255,255,.5);font-size:13px;margin-top:12px}
+@keyframes loadFill{0%{width:0}100%{width:100%}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 
-/* ── HEADER ── */
-.app-header{position:sticky;top:0;z-index:50;background:rgba(255,248,240,.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(200,16,46,.1);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 20px rgba(0,0,0,.06)}
+/* APP */
+#app{display:none}
+
+/* HEADER */
+.header{position:sticky;top:0;z-index:50;background:var(--dark);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 20px rgba(0,0,0,.3)}
 .header-brand{display:flex;align-items:center;gap:10px}
-.header-logo{width:42px;height:42px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 12px rgba(200,16,46,.3)}
-.header-name{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;color:var(--red)}
-.header-mesa{font-size:12px;color:var(--text-soft);font-weight:600}
-.cart-btn{position:relative;background:var(--red);border:none;border-radius:50px;padding:10px 18px;display:flex;align-items:center;gap:8px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(200,16,46,.4);transition:all .2s}
-.cart-btn:active{transform:scale(.95)}
-.cart-count{position:absolute;top:-6px;right:-6px;background:var(--gold);color:var(--dark);font-size:11px;font-weight:900;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--cream);transform:scale(0);transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
-.cart-count.show{transform:scale(1)}
+.header-logo{font-size:26px}
+.header-name{font-family:'Playfair Display',serif;font-size:18px;font-weight:900;color:#fff}
+.header-mesa{font-size:11px;color:rgba(255,255,255,.55);margin-top:1px}
+.header-tag{background:rgba(200,16,46,.2);border-radius:50px;padding:6px 14px;font-size:12px;font-weight:800;color:rgba(255,255,255,.8)}
 
-/* ── HERO BANNER PSICOLÓGICO ── */
-.hero-banner{margin:16px 16px 0;border-radius:var(--radius);overflow:hidden;position:relative;background:linear-gradient(135deg,#1a0a06 0%,#3b0f15 50%,#1a0a06 100%);animation:fadeUp .6s ease both}
-@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-.hero-inner{padding:22px 20px 18px;position:relative;z-index:2}
-.hero-inner::before{content:'🍕';position:absolute;right:-10px;top:-10px;font-size:100px;opacity:.08;transform:rotate(-15deg)}
-.hero-tag{background:var(--gold);color:var(--dark);font-size:10px;font-weight:900;padding:4px 12px;border-radius:20px;letter-spacing:1px;text-transform:uppercase;display:inline-block;margin-bottom:10px}
-.hero-title{color:#fff;font-family:'Playfair Display',serif;font-size:24px;font-weight:900;line-height:1.2;margin-bottom:6px}
-.hero-sub{color:rgba(255,255,255,.65);font-size:13px;line-height:1.4;margin-bottom:14px}
-/* Chips de los más pedidos con PRUEBA SOCIAL */
-.hero-chips{display:flex;gap:8px;flex-wrap:wrap}
-.hero-chip{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:#fff;font-size:12px;font-weight:700;padding:6px 13px;border-radius:20px;display:flex;align-items:center;gap:5px;cursor:pointer;transition:background .2s;white-space:nowrap}
-.hero-chip:active{background:rgba(255,255,255,.25)}
-.hero-chip .chip-count{background:var(--gold);color:var(--dark);font-size:9px;font-weight:900;padding:1px 6px;border-radius:10px}
-
-/* ── SOCIAL PROOF STRIP ── */
-.proof-strip{margin:12px 16px 0;background:#fff;border-radius:var(--radius-sm);padding:12px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 12px rgba(0,0,0,.06)}
-.proof-avatars{display:flex}
-.proof-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--red),#ff6b35);border:2px solid #fff;margin-left:-8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff}
-.proof-avatar:first-child{margin-left:0}
-.proof-text{flex:1;font-size:12px;color:var(--text-soft);font-weight:700;line-height:1.4}
-.proof-text strong{color:var(--text)}
-.proof-stars{color:var(--gold);font-size:14px;letter-spacing:1px}
-
-/* ── CAT NAV ── */
-.cat-nav-wrap{position:sticky;top:66px;z-index:40;background:rgba(255,248,240,.97);backdrop-filter:blur(12px);padding:10px 0;margin-top:14px;border-bottom:1px solid rgba(200,16,46,.08)}
-.cat-nav{display:flex;gap:8px;overflow-x:auto;padding:0 16px;scrollbar-width:none}
+/* NAV */
+.cat-nav{display:flex;gap:8px;overflow-x:auto;padding:12px 16px;background:#fff;border-bottom:1px solid #f0e8e0;position:sticky;top:57px;z-index:49;scrollbar-width:none}
 .cat-nav::-webkit-scrollbar{display:none}
-.cat-btn{flex-shrink:0;border:2px solid transparent;border-radius:50px;padding:7px 16px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(200,16,46,.06);color:var(--text-soft);transition:all .2s;white-space:nowrap}
-.cat-btn.active{background:var(--red);color:#fff;border-color:var(--red);box-shadow:0 3px 12px rgba(200,16,46,.3)}
+.cat-btn{flex-shrink:0;padding:7px 16px;border-radius:50px;border:1.5px solid #e8ddd0;background:#fff;font-size:13px;font-weight:700;color:var(--text-soft);cursor:pointer;transition:all .2s;white-space:nowrap}
+.cat-btn.active{background:var(--red);border-color:var(--red);color:#fff}
 
-/* ── SECTIONS ── */
-.section{padding:0 16px;margin-top:28px}
-@keyframes fadeSlideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-.section-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--text);padding-bottom:10px;border-bottom:3px solid var(--red);display:flex;align-items:center;gap:10px;margin-bottom:16px}
+/* SECTIONS */
+.section{padding:20px 16px 0}
+.section-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:900;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.section-title span{font-size:22px}
+.dish-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 
-/* ── PLATO HÉROE (ancho completo, 1 por sección) ── */
-.dish-hero{background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:0 6px 28px rgba(0,0,0,.1);margin-bottom:14px;position:relative;animation:fadeSlideUp .4s ease both}
-.dish-hero-img{width:100%;height:180px;object-fit:cover;display:block;transition:transform .4s}
-.dish-hero:hover .dish-hero-img{transform:scale(1.03)}
-.dish-hero-body{padding:14px 16px 16px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
-.dish-hero-info{flex:1}
-.dish-hero-name{font-family:'Playfair Display',serif;font-size:18px;font-weight:900;color:var(--text);margin-bottom:3px}
-.dish-hero-desc{font-size:12px;color:var(--text-soft);line-height:1.4}
-.dish-hero-footer{display:flex;align-items:center;gap:12px;margin-top:8px}
-.hero-badge-wrap{display:flex;gap:6px;flex-wrap:wrap}
-
-/* ── GRID 2 COL ── */
-.dish-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.dish-card{background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.07);transition:transform .25s,box-shadow .25s;position:relative;display:flex;flex-direction:column;animation:fadeSlideUp .4s ease both}
-.dish-card:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,.12)}
-.dish-img-wrap{position:relative;aspect-ratio:4/3;overflow:hidden}
-.dish-img{width:100%;height:100%;object-fit:cover;transition:transform .4s}
-.dish-card:hover .dish-img{transform:scale(1.06)}
-
-/* ── BADGES MEJORADOS ── */
-.dish-badge{position:absolute;top:8px;left:8px;font-size:10px;font-weight:900;padding:4px 10px;border-radius:20px;letter-spacing:.3px;text-transform:uppercase;display:flex;align-items:center;gap:4px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
-.badge-bestseller{background:var(--gold);color:var(--dark)}
-.badge-new{background:#2E7D32;color:#fff}
-.badge-hot{background:var(--red);color:#fff;animation:badge-pulse 2s ease-in-out infinite}
-@keyframes badge-pulse{0%,100%{box-shadow:0 2px 8px rgba(200,16,46,.3)}50%{box-shadow:0 2px 16px rgba(200,16,46,.7)}}
-
-/* Badge especial "N pedidos hoy" */
-.badge-count{position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);color:#fff;font-size:9px;font-weight:800;padding:3px 8px;border-radius:10px;display:flex;align-items:center;gap:3px}
-
-.video-btn{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.2);border-radius:20px;color:#fff;font-size:9px;font-weight:800;padding:4px 8px;display:flex;align-items:center;gap:4px;cursor:pointer;transition:background .2s}
-.video-btn:hover{background:rgba(200,16,46,.8)}
+/* DISH CARD */
+.dish-card{background:#fff;border-radius:var(--radius-sm);overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06);animation:fadeSlideUp .4s ease both;position:relative;display:flex;flex-direction:column}
+@keyframes fadeSlideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.dish-img-wrap{position:relative;overflow:hidden}
+.dish-img{width:100%;height:120px;object-fit:cover;display:block;transition:transform .3s}
+.dish-card:active .dish-img{transform:scale(1.04)}
+.dish-badge{position:absolute;top:8px;left:8px;background:var(--red);color:#fff;font-size:9px;font-weight:900;padding:3px 8px;border-radius:20px;letter-spacing:.3px}
+.badge-hot{background:#e65100}
+.badge-new{background:#1565c0}
+.badge-bestseller{background:var(--red)}
+.video-btn{position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.6);color:#fff;font-size:10px;font-weight:700;padding:4px 8px;border-radius:20px;display:flex;align-items:center;gap:4px;cursor:pointer;backdrop-filter:blur(4px)}
 .video-btn svg{width:10px;height:10px;fill:#fff}
-
-.dish-body{padding:11px 12px;flex:1;display:flex;flex-direction:column}
-.dish-name{font-size:13px;font-weight:800;color:var(--text);line-height:1.3;margin-bottom:3px}
-.dish-desc{font-size:11px;color:var(--text-soft);line-height:1.4;flex:1}
-.allergens{display:flex;gap:3px;flex-wrap:wrap;margin-top:5px}
-.dish-ask{font-size:10px;color:var(--red);font-weight:700;margin-top:5px;cursor:pointer;display:flex;align-items:center;gap:3px}
-
-.dish-footer{display:flex;align-items:center;justify-content:space-between;padding:7px 12px 12px}
-.price-wrap{display:flex;flex-direction:column}
-.dish-price-old{font-size:11px;color:#bbb;text-decoration:line-through;font-weight:700;line-height:1}
-.dish-price{font-family:'Playfair Display',serif;font-size:17px;font-weight:900;color:var(--red)}
-
-.add-btn{background:var(--red);border:none;border-radius:50px;color:#fff;font-size:11px;font-weight:800;padding:8px 14px;cursor:pointer;transition:background .2s,transform .1s,box-shadow .2s;box-shadow:0 3px 10px rgba(200,16,46,.3);display:flex;align-items:center;gap:5px}
-.add-btn:active{transform:scale(.93)}
-@keyframes bounce-add{0%{transform:scale(1)}30%{transform:scale(.88)}60%{transform:scale(1.18)}80%{transform:scale(.97)}100%{transform:scale(1)}}
-.add-btn.bounce{animation:bounce-add .4s ease}
-
-/* ── SEPARADOR DE URGENCIA ── */
-.urgency-bar{margin:20px 16px 0;background:linear-gradient(135deg,var(--red),#ff6b35);border-radius:var(--radius-sm);padding:12px 16px;display:flex;align-items:center;gap:10px;color:#fff}
-.urgency-icon{font-size:20px;animation:flicker .8s ease-in-out infinite alternate}
-@keyframes flicker{from{opacity:.8}to{opacity:1}}
-.urgency-text{font-size:13px;font-weight:700;line-height:1.4}
-.urgency-text strong{font-size:14px}
-
-/* ── POSTRE SPOTLIGHT ── */
-.postre-spotlight{margin:20px 16px 0;border-radius:var(--radius);overflow:hidden;background:linear-gradient(135deg,#2d0a1e,#1a0a06);position:relative}
-.postre-spotlight-img{width:100%;height:200px;object-fit:cover;opacity:.5;display:block}
-.postre-overlay{position:absolute;inset:0;padding:16px 20px 20px;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(to top, rgba(26,10,6,.95) 40%, rgba(26,10,6,.2) 100%)}
-.postre-tag{background:rgba(244,160,28,.9);color:var(--dark);font-size:10px;font-weight:900;padding:3px 10px;border-radius:20px;letter-spacing:1px;text-transform:uppercase;display:inline-block;margin-bottom:8px;width:fit-content}
-.postre-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:#fff;margin-bottom:4px;line-height:1.2}
-.postre-sub{color:rgba(255,255,255,.7);font-size:12px;margin-bottom:12px}
-.postre-btn{background:#fff;border:none;border-radius:50px;color:var(--dark);font-size:13px;font-weight:900;padding:9px 20px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;width:fit-content}
-
-.bottom-pad{height:100px}
-
-/* ── CART ── */
-.cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(3px)}
-.cart-overlay.open{opacity:1;pointer-events:all}
-.cart-drawer{position:fixed;bottom:0;left:0;right:0;z-index:201;background:#fff;border-radius:28px 28px 0 0;transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1);max-height:85vh;display:flex;flex-direction:column;box-shadow:0 -10px 60px rgba(0,0,0,.2)}
-.cart-drawer.open{transform:translateY(0)}
-.cart-handle{width:40px;height:4px;border-radius:2px;background:#ddd;margin:12px auto 0}
-.cart-head{padding:16px 20px;border-bottom:1px solid #f0e8e0;display:flex;align-items:center;justify-content:space-between}
-.cart-head-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:900}
-.cart-mesa-tag{background:rgba(200,16,46,.1);color:var(--red);font-size:12px;font-weight:800;padding:4px 12px;border-radius:20px}
-.close-cart{background:none;border:none;font-size:24px;cursor:pointer;color:var(--text-soft)}
-.cart-items{flex:1;overflow-y:auto;padding:12px 20px}
-.cart-empty{text-align:center;padding:48px 0;color:var(--text-soft)}
-.cart-empty-icon{font-size:54px;display:block;margin-bottom:12px}
-.cart-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f5eee6}
-.cart-item-img{width:56px;height:56px;border-radius:var(--radius-sm);object-fit:cover}
-.cart-item-info{flex:1}
-.cart-item-name{font-size:14px;font-weight:800;color:var(--text)}
-.cart-item-price{font-size:13px;color:var(--red);font-weight:700;margin-top:2px}
-.qty-ctrl{display:flex;align-items:center;gap:8px}
-.qty-btn{width:30px;height:30px;border-radius:50%;border:2px solid;font-size:16px;font-weight:900;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
-.qty-minus{border-color:#e0d5ca;color:var(--text-soft);background:#faf6f1}
-.qty-minus:hover{border-color:var(--red);color:var(--red)}
-.qty-plus{border-color:var(--red);color:var(--red);background:rgba(200,16,46,.06)}
-.qty-plus:hover{background:var(--red);color:#fff}
-.qty-num{font-size:15px;font-weight:900;min-width:22px;text-align:center}
-.cart-footer{padding:16px 20px;border-top:1px solid #f0e8e0}
-.cart-total{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-.cart-total-label{font-size:16px;font-weight:700;color:var(--text-soft)}
-.cart-total-val{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;color:var(--red)}
-.btn-pedir{width:100%;padding:17px;background:var(--red);border:none;border-radius:var(--radius-sm);color:#fff;font-size:17px;font-weight:900;cursor:pointer;box-shadow:0 6px 24px rgba(200,16,46,.4);transition:background .2s}
-.btn-pedir:hover{background:var(--red-dark)}
-.btn-pedir:disabled{background:#ccc;box-shadow:none;cursor:not-allowed}
-
-/* ── MESA CART ── */
-.mesa-cart-btn{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:60;background:var(--dark);color:#fff;border:none;border-radius:50px;padding:14px 28px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 6px 28px rgba(0,0,0,.4);display:none;align-items:center;gap:10px;white-space:nowrap;transition:transform .15s}
-.mesa-cart-btn.visible{display:flex}
-.mesa-cart-btn.visible ~ #alergenos-btn{bottom:80px}
-.mesa-cart-btn.visible ~ #alergenos-panel{bottom:136px}
-.mesa-cart-btn:active{transform:translateX(-50%) scale(.96)}
-.mesa-cart-badge{background:var(--gold);color:var(--dark);font-size:11px;font-weight:900;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center}
-.mesa-cart-screen{position:fixed;inset:0;z-index:900;background:var(--cream);display:none;flex-direction:column;animation:fadeSlideUp .3s ease}
-.mesa-cart-screen.open{display:flex}
-.mesa-cart-header{background:var(--dark);padding:16px 20px;display:flex;align-items:center;gap:10px;flex-shrink:0}
-.mesa-cart-back{background:rgba(255,255,255,.15);border:none;border-radius:50%;width:36px;height:36px;color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.mesa-cart-htitle{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;color:#fff}
-.mesa-cart-hmesa{font-size:12px;color:rgba(255,255,255,.5);margin-top:1px}
-.sync-indicator{background:rgba(46,125,50,.15);border:1px solid rgba(46,125,50,.3);margin:12px 16px 0;border-radius:var(--radius-sm);padding:10px 14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--green)}
-.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:blink 1.2s infinite;flex-shrink:0}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-.mesa-cart-notice{background:var(--gold);margin:12px 16px 0;border-radius:var(--radius-sm);padding:14px 16px;display:flex;gap:10px;align-items:flex-start}
-.mesa-cart-notice-icon{font-size:20px;flex-shrink:0}
-.mesa-cart-notice-txt{color:var(--dark);font-size:13px;line-height:1.5;font-weight:700}
-.mesa-cart-body{flex:1;overflow-y:auto;padding:16px}
-.comensal-block{background:#fff;border-radius:var(--radius-sm);margin-bottom:14px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06)}
-.comensal-head{background:rgba(200,16,46,.07);padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
-.comensal-name{font-size:13px;font-weight:900;color:var(--red);display:flex;align-items:center;gap:6px}
-.comensal-subtotal{font-size:13px;font-weight:700;color:var(--text-soft)}
-.comensal-items{padding:10px 14px}
-.comensal-item{display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:1px solid #f5eee6;font-size:13px}
-.comensal-item:last-child{border-bottom:none}
-.comensal-item-name{color:var(--text);font-weight:600}
-.comensal-item-note{font-size:11px;color:var(--text-soft)}
-.comensal-item-price{color:var(--red);font-weight:700;flex-shrink:0;margin-left:8px}
-.mesa-cart-empty{text-align:center;padding:48px 20px;color:var(--text-soft)}
-.mesa-cart-footer{padding:16px 20px;border-top:1px solid #f0e8e0;background:#fff;flex-shrink:0}
-.mesa-total-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-.mesa-total-label{font-size:15px;font-weight:700;color:var(--text-soft)}
-.mesa-total-val{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;color:var(--red)}
-.btn-enviar-cocina{width:100%;padding:17px;background:var(--green);border:none;border-radius:var(--radius-sm);color:#fff;font-size:17px;font-weight:900;cursor:pointer;box-shadow:0 6px 20px rgba(46,125,50,.35);display:flex;align-items:center;justify-content:center;gap:8px}
-.btn-enviar-cocina:disabled{background:#ccc;box-shadow:none;cursor:not-allowed}
-
-/* ── MODALS ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:400;display:none;align-items:center;justify-content:center;padding:24px}
-.modal-overlay.open{display:flex}
-.modal-box{background:var(--dark);border-radius:var(--radius);padding:28px;width:100%;max-width:360px;text-align:center;color:#fff}
-.modal-icon{font-size:56px;margin-bottom:12px}
-.modal-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;margin-bottom:8px}
-.modal-desc{color:rgba(255,255,255,.6);font-size:14px;line-height:1.5}
-.modal-close{margin-top:20px;background:var(--red);border:none;border-radius:var(--radius-sm);color:#fff;font-size:14px;font-weight:800;padding:12px 28px;cursor:pointer}
-
-.confirm-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:none;align-items:flex-end}
-.confirm-modal.open{display:flex}
-.confirm-box{background:#fff;border-radius:28px 28px 0 0;padding:28px 24px;width:100%;animation:slideUp .3s ease}
-@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.confirm-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:900;margin-bottom:6px}
-.confirm-sub{color:var(--text-soft);font-size:14px;margin-bottom:20px}
-.confirm-summary{background:var(--warm);border-radius:var(--radius-sm);padding:16px;margin-bottom:20px}
-.confirm-row{display:flex;justify-content:space-between;font-size:14px;padding:3px 0}
-.confirm-row.total{font-weight:900;font-size:16px;border-top:1px solid #e0d5c5;margin-top:8px;padding-top:10px;color:var(--red)}
-.confirm-btns{display:flex;gap:10px}
-.btn-cancel{flex:1;padding:14px;background:#f0e8e0;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:800;cursor:pointer;color:var(--text-soft)}
-.btn-confirm{flex:2;padding:14px;background:var(--green);border:none;border-radius:var(--radius-sm);color:#fff;font-size:15px;font-weight:900;cursor:pointer}
-
-.ask-modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:600;display:none;align-items:flex-end}
-.ask-modal.open{display:flex}
-.ask-box{background:#fff;border-radius:28px 28px 0 0;width:100%;max-height:88vh;display:flex;flex-direction:column;animation:slideUp .3s ease}
-.ask-header{padding:16px 20px 12px;border-bottom:1px solid #f0e8e0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.ask-header-left{display:flex;align-items:center;gap:10px}
-.ask-ai-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--red),#ff6b35);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.ask-dish-name{font-family:'Playfair Display',serif;font-size:16px;font-weight:900;line-height:1.2}
-.ask-ai-label{font-size:11px;color:var(--green);font-weight:700;display:flex;align-items:center;gap:4px}
-.ask-ai-dot{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;animation:blink 1.2s infinite}
-.ask-close-btn{background:#f0e8e0;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-soft);flex-shrink:0}
-.ask-chips-wrap{padding:12px 16px;border-bottom:1px solid #f5eee6;flex-shrink:0}
-.ask-chips-label{font-size:11px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
-.ask-chips{display:flex;flex-wrap:wrap;gap:7px}
-.ask-chip{background:rgba(200,16,46,.07);border:1.5px solid rgba(200,16,46,.18);border-radius:50px;padding:6px 13px;font-size:12px;font-weight:700;color:var(--red);cursor:pointer;transition:all .15s;white-space:nowrap}
-.ask-chip:hover{background:var(--red);color:#fff;border-color:var(--red)}
-.ask-messages{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px;min-height:120px}
-.msg{display:flex;gap:8px;align-items:flex-end}
-.msg.user{flex-direction:row-reverse}
-.msg-bubble{max-width:80%;padding:10px 14px;border-radius:18px;font-size:13px;line-height:1.5}
-.msg.ai .msg-bubble{background:#f5eee6;color:var(--text);border-bottom-left-radius:4px}
-.msg.user .msg-bubble{background:var(--red);color:#fff;border-bottom-right-radius:4px}
-.msg-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--red),#ff6b35);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
-.msg-avatar.user-av{background:#e0d5ca}
-.typing-bubble{display:flex;gap:4px;align-items:center;padding:12px 16px}
-.typing-dot{width:7px;height:7px;border-radius:50%;background:var(--text-soft);animation:typing .9s infinite}
-.typing-dot:nth-child(2){animation-delay:.2s}
-.typing-dot:nth-child(3){animation-delay:.4s}
-@keyframes typing{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
-.allergy-warning{background:#fff8e6;border:1.5px solid #f4a01c;border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:#7a5a00;font-weight:600;display:flex;gap:8px;align-items:flex-start;margin-top:4px}
-.ask-input-wrap{padding:12px 16px;border-top:1px solid #f0e8e0;display:flex;gap:10px;align-items:center;flex-shrink:0}
-.ask-input{flex:1;background:#f5eee6;border:none;border-radius:50px;padding:11px 16px;font-size:14px;font-family:'Nunito',sans-serif;outline:none;color:var(--text)}
-.ask-send-btn{width:40px;height:40px;border-radius:50%;background:var(--red);border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.ask-send-btn:disabled{background:#ccc}
-
-.custom-modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:650;display:none;align-items:flex-end}
-.custom-modal.open{display:flex}
-.custom-box{background:#fff;border-radius:28px 28px 0 0;width:100%;max-height:85vh;display:flex;flex-direction:column;animation:slideUp .3s ease}
-.custom-handle{width:40px;height:4px;border-radius:2px;background:#ddd;margin:12px auto 0;flex-shrink:0}
-.custom-head{padding:14px 20px 12px;border-bottom:1px solid #f0e8e0;flex-shrink:0}
-.custom-img-wrap{height:140px;overflow:hidden;border-radius:16px;margin-bottom:10px}
-.custom-img{width:100%;height:100%;object-fit:cover}
-.custom-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:900}
-.custom-subtitle{font-size:12px;color:var(--text-soft);margin-top:2px}
-.custom-body{flex:1;overflow-y:auto;padding:16px 20px}
-.custom-section-label{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.8px;color:var(--text-soft);margin-bottom:10px}
-.ingredient-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
-.ingredient-row{display:flex;align-items:center;justify-content:space-between;background:#faf6f1;border-radius:var(--radius-sm);padding:11px 14px;border:2px solid transparent;transition:all .15s;cursor:pointer}
-.ingredient-row.removed{background:#fff5f5;border-color:rgba(200,16,46,.2)}
-.ingredient-row.removed .ingr-name{color:#aaa;text-decoration:line-through}
-.ingr-left{display:flex;align-items:center;gap:10px}
-.ingr-name{font-size:14px;font-weight:700;color:var(--text)}
-.ingr-toggle{width:28px;height:28px;border-radius:50%;border:2px solid #ddd;display:flex;align-items:center;justify-content:center;font-size:14px;background:#fff;transition:all .15s;flex-shrink:0}
-.ingredient-row.removed .ingr-toggle{background:rgba(200,16,46,.1);border-color:var(--red);color:var(--red)}
-.custom-note{width:100%;background:#faf6f1;border:1.5px solid #e8ddd0;border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;font-family:'Nunito',sans-serif;outline:none;resize:none;color:var(--text)}
-.custom-note:focus{border-color:var(--red)}
-.custom-footer{padding:14px 20px;border-top:1px solid #f0e8e0;display:flex;gap:10px;flex-shrink:0}
-.btn-custom-cancel{flex:1;padding:13px;background:#f0e8e0;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:800;cursor:pointer;color:var(--text-soft)}
-.btn-custom-add{flex:2;padding:13px;background:var(--red);border:none;border-radius:var(--radius-sm);color:#fff;font-size:15px;font-weight:900;cursor:pointer}
-
-.upsell-overlay{position:fixed;inset:0;z-index:800;display:none;flex-direction:column;justify-content:flex-end;background:rgba(0,0,0,.55);backdrop-filter:blur(4px)}
-.upsell-overlay.open{display:flex}
-.upsell-sheet{background:#fff;border-radius:28px 28px 0 0;padding:0 0 28px;animation:slideUp .35s cubic-bezier(.32,.72,0,1);max-height:85vh;overflow:hidden}
-.upsell-sheet-top{background:linear-gradient(135deg,#1a0a06,#3b0f15);padding:20px 20px 16px;border-radius:28px 28px 0 0;position:relative}
-.upsell-sheet-tag{background:var(--gold);color:var(--dark);font-size:10px;font-weight:900;padding:3px 10px;border-radius:20px;letter-spacing:1px;text-transform:uppercase;display:inline-block;margin-bottom:8px}
-.upsell-sheet-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:#fff;line-height:1.2}
-.upsell-sheet-sub{color:rgba(255,255,255,.6);font-size:13px;margin-top:4px}
-.upsell-skip-top{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.25);color:#fff;font-size:13px;font-weight:800;padding:6px 14px;border-radius:50px;cursor:pointer;font-family:'Nunito',sans-serif}
-.upsell-cards-wrap{display:flex;gap:14px;overflow-x:auto;padding:18px 20px 4px;scrollbar-width:none;scroll-snap-type:x mandatory}
-.upsell-cards-wrap::-webkit-scrollbar{display:none}
-.upsell-item-card{flex-shrink:0;width:200px;border-radius:var(--radius);overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.12);scroll-snap-align:start;background:#fff;border:1.5px solid #f0e8e0}
-.upsell-item-img{width:100%;height:130px;object-fit:cover;display:block}
-.upsell-item-body{padding:10px 12px 12px}
-.upsell-item-name{font-size:14px;font-weight:900;color:var(--text);margin-bottom:2px}
-.upsell-item-desc{font-size:11px;color:var(--text-soft);line-height:1.4;margin-bottom:8px}
-.upsell-item-foot{display:flex;align-items:center;justify-content:space-between}
-.upsell-item-price{font-family:'Playfair Display',serif;font-size:16px;font-weight:900;color:var(--red)}
-.upsell-item-btn{background:var(--red);border:none;border-radius:50px;color:#fff;font-size:12px;font-weight:900;padding:6px 14px;cursor:pointer}
-.upsell-item-btn.added{background:var(--green)}
-.upsell-confirm-wrap{padding:14px 20px 0}
-.upsell-confirm-btn{width:100%;padding:15px;background:var(--red);border:none;border-radius:var(--radius-sm);color:#fff;font-size:16px;font-weight:900;cursor:pointer}
-
-.meat-options{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
-.meat-opt{border:2px solid #e8ddd0;border-radius:var(--radius-sm);padding:10px 6px;text-align:center;cursor:pointer;transition:all .2s;background:#faf6f1}
-.meat-opt.selected{border-color:var(--red);background:rgba(200,16,46,.06)}
-.meat-opt-icon{font-size:26px;display:block;margin-bottom:4px}
-.meat-opt-bar{height:6px;border-radius:3px;margin:6px auto 6px;width:70%}
-.meat-poco .meat-opt-bar{background:linear-gradient(90deg,#ffb3a0,#ff7a5a)}
-.meat-punto .meat-opt-bar{background:linear-gradient(90deg,#e05030,#b02010)}
-.meat-muy .meat-opt-bar{background:linear-gradient(90deg,#6b2010,#3a0a05)}
-.meat-opt-name{font-size:12px;font-weight:800;color:var(--text)}
-.meat-opt-desc{font-size:10px;color:var(--text-soft);margin-top:2px}
-
-.pedido-enviado-screen{position:fixed;inset:0;z-index:950;background:linear-gradient(160deg,#1a3a0f,#0f2a08);display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center}
-.pedido-enviado-screen.open{display:flex}
-.pedido-enviado-icon{font-size:80px;animation:popIn .5s cubic-bezier(.34,1.56,.64,1);margin-bottom:16px}
-@keyframes popIn{from{transform:scale(0)}to{transform:scale(1)}}
-.pedido-enviado-title{font-family:'Playfair Display',serif;font-size:32px;font-weight:900;color:#fff;margin-bottom:10px}
-.pedido-enviado-sub{color:rgba(255,255,255,.7);font-size:16px;line-height:1.6;margin-bottom:32px}
-.pedido-enviado-more{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:var(--radius);padding:20px;width:100%;max-width:340px;margin-bottom:20px}
-.pedido-enviado-more-title{color:#fff;font-size:15px;font-weight:800;margin-bottom:14px}
-.sugerencias-post{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
-.sugerencias-post::-webkit-scrollbar{display:none}
-.sug-chip{flex-shrink:0;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:var(--radius-sm);padding:8px 10px;text-align:center;cursor:pointer;min-width:90px}
-.sug-chip-img{width:60px;height:60px;border-radius:10px;object-fit:cover;margin-bottom:5px}
-.sug-chip-name{font-size:11px;font-weight:700;color:#fff;line-height:1.3}
-.sug-chip-price{font-size:11px;color:rgba(255,255,255,.6);margin-top:2px}
-.btn-volver-carta{background:#fff;border:none;border-radius:50px;color:var(--dark);font-size:15px;font-weight:900;padding:14px 32px;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.2)}
-
-.session-expired{position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,#1a0a06,#3b0f15);display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center}
-.session-expired.open{display:flex}
-.session-expired-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;color:#fff;margin-bottom:8px;margin-top:16px}
-.session-expired-sub{color:rgba(255,255,255,.6);font-size:14px;line-height:1.6;margin-bottom:28px}
-.btn-reload{background:var(--red);border:none;border-radius:50px;color:#fff;font-size:16px;font-weight:900;padding:14px 32px;cursor:pointer}
-
-.review-screen{position:fixed;inset:0;z-index:700;background:linear-gradient(160deg,#1a0a06,#3b0f15);display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center}
-.review-screen.open{display:flex}
-.review-card{background:rgba(255,255,255,.07);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.15);border-radius:var(--radius);padding:24px;width:100%;max-width:340px;margin-bottom:16px}
-.review-stars{font-size:32px;letter-spacing:4px;margin-bottom:12px}
-.review-card-title{color:#fff;font-size:16px;font-weight:800;margin-bottom:6px}
-.review-card-desc{color:rgba(255,255,255,.6);font-size:13px;line-height:1.5;margin-bottom:18px}
-.btn-google-review{width:100%;padding:15px;background:#fff;border:none;border-radius:var(--radius-sm);color:#1a0a06;font-size:15px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 20px rgba(0,0,0,.3)}
-.btn-review-skip{background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.3);color:#fff;font-size:15px;font-weight:800;cursor:pointer;padding:13px 32px;border-radius:50px;font-family:'Nunito',sans-serif;margin-top:4px}
-
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--dark);color:#fff;font-size:13px;font-weight:700;padding:10px 20px;border-radius:50px;z-index:9999;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;white-space:nowrap;box-shadow:0 6px 20px rgba(0,0,0,.3)}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.chat-plato-card{background:#faf6f1;border-radius:12px;padding:10px 12px;margin-top:6px;display:flex;align-items:center;gap:10px;border:1.5px solid #e8ddd0}
-.chat-plato-img{width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0}
-.chat-plato-info{flex:1}
-.chat-plato-name{font-size:13px;font-weight:800;color:var(--text)}
-.chat-plato-price{font-size:12px;color:var(--red);font-weight:700}
-.chat-plato-btn{background:var(--red);border:none;border-radius:20px;color:#fff;font-size:11px;font-weight:800;padding:6px 12px;cursor:pointer;flex-shrink:0;transition:background .2s}
-
-/* BOTÓN FLOTANTE ASISTENTE */
-.asistente-btn{position:fixed;bottom:88px;right:16px;z-index:58;background:var(--red);color:#fff;border:none;border-radius:50px;padding:11px 18px;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 4px 20px rgba(200,16,46,.4);display:none;align-items:center;gap:8px;white-space:nowrap;animation:slideInRight .4s cubic-bezier(.34,1.56,.64,1)}
-.asistente-btn.visible{display:flex}
-@keyframes slideInRight{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:translateX(0)}}
-.asistente-btn-dot{width:8px;height:8px;border-radius:50%;background:#fff;opacity:.8;animation:blink 1.2s infinite}
-
-/* CHAT ASISTENTE GENERAL */
-.asistente-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:700;display:none;backdrop-filter:blur(3px)}
-.asistente-overlay.open{display:block}
-.asistente-chat{position:fixed;bottom:0;left:0;right:0;z-index:701;background:#fff;border-radius:28px 28px 0 0;max-height:80vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1);box-shadow:0 -8px 40px rgba(0,0,0,.2)}
-.asistente-chat.open{transform:translateY(0)}
-.asistente-chat-head{padding:16px 20px 12px;border-bottom:1px solid #f0e8e0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.asistente-chat-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--red),#ff6b35);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.asistente-chat-info{flex:1;margin-left:10px}
-.asistente-chat-name{font-family:'Playfair Display',serif;font-size:16px;font-weight:900}
-.asistente-chat-status{font-size:11px;color:var(--green);font-weight:700;display:flex;align-items:center;gap:4px}
-.asistente-chat-close{background:#f0e8e0;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-soft)}
-
-/* Chips de sugerencias rápidas */
-.asistente-chips-wrap{padding:10px 16px;border-bottom:1px solid #f5eee6;flex-shrink:0}
-.asistente-chips{display:flex;gap:7px;flex-wrap:wrap}
-.asistente-chip{background:rgba(200,16,46,.07);border:1.5px solid rgba(200,16,46,.18);border-radius:50px;padding:6px 13px;font-size:12px;font-weight:700;color:var(--red);cursor:pointer;transition:all .15s;white-space:nowrap}
-.asistente-chip:hover{background:var(--red);color:#fff;border-color:var(--red)}
-
-.asistente-messages{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px;min-height:150px}
+.dish-body{padding:10px 10px 4px;flex:1}
+.dish-name{font-size:13px;font-weight:800;color:var(--text);margin-bottom:3px;line-height:1.3}
+.dish-desc{font-size:11px;color:var(--text-soft);line-height:1.4;margin-bottom:4px}
+.allergens{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:4px}
+.allergen{font-size:12px}
+.dish-ask{font-size:10px;color:var(--red);font-weight:700;cursor:pointer;display:flex;align-items:center;gap:3px}
+.dish-footer{padding:8px 10px 10px;display:flex;align-items:center;justify-content:space-between;gap:6px}
+.dish-price{font-family:'Playfair Display',serif;font-size:16px;font-weight:900;color:var(--red)}
 
 /* BOTÓN GUARDAR */
-.btn-guardar{background:none;border:1.5px solid #e0d5ca;border-radius:50px;padding:6px 12px;font-size:11px;font-weight:800;color:var(--text-soft);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.btn-guardar{background:none;border:1.5px solid #e0d5ca;border-radius:50px;padding:5px 10px;font-size:10px;font-weight:800;color:var(--text-soft);cursor:pointer;transition:all .2s;white-space:nowrap}
 .btn-guardar.guardado{background:rgba(200,16,46,.08);border-color:var(--red);color:var(--red)}
-.btn-guardar:active{transform:scale(.93)}
 
-/* BARRA FLOTANTE DE GUARDADOS */
-.lista-btn{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:60;background:var(--dark);color:#fff;border:none;border-radius:50px;padding:13px 24px;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 6px 28px rgba(0,0,0,.35);display:none;align-items:center;gap:10px;white-space:nowrap;transition:all .3s}
+/* HERO */
+.dish-hero{background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.1);margin-bottom:12px}
+.dish-hero-img{width:100%;height:180px;object-fit:cover;display:block}
+.dish-hero-body{padding:14px 16px}
+.dish-hero-name{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;margin-bottom:4px}
+.dish-hero-desc{font-size:13px;color:var(--text-soft);margin-bottom:10px;line-height:1.5}
+.dish-hero-footer{display:flex;align-items:center;justify-content:space-between}
+
+/* HERO BANNER */
+.hero-banner{background:linear-gradient(135deg,#1a0a06,#2d1a0a);border-radius:var(--radius);margin:0 0 16px;padding:20px 16px;overflow:hidden;position:relative}
+.promo-tag{background:var(--gold);color:var(--dark);font-size:9px;font-weight:900;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:8px;letter-spacing:1px;text-transform:uppercase}
+.promo-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:#fff;margin-bottom:6px;line-height:1.2}
+.promo-sub{font-size:12px;color:rgba(255,255,255,.6);margin-bottom:12px}
+.hero-chips{display:flex;gap:8px;flex-wrap:wrap}
+.hero-chip{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:50px;padding:5px 12px;font-size:11px;font-weight:700;color:#fff;cursor:pointer;white-space:nowrap}
+
+/* URGENCY */
+.urgency-bar{background:linear-gradient(135deg,var(--red-dark,#9b0c22),var(--red));margin:20px 0 0;padding:12px 16px;display:flex;align-items:center;gap:10px}
+.urgency-bar-text{font-size:13px;font-weight:800;color:#fff}
+
+/* POSTRE SPOTLIGHT */
+.postre-spotlight{margin:20px 16px 0;border-radius:var(--radius);overflow:hidden;background:linear-gradient(135deg,#2d0a1e,#1a0a06);position:relative;display:none}
+.postre-spotlight-img{width:100%;height:200px;object-fit:cover;opacity:.5;display:block}
+.postre-overlay{position:absolute;inset:0;padding:16px 20px 20px;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(to top,rgba(26,10,6,.95) 40%,rgba(26,10,6,.2) 100%)}
+.postre-tag{background:var(--gold);color:var(--dark);font-size:9px;font-weight:900;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:6px;letter-spacing:1px;text-transform:uppercase}
+.postre-name{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;color:#fff;margin-bottom:12px}
+.postre-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+
+/* PLATO DEL DÍA */
+.plato-dia-banner{margin:12px 16px 0;border-radius:var(--radius);overflow:hidden;cursor:pointer}
+.plato-dia-inner{background:linear-gradient(135deg,#1a3a0f,#0f2a08);padding:16px 18px;display:flex;align-items:center;gap:14px}
+.plato-dia-img{width:70px;height:70px;border-radius:12px;object-fit:cover;flex-shrink:0}
+.plato-dia-tag{background:var(--gold);color:var(--dark);font-size:9px;font-weight:900;padding:2px 8px;border-radius:20px;display:inline-block;margin-bottom:5px}
+.plato-dia-name{font-family:'Playfair Display',serif;font-size:16px;font-weight:900;color:#fff;margin-bottom:3px}
+.plato-dia-desc{font-size:11px;color:rgba(255,255,255,.65);margin-bottom:6px}
+.plato-dia-price{font-family:'Playfair Display',serif;font-size:18px;font-weight:900;color:var(--gold)}
+
+/* MÁS PEDIDOS */
+.mas-pedidos-section{margin:20px 16px 0}
+.mas-pedidos-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;color:var(--text);margin-bottom:12px}
+.mas-pedidos-grid{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
+.mas-pedidos-grid::-webkit-scrollbar{display:none}
+.mas-pedido-chip{flex-shrink:0;border-radius:14px;overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,.08);background:#fff;width:130px;cursor:pointer}
+.mas-pedido-img{width:100%;height:80px;object-fit:cover}
+.mas-pedido-body{padding:7px 9px 9px}
+.mas-pedido-name{font-size:11px;font-weight:800;color:var(--text);margin-bottom:2px;line-height:1.3}
+.mas-pedido-price{font-size:12px;font-weight:900;color:var(--red)}
+
+/* BARRA LISTA */
+.lista-btn{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:60;background:var(--dark);color:#fff;border:none;border-radius:50px;padding:13px 24px;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 6px 28px rgba(0,0,0,.35);display:none;align-items:center;gap:10px;white-space:nowrap}
 .lista-btn.visible{display:flex}
 .lista-badge{background:var(--red);color:#fff;font-size:11px;font-weight:900;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center}
 
 /* PANTALLA LISTA */
-.lista-screen{position:fixed;inset:0;z-index:900;background:var(--cream);display:none;flex-direction:column;animation:fadeSlideUp .3s ease}
+.lista-screen{position:fixed;inset:0;z-index:900;background:var(--cream);display:none;flex-direction:column}
 .lista-screen.open{display:flex}
 .lista-header{background:var(--dark);padding:16px 20px;display:flex;align-items:center;gap:12px;flex-shrink:0}
 .lista-back{background:rgba(255,255,255,.15);border:none;border-radius:50%;width:36px;height:36px;color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -413,24 +141,72 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 .lista-item-name{font-size:15px;font-weight:800;color:var(--text);margin-bottom:3px}
 .lista-item-price{font-family:'Playfair Display',serif;font-size:15px;font-weight:900;color:var(--red)}
 .lista-item-remove{background:none;border:none;font-size:20px;color:#ccc;cursor:pointer;padding:4px;flex-shrink:0}
-.lista-item-remove:hover{color:var(--red)}
 .lista-empty{text-align:center;padding:60px 24px;color:var(--text-soft)}
 .lista-footer{padding:16px 20px;background:#fff;border-top:1px solid #f0e8e0;flex-shrink:0}
 .btn-limpiar-lista{width:100%;padding:14px;background:#f0e8e0;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:800;cursor:pointer;color:var(--text-soft)}
-.alergen-pill{background:#f0e8e0;border:2px solid #e8ddd0;border-radius:50px;padding:5px 11px;font-size:12px;font-weight:700;color:var(--text-soft);cursor:pointer;transition:all .15s;user-select:none}
-.alergen-pill.active{background:rgba(200,16,46,.1);border-color:var(--red);color:var(--red)}
 
-/* PANEL SUGERENCIA POSTRES */
+/* ASISTENTE FLOTANTE */
+.asistente-btn{position:fixed;bottom:88px;right:16px;z-index:58;background:var(--red);color:#fff;border:none;border-radius:50px;padding:11px 18px;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 4px 20px rgba(200,16,46,.4);display:none;align-items:center;gap:8px;white-space:nowrap}
+.asistente-btn.visible{display:flex}
+.asistente-btn-dot{width:8px;height:8px;border-radius:50%;background:#fff;opacity:.8;animation:blink 1.2s infinite}
+@keyframes blink{0%,100%{opacity:.8}50%{opacity:.3}}
+.asistente-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:700;display:none;backdrop-filter:blur(3px)}
+.asistente-overlay.open{display:block}
+.asistente-chat{position:fixed;bottom:0;left:0;right:0;z-index:701;background:#fff;border-radius:28px 28px 0 0;max-height:80vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1);box-shadow:0 -8px 40px rgba(0,0,0,.2)}
+.asistente-chat.open{transform:translateY(0)}
+.asistente-chat-head{padding:16px 20px 12px;border-bottom:1px solid #f0e8e0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.asistente-chat-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--red),#ff6b35);display:flex;align-items:center;justify-content:center;font-size:20px}
+.asistente-chips-wrap{padding:10px 16px;border-bottom:1px solid #f5eee6;flex-shrink:0}
+.asistente-chips{display:flex;gap:7px;flex-wrap:wrap}
+.asistente-chip{background:rgba(200,16,46,.07);border:1.5px solid rgba(200,16,46,.18);border-radius:50px;padding:6px 13px;font-size:12px;font-weight:700;color:var(--red);cursor:pointer;white-space:nowrap}
+.asistente-messages{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px;min-height:150px}
+
+/* ASK MODAL */
+.ask-modal{position:fixed;inset:0;z-index:800;display:none;flex-direction:column;background:rgba(0,0,0,.5);backdrop-filter:blur(4px)}
+.ask-modal.open{display:flex}
+.ask-inner{margin-top:auto;background:#fff;border-radius:28px 28px 0 0;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 -8px 40px rgba(0,0,0,.2)}
+.ask-header{padding:16px 20px 12px;border-bottom:1px solid #f0e8e0;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.ask-header-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--red),#ff6b35);display:flex;align-items:center;justify-content:center;font-size:18px}
+.ask-dish-name{font-weight:800;font-size:15px;flex:1}
+.ask-close{background:#f0e8e0;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.ask-chips{display:flex;gap:7px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid #f5eee6;flex-shrink:0}
+.ask-chip{background:rgba(200,16,46,.07);border:1.5px solid rgba(200,16,46,.18);border-radius:50px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--red);cursor:pointer;white-space:nowrap}
+.ask-messages{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-height:100px}
+.ask-input-wrap{padding:12px 16px;border-top:1px solid #f0e8e0;display:flex;gap:8px;flex-shrink:0}
+.ask-input{flex:1;border:1.5px solid #e8ddd0;border-radius:50px;padding:10px 16px;font-size:14px;font-family:'Nunito',sans-serif;outline:none}
+.ask-send-btn{background:var(--red);border:none;border-radius:50%;width:40px;height:40px;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.msg{display:flex;align-items:flex-start;gap:8px}
+.msg.user{flex-direction:row-reverse}
+.msg-bubble{background:#f0e8e0;border-radius:16px;padding:10px 14px;font-size:13px;line-height:1.5;max-width:80%}
+.msg.user .msg-bubble{background:var(--red);color:#fff}
+.msg-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--red),#ff6b35);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.user-av{background:var(--dark)}
+.typing-bubble{display:flex;gap:4px;align-items:center;padding:12px 16px}
+.typing-dot{width:6px;height:6px;border-radius:50%;background:var(--text-soft);animation:typing .8s ease-in-out infinite}
+.typing-dot:nth-child(2){animation-delay:.15s}
+.typing-dot:nth-child(3){animation-delay:.3s}
+@keyframes typing{0%,80%,100%{transform:scale(1);opacity:.5}40%{transform:scale(1.2);opacity:1}}
+
+/* CHAT PLATO CARD */
+.chat-plato-card{background:#faf6f1;border-radius:12px;padding:10px 12px;margin-top:6px;display:flex;align-items:center;gap:10px;border:1.5px solid #e8ddd0}
+.chat-plato-img{width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0}
+.chat-plato-info{flex:1}
+.chat-plato-name{font-size:13px;font-weight:800;color:var(--text)}
+.chat-plato-price{font-size:12px;color:var(--red);font-weight:700}
+.chat-plato-btn{background:var(--red);border:none;border-radius:20px;color:#fff;font-size:11px;font-weight:800;padding:6px 12px;cursor:pointer;flex-shrink:0}
+.chat-plato-btn.guardado{background:var(--green)}
+
+/* SUGERENCIA POSTRES */
+.sugerencia-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:799;display:none;backdrop-filter:blur(2px)}
+.sugerencia-overlay.open{display:block}
 .sugerencia-panel{position:fixed;bottom:0;left:0;right:0;z-index:800;background:#fff;border-radius:28px 28px 0 0;padding:0;box-shadow:0 -8px 40px rgba(0,0,0,.2);transform:translateY(100%);transition:transform .4s cubic-bezier(.32,.72,0,1);max-height:45vh;display:flex;flex-direction:column}
 .sugerencia-panel.open{transform:translateY(0)}
 .sugerencia-panel-head{padding:16px 20px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .sugerencia-panel-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:900;color:var(--dark)}
-.sugerencia-panel-sub{font-size:12px;color:var(--text-soft);margin-top:2px}
-.sugerencia-close{background:#f0e8e0;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-soft);flex-shrink:0}
-.sugerencia-cards{display:flex;gap:12px;overflow-x:auto;padding:0 20px 20px;scrollbar-width:none;scroll-snap-type:x mandatory;flex:1}
+.sugerencia-close{background:#f0e8e0;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-soft)}
+.sugerencia-cards{display:flex;gap:12px;overflow-x:auto;padding:0 20px 20px;scrollbar-width:none}
 .sugerencia-cards::-webkit-scrollbar{display:none}
-.sugerencia-card{flex-shrink:0;width:150px;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.1);scroll-snap-align:start;background:#fff;border:1.5px solid #f0e8e0;cursor:pointer;transition:transform .2s}
-.sugerencia-card:active{transform:scale(.97)}
+.sugerencia-card{flex-shrink:0;width:150px;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.1);background:#fff;border:1.5px solid #f0e8e0}
 .sugerencia-card-img{width:100%;height:100px;object-fit:cover;display:block}
 .sugerencia-card-body{padding:8px 10px 10px}
 .sugerencia-card-name{font-size:12px;font-weight:800;color:var(--text);margin-bottom:4px;line-height:1.3}
@@ -438,106 +214,89 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 .sugerencia-card-btn{width:100%;padding:6px;background:var(--red);border:none;border-radius:8px;color:#fff;font-size:11px;font-weight:800;cursor:pointer}
 .sugerencia-card-btn.guardado{background:var(--green)}
 
-/* OVERLAY oscuro detrás del panel */
-.sugerencia-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:799;display:none;backdrop-filter:blur(2px)}
-.sugerencia-overlay.open{display:block}
+/* VIDEO MODAL */
+.video-modal{position:fixed;inset:0;z-index:850;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+.video-modal.open{display:flex}
+.video-modal-close{background:rgba(255,255,255,.15);border:none;border-radius:50px;padding:10px 24px;color:#fff;font-size:14px;font-weight:700;cursor:pointer}
 
-/* PLATO DEL DÍA BANNER */
-.plato-dia-banner{margin:12px 16px 0;border-radius:var(--radius);overflow:hidden;position:relative;cursor:pointer;animation:fadeSlideUp .5s ease both}
-.plato-dia-inner{background:linear-gradient(135deg,#1a3a0f,#0f2a08);padding:16px 18px;display:flex;align-items:center;gap:14px}
-.plato-dia-img{width:70px;height:70px;border-radius:12px;object-fit:cover;flex-shrink:0;box-shadow:0 4px 12px rgba(0,0,0,.3)}
-.plato-dia-tag{background:var(--gold);color:var(--dark);font-size:9px;font-weight:900;padding:2px 8px;border-radius:20px;letter-spacing:1px;text-transform:uppercase;display:inline-block;margin-bottom:5px}
-.plato-dia-name{font-family:'Playfair Display',serif;font-size:16px;font-weight:900;color:#fff;line-height:1.2;margin-bottom:3px}
-.plato-dia-desc{font-size:11px;color:rgba(255,255,255,.65);line-height:1.4;margin-bottom:6px}
-.plato-dia-price{font-family:'Playfair Display',serif;font-size:18px;font-weight:900;color:var(--gold)}
-
-/* MÁS PEDIDOS ESTA SEMANA */
-.mas-pedidos-section{margin:20px 16px 0}
-.mas-pedidos-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.mas-pedidos-grid{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
-.mas-pedidos-grid::-webkit-scrollbar{display:none}
-.mas-pedido-chip{flex-shrink:0;border-radius:14px;overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,.08);background:#fff;width:130px;cursor:pointer;transition:transform .2s}
-.mas-pedido-chip:active{transform:scale(.97)}
-.mas-pedido-img{width:100%;height:80px;object-fit:cover}
-.mas-pedido-body{padding:7px 9px 9px}
-.mas-pedido-name{font-size:11px;font-weight:800;color:var(--text);margin-bottom:2px;line-height:1.3}
-.mas-pedido-price{font-size:12px;font-weight:900;color:var(--red)}
+/* ALÉRGENOS */
+#alergenos-btn{position:fixed;bottom:24px;left:16px;z-index:59;background:#fff;border:2px solid #e8ddd0;border-radius:50px;padding:9px 16px;display:flex;align-items:center;gap:7px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.13);font-size:13px;font-weight:800;color:var(--text-soft);transition:all .2s;user-select:none}
+#alergenos-panel{position:fixed;bottom:80px;left:16px;z-index:59;background:#fff;border-radius:20px;padding:20px;box-shadow:0 8px 40px rgba(0,0,0,.18);width:300px;display:none}
+.alergen-pill{background:#f0e8e0;border:2px solid #e8ddd0;border-radius:50px;padding:5px 11px;font-size:12px;font-weight:700;color:var(--text-soft);cursor:pointer;transition:all .15s;user-select:none}
+.alergen-pill.active{background:rgba(200,16,46,.1);border-color:var(--red);color:var(--red)}
 .dish-card.alergen-warning{outline:2px solid var(--red);opacity:.55}
-.dish-card.alergen-warning::after{content:'⚠️ Contiene alérgenos';position:absolute;top:0;left:0;right:0;background:rgba(200,16,46,.85);color:#fff;font-size:10px;font-weight:900;padding:4px 8px;text-align:center;letter-spacing:.3px}
+
+/* PROOF STRIP */
+.proof-strip{background:linear-gradient(135deg,#1a1208,#2d1f0e);margin:24px 16px 0;border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;gap:12px}
+.proof-stars{font-size:18px;letter-spacing:2px}
+.proof-text{font-size:12px;color:rgba(255,255,255,.7);line-height:1.4}
+.proof-link{color:var(--gold);font-weight:700;text-decoration:none}
+
+/* BOTTOM PAD */
+.bottom-pad{height:100px}
+
+/* TOAST */
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--dark);color:#fff;padding:10px 20px;border-radius:50px;font-size:13px;font-weight:700;white-space:nowrap;z-index:999;opacity:0;transition:all .3s;pointer-events:none;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 
 <div id="loading-screen">
   <div class="loading-logo">🍕</div>
-  <div class="loading-title">Pizza Pronto</div>
-  <div class="loading-bar-wrap"><div class="loading-bar"></div></div>
+  <div class="loading-name">Pizza Pronto</div>
+  <div class="loading-bar"><div class="loading-fill"></div></div>
   <div class="loading-txt">Cargando la carta...</div>
 </div>
 
-<div id="app" style="display:none">
-  <header class="app-header">
+<div id="app">
+  <div class="header">
     <div class="header-brand">
       <div class="header-logo">🍕</div>
       <div>
         <div class="header-name">Pizza Pronto</div>
-        <div class="header-mesa" id="header-mesa-txt">Mesa —</div>
+        <div class="header-mesa" id="header-mesa-txt">Mesa 1</div>
       </div>
     </div>
-    <div style="background:rgba(200,16,46,.1);border-radius:50px;padding:8px 16px;font-size:13px;font-weight:800;color:var(--red)" id="header-mesa-tag">Mesa —</div>
-  </header>
+    <div class="header-tag" id="header-mesa-tag">Mesa 1</div>
+  </div>
 
-  <!-- HERO BANNER — prueba social + urgencia -->
-  <div class="hero-banner">
-    <div class="hero-inner">
-      <span class="hero-tag">🔥 Los más pedidos hoy</span>
-      <div class="hero-title">Lo que nadie deja de pedir</div>
-      <div class="hero-sub">Más de 200 pedidos esta semana. Descubre por qué.</div>
+  <div class="cat-nav">
+    <button class="cat-btn active" onclick="scrollToSection('pizzas')">🍕 Pizzas</button>
+    <button class="cat-btn" onclick="scrollToSection('pastas')">🍝 Pastas</button>
+    <button class="cat-btn" onclick="scrollToSection('entrantes')">🥗 Entrantes</button>
+    <button class="cat-btn" onclick="scrollToSection('ensaladas')">🥬 Ensaladas</button>
+    <button class="cat-btn" onclick="scrollToSection('postres')">🍮 Postres</button>
+    <button class="cat-btn" onclick="scrollToSection('bebidas')">🥤 Bebidas</button>
+  </div>
+
+  <div id="plato-dia-wrap" style="display:none"></div>
+  <div id="mas-pedidos-wrap" style="display:none"></div>
+
+  <div style="padding:16px 16px 0">
+    <div class="hero-banner">
+      <div class="promo-tag">⭐ Lo más pedido</div>
+      <div class="promo-title">Auténtica cocina italiana</div>
+      <div class="promo-sub">Masa madre, ingredientes frescos cada día</div>
       <div class="hero-chips" id="hero-chips"></div>
     </div>
   </div>
 
-  <!-- PLATO DEL DÍA (se muestra solo si hay uno activo en Supabase) -->
-  <div id="plato-dia-wrap" style="display:none"></div>
-
-  <!-- MÁS PEDIDOS ESTA SEMANA -->
-  <div id="mas-pedidos-wrap" style="display:none"></div>
-
-  <!-- INVITACIÓN A RESEÑA DISCRETA -->
-  <div class="proof-strip">
-    <div style="font-size:28px">⭐</div>
-    <div class="proof-text" style="flex:1"><strong>¿Ya has estado antes?</strong><br>Tu opinión nos ayuda a mejorar y a que otros nos encuentren</div>
-    <button onclick="window.open('https://maps.app.goo.gl/ZcxjTXKSpg4ov8dL7','_blank')" style="background:var(--red);border:none;border-radius:50px;color:#fff;font-size:12px;font-weight:800;padding:8px 14px;cursor:pointer;white-space:nowrap;flex-shrink:0">Valorar ⭐</button>
-  </div>
-
-  <div class="cat-nav-wrap">
-    <nav class="cat-nav" id="cat-nav">
-      <button class="cat-btn active" onclick="scrollToSection('pizzas')">🍕 Pizzas</button>
-      <button class="cat-btn" onclick="scrollToSection('pastas')">🍝 Pastas</button>
-      <button class="cat-btn" onclick="scrollToSection('entrantes')">🥗 Entrantes</button>
-      <button class="cat-btn" onclick="scrollToSection('ensaladas')">🥬 Ensaladas</button>
-      <button class="cat-btn" onclick="scrollToSection('postres')">🍮 Postres</button>
-      <button class="cat-btn" onclick="scrollToSection('bebidas')">🥤 Bebidas</button>
-    </nav>
-  </div>
-
-  <!-- PIZZAS PRIMERO (producto estrella) -->
   <div class="section" id="sec-pizzas">
     <h2 class="section-title"><span>🍕</span> Pizzas</h2>
     <div id="hero-pizza-wrap"></div>
     <div class="dish-grid" id="grid-pizzas"></div>
   </div>
 
-  <!-- SEPARADOR DE URGENCIA entre secciones clave -->
-  <div class="urgency-bar">
-    <span class="urgency-icon">⚡</span>
-    <div class="urgency-text"><strong>¿Tienes hambre de verdad?</strong><br>Nuestras pastas se hacen al momento. 12 minutos y en tu mesa.</div>
-  </div>
-
   <div class="section" id="sec-pastas">
     <h2 class="section-title"><span>🍝</span> Pastas</h2>
     <div id="hero-pasta-wrap"></div>
     <div class="dish-grid" id="grid-pastas"></div>
+  </div>
+
+  <div class="urgency-bar">
+    <span style="font-size:18px">🔥</span>
+    <span class="urgency-bar-text">Más de 200 platos servidos hoy · ¡Gracias por elegirnos!</span>
   </div>
 
   <div class="section" id="sec-entrantes">
@@ -550,14 +309,14 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
     <div class="dish-grid" id="grid-ensaladas"></div>
   </div>
 
-  <!-- POSTRE SPOTLIGHT — momento de decisión impulsiva -->
-  <div class="postre-spotlight" id="postre-spotlight" style="display:none">
-    <img class="postre-spotlight-img" id="postre-spotlight-img" src="" alt="">
+  <div class="postre-spotlight" id="postre-spotlight">
+    <img class="postre-spotlight-img" id="postre-spotlight-img" src="" alt="Postre">
     <div class="postre-overlay">
       <span class="postre-tag">🍮 No te lo pierdas</span>
-      <div class="postre-title" id="postre-spotlight-name">Tiramisú Casero</div>
-      <div class="postre-sub">El postre más pedido de la casa. Solo quedan unos pocos.</div>
-      <button class="postre-btn" id="postre-spotlight-btn">Añadir ahora →</button>
+      <div class="postre-name" id="postre-spotlight-name"></div>
+      <div class="postre-actions">
+        <button class="btn-guardar" id="postre-spotlight-btn">🔖 Guardar para pedir</button>
+      </div>
     </div>
   </div>
 
@@ -566,88 +325,39 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
     <div class="dish-grid" id="grid-postres"></div>
   </div>
 
-  <!-- BEBIDAS — al final para que pasen por toda la carta -->
   <div class="section" id="sec-bebidas">
     <h2 class="section-title"><span>🥤</span> Bebidas</h2>
     <div class="dish-grid" id="grid-bebidas"></div>
   </div>
 
+  <div class="proof-strip">
+    <div class="proof-stars">⭐⭐⭐⭐⭐</div>
+    <div class="proof-text">¿Te ha gustado? <a class="proof-link" href="https://maps.app.goo.gl/ZcxjTXKSpg4ov8dL7" target="_blank">Déjanos tu opinión en Google →</a></div>
+  </div>
+
   <div class="bottom-pad"></div>
 </div>
 
-
-
-
-
-<div class="session-expired" id="session-expired">
-  <div style="font-size:64px">⏱️</div>
-  <div class="session-expired-title">Sesión caducada</div>
-  <div class="session-expired-sub">Tu sesión ha expirado.<br>Escanea el QR de la mesa para continuar.</div>
-  <button class="btn-reload" onclick="location.reload()">Volver a conectar</button>
-</div>
-
-<!-- BOTÓN ALÉRGENOS FIJO -->
-<div id="alergenos-btn" onclick="toggleAlergenos()" style="position:fixed;bottom:24px;left:16px;z-index:59;background:#fff;border:2px solid #e8ddd0;border-radius:50px;padding:9px 16px;display:flex;align-items:center;gap:7px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.13);font-size:13px;font-weight:800;color:var(--text-soft);transition:all .2s;user-select:none">
-  <span style="font-size:18px">🙋</span> ¿Eres alérgico a algo?
-</div>
-
-<!-- PANEL ALÉRGENOS -->
-<div id="alergenos-panel" style="position:fixed;bottom:80px;left:16px;z-index:59;background:#fff;border-radius:20px;padding:20px;box-shadow:0 8px 40px rgba(0,0,0,.18);width:300px;display:none;animation:fadeSlideUp .25s ease">
-  <div style="font-size:18px;margin-bottom:6px">🙋 ¿Tienes alguna alergia?</div>
-  <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:900;margin-bottom:6px;color:var(--dark)">Cuéntanos y filtramos la carta</div>
-  <div style="font-size:12px;color:var(--text-soft);margin-bottom:16px;line-height:1.5">Marca lo que no puedes comer y te avisaremos en qué platos aparece</div>
-
-  <div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;color:var(--text-soft);margin-bottom:10px">Los más comunes</div>
-  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">
-    <div class="alergen-pill" data-val="🌾" onclick="toggleAlergenFiltro(this)">🌾 Gluten</div>
-    <div class="alergen-pill" data-val="🥛" onclick="toggleAlergenFiltro(this)">🥛 Lácteos</div>
-    <div class="alergen-pill" data-val="🥚" onclick="toggleAlergenFiltro(this)">🥚 Huevo</div>
-    <div class="alergen-pill" data-val="🌰" onclick="toggleAlergenFiltro(this)">🌰 Frutos secos</div>
-    <div class="alergen-pill" data-val="🐟" onclick="toggleAlergenFiltro(this)">🐟 Pescado</div>
-    <div class="alergen-pill" data-val="🦐" onclick="toggleAlergenFiltro(this)">🦐 Marisco</div>
-    <div class="alergen-pill" data-val="🍇" onclick="toggleAlergenFiltro(this)">🍇 Sulfitos</div>
-    <div class="alergen-pill" data-val="🧄" onclick="toggleAlergenFiltro(this)">🧄 Ajo</div>
-  </div>
-
-  <div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;color:var(--text-soft);margin-bottom:8px">¿Otro alérgeno? Escríbelo</div>
-  <div style="display:flex;gap:8px;margin-bottom:16px">
-    <input id="alergen-custom-input" placeholder="Ej: mostaza, apio..." style="flex:1;padding:9px 12px;border:1.5px solid #e8ddd0;border-radius:10px;font-size:13px;font-family:'Nunito',sans-serif;outline:none" onkeydown="if(event.key==='Enter')añadirAlergenPersonalizado()">
-    <button onclick="añadirAlergenPersonalizado()" style="padding:9px 14px;background:var(--dark);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:800;cursor:pointer">+ Añadir</button>
-  </div>
-  <div id="alergenos-custom-wrap" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px"></div>
-
-  <div style="display:flex;gap:8px">
-    <button onclick="limpiarFiltroAlergenos()" style="flex:1;padding:11px;background:#f0e8e0;border:none;border-radius:12px;font-size:13px;font-weight:800;cursor:pointer;color:var(--text-soft)">Quitar filtro</button>
-    <button onclick="aplicarFiltroAlergenos()" style="flex:2;padding:11px;background:var(--red);border:none;border-radius:12px;font-size:14px;font-weight:900;color:#fff;cursor:pointer;box-shadow:0 4px 14px rgba(200,16,46,.3)">✓ Filtrar carta</button>
-  </div>
-  <div style="font-size:11px;color:var(--text-soft);text-align:center;margin-top:12px;line-height:1.4;background:#fff8e6;border-radius:8px;padding:8px">⚠️ Confirma siempre con el camarero antes de pedir</div>
-</div>
-
-<!-- BOTÓN FLOTANTE ASISTENTE IA -->
+<!-- ASISTENTE IA -->
 <button class="asistente-btn" id="asistente-btn" onclick="abrirAsistente()">
   <span class="asistente-btn-dot"></span>
   ¿No sabes qué pedir? Yo te ayudo 🍕
 </button>
-
-<!-- OVERLAY ASISTENTE -->
 <div class="asistente-overlay" id="asistente-overlay" onclick="cerrarAsistente()"></div>
-
-<!-- CHAT ASISTENTE GENERAL -->
 <div class="asistente-chat" id="asistente-chat">
   <div class="asistente-chat-head">
     <div class="asistente-chat-avatar">🍕</div>
-    <div class="asistente-chat-info">
-      <div class="asistente-chat-name">Asistente Pizza Pronto</div>
-      <div class="asistente-chat-status"><span class="ask-ai-dot"></span> En línea</div>
+    <div style="flex:1;margin-left:10px">
+      <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:900">Asistente Pizza Pronto</div>
+      <div style="font-size:11px;color:var(--green);font-weight:700">● En línea</div>
     </div>
-    <button class="asistente-chat-close" onclick="cerrarAsistente()">×</button>
+    <button class="asistente-close" onclick="cerrarAsistente()" style="background:#f0e8e0;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer">×</button>
   </div>
   <div class="asistente-chips-wrap">
     <div class="asistente-chips">
       <div class="asistente-chip" onclick="enviarPreguntaRapida('¿Qué plato recomiendas hoy?')">¿Qué recomiendas? 🍕</div>
       <div class="asistente-chip" onclick="enviarPreguntaRapida('¿Qué platos no tienen gluten?')">Sin gluten 🌾</div>
       <div class="asistente-chip" onclick="enviarPreguntaRapida('¿Cuál es el plato más popular?')">El más popular ⭐</div>
-      <div class="asistente-chip" onclick="enviarPreguntaRapida('¿Qué me recomiendas para compartir?')">Para compartir 👥</div>
       <div class="asistente-chip" onclick="enviarPreguntaRapida('¿Qué postres tenéis?')">Postres 🍮</div>
     </div>
   </div>
@@ -658,22 +368,24 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
   </div>
 </div>
 
-<!-- OVERLAY SUGERENCIA -->
-<div class="sugerencia-overlay" id="sugerencia-overlay" onclick="cerrarSugerencia()"></div>
-
-<!-- PANEL SUGERENCIA POSTRES -->
-<div class="sugerencia-panel" id="sugerencia-panel">
-  <div class="sugerencia-panel-head">
-    <div>
-      <div class="sugerencia-panel-title">🍮 ¿Ya tienes postre?</div>
-      <div class="sugerencia-panel-sub">Los más pedidos hoy</div>
+<!-- ASK MODAL POR PLATO -->
+<div class="ask-modal" id="ask-modal">
+  <div class="ask-inner">
+    <div class="ask-header">
+      <div class="ask-header-avatar">🍕</div>
+      <div class="ask-dish-name" id="ask-dish-name"></div>
+      <button class="ask-close" onclick="closeAsk()">×</button>
     </div>
-    <button class="sugerencia-close" onclick="cerrarSugerencia()">×</button>
+    <div class="ask-chips" id="ask-chips"></div>
+    <div class="ask-messages" id="ask-messages"></div>
+    <div class="ask-input-wrap">
+      <input class="ask-input" id="ask-input" placeholder="Escribe tu pregunta..." maxlength="200">
+      <button class="ask-send-btn" id="ask-send-btn" onclick="sendAskMessage()">➤</button>
+    </div>
   </div>
-  <div class="sugerencia-cards" id="sugerencia-cards"></div>
 </div>
 
-<!-- BOTÓN FLOTANTE LISTA -->
+<!-- BARRA LISTA -->
 <button class="lista-btn" id="lista-btn" onclick="abrirLista()">
   🔖 <span id="lista-txt">0 platos para pedir</span>
   <span class="lista-badge" id="lista-badge">0</span>
@@ -691,203 +403,106 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
   </div>
 </div>
 
+<!-- SUGERENCIA POSTRES -->
+<div class="sugerencia-overlay" id="sugerencia-overlay" onclick="cerrarSugerencia()"></div>
+<div class="sugerencia-panel" id="sugerencia-panel">
+  <div class="sugerencia-panel-head">
+    <div>
+      <div class="sugerencia-panel-title">🍮 ¿Ya tienes postre?</div>
+      <div style="font-size:12px;color:var(--text-soft)">Los más pedidos hoy</div>
+    </div>
+    <button class="sugerencia-close" onclick="cerrarSugerencia()">×</button>
+  </div>
+  <div class="sugerencia-cards" id="sugerencia-cards"></div>
+</div>
+
+<!-- ALÉRGENOS -->
+<div id="alergenos-btn" onclick="toggleAlergenos()">
+  <span style="font-size:18px">🙋</span> ¿Eres alérgico a algo?
+</div>
+<div id="alergenos-panel">
+  <div style="font-size:18px;margin-bottom:6px">🙋 ¿Tienes alguna alergia?</div>
+  <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:900;margin-bottom:6px">Cuéntanos y filtramos la carta</div>
+  <div style="font-size:12px;color:var(--text-soft);margin-bottom:16px;line-height:1.5">Marca lo que no puedes comer y te avisaremos en qué platos aparece</div>
+  <div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;color:var(--text-soft);margin-bottom:10px">Los más comunes</div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">
+    <div class="alergen-pill" data-val="🌾" onclick="toggleAlergenFiltro(this)">🌾 Gluten</div>
+    <div class="alergen-pill" data-val="🥛" onclick="toggleAlergenFiltro(this)">🥛 Lácteos</div>
+    <div class="alergen-pill" data-val="🥚" onclick="toggleAlergenFiltro(this)">🥚 Huevo</div>
+    <div class="alergen-pill" data-val="🌰" onclick="toggleAlergenFiltro(this)">🌰 Frutos secos</div>
+    <div class="alergen-pill" data-val="🐟" onclick="toggleAlergenFiltro(this)">🐟 Pescado</div>
+    <div class="alergen-pill" data-val="🦐" onclick="toggleAlergenFiltro(this)">🦐 Marisco</div>
+    <div class="alergen-pill" data-val="🍇" onclick="toggleAlergenFiltro(this)">🍇 Sulfitos</div>
+    <div class="alergen-pill" data-val="🧄" onclick="toggleAlergenFiltro(this)">🧄 Ajo</div>
+  </div>
+  <div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;color:var(--text-soft);margin-bottom:8px">¿Otro alérgeno? Escríbelo</div>
+  <div style="display:flex;gap:8px;margin-bottom:16px">
+    <input id="alergen-custom-input" placeholder="Ej: mostaza, apio..." style="flex:1;padding:9px 12px;border:1.5px solid #e8ddd0;border-radius:10px;font-size:13px;font-family:'Nunito',sans-serif;outline:none" onkeydown="if(event.key==='Enter')añadirAlergenPersonalizado()">
+    <button onclick="añadirAlergenPersonalizado()" style="padding:9px 14px;background:var(--dark);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:800;cursor:pointer">+ Añadir</button>
+  </div>
+  <div id="alergenos-custom-wrap" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px"></div>
+  <div style="display:flex;gap:8px">
+    <button onclick="limpiarFiltroAlergenos()" style="flex:1;padding:11px;background:#f0e8e0;border:none;border-radius:12px;font-size:13px;font-weight:800;cursor:pointer;color:var(--text-soft)">Quitar filtro</button>
+    <button onclick="aplicarFiltroAlergenos()" style="flex:2;padding:11px;background:var(--red);border:none;border-radius:12px;font-size:14px;font-weight:900;color:#fff;cursor:pointer">✓ Filtrar carta</button>
+  </div>
+  <div style="font-size:11px;color:var(--text-soft);text-align:center;margin-top:12px;line-height:1.4;background:#fff8e6;border-radius:8px;padding:8px">⚠️ Confirma siempre con el camarero antes de pedir</div>
+</div>
+
+<!-- VIDEO MODAL -->
+<div class="video-modal" id="video-modal" onclick="this.classList.remove('open')">
+  <div style="color:#fff;font-size:16px;font-weight:700" id="video-modal-title"></div>
+  <div style="color:rgba(255,255,255,.5);font-size:13px">Próximamente disponible</div>
+  <button class="video-modal-close">Cerrar</button>
+</div>
+
 <div class="toast" id="toast"></div>
 
-<div class="modal-overlay" id="video-modal">
-  <div class="modal-box">
-    <div class="modal-icon">🎬</div>
-    <div class="modal-title" id="video-modal-title">Vídeo del plato</div>
-    <div class="modal-desc">El vídeo estará disponible muy pronto.</div>
-    <button class="modal-close" onclick="document.getElementById('video-modal').classList.remove('open')">Cerrar</button>
-  </div>
-</div>
-
-<div class="ask-modal" id="ask-modal">
-  <div class="ask-box">
-    <div class="ask-header">
-      <div class="ask-header-left">
-        <div class="ask-ai-avatar">🍕</div>
-        <div>
-          <div class="ask-dish-name" id="ask-dish-name"></div>
-          <div class="ask-ai-label"><span class="ask-ai-dot"></span> Asistente Pizza Pronto</div>
-        </div>
-      </div>
-      <button class="ask-close-btn" onclick="closeAsk()">×</button>
-    </div>
-    <div class="ask-chips-wrap">
-      <div class="ask-chips-label">Preguntas frecuentes</div>
-      <div class="ask-chips" id="ask-chips"></div>
-    </div>
-    <div class="ask-messages" id="ask-messages"></div>
-    <div class="ask-input-wrap">
-      <input class="ask-input" id="ask-input" placeholder="Escribe tu pregunta..." maxlength="200">
-      <button class="ask-send-btn" id="ask-send-btn" onclick="sendAskMessage()">➤</button>
-    </div>
-  </div>
-</div>
-
 <script>
-// ══ SUPABASE ══
-const SUPABASE_URL = 'https://onrymhwvjbvkygsawaiv.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_6F5blZ0ttgM8fklnbe6byg_raAZCzeX';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
 // ══ CONFIG ══
-const GOOGLE_REVIEW_URL = 'https://maps.app.goo.gl/ZcxjTXKSpg4ov8dL7';
-const RESTAURANTE_ID = 'pizzapronto';
-const BADGE_LABELS = { bestseller:'⭐ Popular', new:'✨ Nuevo', hot:'🔥 Top' };
-const SENSITIVE_KW = ['alergi','gluten','lactosa','celiaco','celíaco','intolerancia','fruto seco','nuez','cacahuete','marisco','huevo','anafilax','vegano','vegetarian'];
-const QUICK_QUESTIONS = ['¿Qué ingredientes lleva?','¿Es apto para veganos?','¿Contiene gluten?','¿Puede ser sin lactosa?','¿Qué tan picante es?','¿Puedo quitar algún ingrediente?'];
-const REMOVABLE = {
-  'pizza-margherita':[{e:'🌿',n:'Albahaca'}],
-  'pizza-diavola':[{e:'🌶️',n:'Guindilla'},{e:'🧄',n:'Ajo'}],
-  'pizza-4quesos':[{e:'🫙',n:'Gorgonzola'},{e:'🧀',n:'Taleggio'}],
-  'pizza-prosciutto':[{e:'🍄',n:'Champiñones'},{e:'🫒',n:'Aceite trufa'}],
-  'pizza-veggie':[{e:'🍆',n:'Berenjena'},{e:'🫑',n:'Pimientos'},{e:'🥒',n:'Calabacín'},{e:'🌿',n:'Espinacas'}],
-  'pizza-pollo':[{e:'🧅',n:'Cebolla caramelizada'},{e:'🌿',n:'Rúcula'}],
-  'pasta-carbonara':[{e:'🌶️',n:'Pimienta negra'}],
-  'pasta-bolognesa':[{e:'🧀',n:'Parmigiano'}],
-  'pasta-pesto':[{e:'🌰',n:'Piñones'}],
-  'pasta-arrabbiata':[{e:'🌶️',n:'Guindilla'},{e:'🧄',n:'Ajo'}],
-  'tagliata':[{e:'🌿',n:'Rúcula'},{e:'🧀',n:'Parmigiano'},{e:'🍶',n:'Balsámico'}],
-  'bruschetta':[{e:'🧄',n:'Ajo'},{e:'🌿',n:'Albahaca'}],
-  'calamares':[{e:'🌶️',n:'Salsa picante'}],
-};
-const MEAT_ITEMS = ['tagliata'];
+var SUPABASE_URL = 'https://onrymhwvjbvkygsawaiv.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_6F5blZ0ttgM8fklnbe6byg_raAZCzeX';
+var EDGE_URL = 'https://onrymhwvjbvkygsawaiv.supabase.co/functions/v1/chat-ia';
+var RESTAURANTE_ID = 'pizzapronto';
+var GOOGLE_REVIEW_URL = 'https://maps.app.goo.gl/ZcxjTXKSpg4ov8dL7';
+var BADGE_LABELS = { bestseller:'⭐ Popular', new:'✨ Nuevo', hot:'🔥 Top' };
+var QUICK_QUESTIONS = ['¿Qué ingredientes lleva?','¿Es apto para veganos?','¿Contiene gluten?','¿Qué tan picante es?'];
+var SENSITIVE_KW = ['alergi','gluten','lactosa','celiaco','intolerancia','fruto seco','nuez','cacahuete','marisco','huevo','anafilax'];
 
-// ══ ESTADO ══
-let MENU = {};
-let mesa = '';
-let currentDish = null, chatHistory = [];
-let pollingInterval = null, cartaHash = '';
-let alergenosFiltro = new Set();
-let panelAlergenosAbierto = false;
+var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ══ ASISTENTE GENERAL IA ══
-let asistenteChatHistory = [];
-let asistenteVisible = false;
+// ══ ESTADO GLOBAL ══
+var MENU = {};
+var mesa = '1';
+var currentDish = null;
+var chatHistory = [];
+var asistenteChatHistory = [];
+var asistenteVisible = false;
+var pollingInterval = null;
+var alergenosFiltro = new Set();
+var panelAlergenosAbierto = false;
+var sugerenciaMostrada = false;
+var sugerenciaTimer = null;
+var tiempoEnPlato = {};
+var listaGuardados = JSON.parse(sessionStorage.getItem('listaGuardados') || '{}');
 
-// Mostrar botón después de 10 segundos
-setTimeout(() => {
-  const btn = document.getElementById('asistente-btn');
-  if (btn) btn.classList.add('visible');
-}, 10000);
-
-function abrirAsistente() {
-  document.getElementById('asistente-chat').classList.add('open');
-  document.getElementById('asistente-overlay').classList.add('open');
-  // Mensaje de bienvenida solo la primera vez
-  if (!asistenteVisible) {
-    asistenteVisible = true;
-    appendAsistenteMsg('¡Hola! 😊 Dime qué te apetece y te recomiendo algo de nuestra carta. También puedo ayudarte con alérgenos, ingredientes o lo que necesites.');
-  }
-  document.getElementById('asistente-input').focus();
-}
-
-function cerrarAsistente() {
-  document.getElementById('asistente-chat').classList.remove('open');
-  document.getElementById('asistente-overlay').classList.remove('open');
-}
-
-function appendAsistenteMsg(html, esUsuario = false, conBotones = false) {
-  const el = document.getElementById('asistente-messages');
-  if (esUsuario) {
-    el.innerHTML += `<div class="msg user"><div class="msg-bubble">${html}</div><div class="msg-avatar user-av">👤</div></div>`;
-  } else {
-    const botonesHTML = conBotones ? procesarRespuestaConBotones(html) : '';
-    el.innerHTML += `<div class="msg ai"><div class="msg-avatar">🍕</div><div><div class="msg-bubble">${html}</div>${botonesHTML}</div></div>`;
-  }
-  el.scrollTop = el.scrollHeight;
-}
-
-function showAsistenteTyping() {
-  const el = document.getElementById('asistente-messages');
-  el.innerHTML += `<div class="msg ai" id="asistente-typing"><div class="msg-avatar">🍕</div><div class="msg-bubble typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
-  el.scrollTop = el.scrollHeight;
-}
-function removeAsistenteTyping() {
-  const t = document.getElementById('asistente-typing');
-  if (t) t.remove();
-}
-
-function enviarPreguntaRapida(pregunta) {
-  document.getElementById('asistente-input').value = pregunta;
-  enviarMensajeAsistente();
-}
-
-// Generar contexto completo de la carta para la IA
-function generarContextoCarta() {
-  var contexto = 'Esta es la carta completa del restaurante:\n\n';
-  Object.entries(MENU).forEach(([cat, items]) => {
-    if (!items.length) return;
-    contexto += `## ${cat.toUpperCase()}
-`;
-    items.forEach(item => {
-      contexto += `- ${item.name}: ${item.price.toFixed(2)}€`;
-      if (item.desc && item.desc.length > 5) contexto += ` | ${item.desc}`;
-      if (item.allergens && item.allergens.length) contexto += ` | Alérgenos: ${item.allergens.join(' ')}`;
-      if (item.badge) contexto += ` | ${item.badge === 'hot' ? '🔥 Más pedido' : item.badge === 'bestseller' ? '⭐ Popular' : '✨ Nuevo'}`;
-      contexto += '\n';
-    });
-    contexto += '\n';
-  });
-  return contexto;
-}
-
-async function enviarMensajeAsistente() {
-  const input = document.getElementById('asistente-input');
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = '';
-  document.getElementById('asistente-send-btn').disabled = true;
-
-  appendAsistenteMsg(text, true);
-  asistenteChatHistory.push({ role: 'user', content: text });
-  showAsistenteTyping();
-
+// ══ REGISTRAR INTERÉS ══
+async function registrarInteres(platoId, tipo) {
   try {
-    const contextoCarta = generarContextoCarta();
-    const systemPrompt = `Eres el asistente virtual de Pizza Pronto, un restaurante italiano. 
-Tu trabajo es ayudar al cliente a elegir qué pedir.
-Cuando recomiendes platos, menciona SIEMPRE el nombre exacto del plato tal como aparece en la carta para que el sistema pueda mostrar el botón de guardar.
-Responde siempre en español, de forma amable, breve y útil (máximo 3-4 frases).
-Usa un tono cálido y cercano, como un buen camarero italiano.
-Si te preguntan por alérgenos o intolerancias, sé muy preciso y recomienda confirmar con el camarero.
-Cuando recomiendes platos, menciona el precio para que el cliente tenga toda la información.
-
-${contextoCarta}`;
-
-    const res = await fetch('https://onrymhwvjbvkygsawaiv.supabase.co/functions/v1/chat-ia', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': 'sb_publishable_6F5blZ0ttgM8fklnbe6byg_raAZCzeX', 'Authorization': 'Bearer sb_publishable_6F5blZ0ttgM8fklnbe6byg_raAZCzeX' },
-      body: JSON.stringify({
-        system: systemPrompt,
-        messages: asistenteChatHistory.slice(-8)
-      })
+    var item = findItem(platoId);
+    if (!item) return;
+    var cat = '';
+    Object.keys(MENU).forEach(function(c) {
+      if (MENU[c].some(function(p) { return p.id === platoId; })) cat = c;
     });
-    const data = await res.json();
-    removeAsistenteTyping();
-    const reply = data.content?.[0]?.text || 'Lo siento, no pude responder. ¡Pregunta al camarero!';
-    asistenteChatHistory.push({ role: 'assistant', content: reply });
-    appendAsistenteMsg(reply, false, true);
-  } catch(e) {
-    removeAsistenteTyping();
-    appendAsistenteMsg('En este momento no puedo responder. Consulta con el camarero.');
-  }
-  document.getElementById('asistente-send-btn').disabled = false;
-  document.getElementById('asistente-input').focus();
+    await sb.from('carta_clics').insert({
+      restaurante_id: RESTAURANTE_ID,
+      plato_id: platoId,
+      plato_nombre: item.name,
+      categoria: cat,
+      tipo: tipo
+    });
+  } catch(e) {}
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-  const input = document.getElementById('asistente-input');
-  if (input) input.addEventListener('keydown', e => { if(e.key==='Enter') enviarMensajeAsistente(); });
-});
-
-// ══ TRACKING DE COMPORTAMIENTO ══
-let tiempoEnPlato = {};      // cuántos ms lleva viendo cada plato
-let platoActualVisible = null;
-let tiempoInicioVista = null;
-let listaGuardados = JSON.parse(sessionStorage.getItem('listaGuardados') || '{}');
 
 // ══ SISTEMA DE GUARDADOS ══
 function toggleGuardar(id) {
@@ -906,22 +521,24 @@ function toggleGuardar(id) {
   sessionStorage.setItem('listaGuardados', JSON.stringify(listaGuardados));
   actualizarBtnGuardar(id);
   actualizarListaBtn();
-  var totalGuardados = Object.keys(listaGuardados).length;
-  if (totalGuardados === 2 && !sugerenciaMostrada) {
-    setTimeout(function() { mostrarSugerenciaPostres(); }, 4000);
+  var total = Object.keys(listaGuardados).length;
+  if (total === 2 && !sugerenciaMostrada) {
+    setTimeout(mostrarSugerenciaPostres, 4000);
   }
 }
 
 function actualizarBtnGuardar(id) {
-  var btn = document.getElementById('btn-' + id);
-  if (!btn) return;
-  if (listaGuardados[id]) {
-    btn.className = 'btn-guardar guardado';
-    btn.innerHTML = '✓ Guardado';
-  } else {
-    btn.className = 'btn-guardar';
-    btn.innerHTML = '🔖 Guardar para pedir';
-  }
+  ['btn-', 'btn-hero-', 'btn-postre-'].forEach(function(prefix) {
+    var btn = document.getElementById(prefix + id);
+    if (!btn || !btn.classList.contains('btn-guardar')) return;
+    if (listaGuardados[id]) {
+      btn.className = 'btn-guardar guardado';
+      btn.innerHTML = '✓ Guardado';
+    } else {
+      btn.className = 'btn-guardar';
+      btn.innerHTML = '🔖 Guardar para pedir';
+    }
+  });
 }
 
 function actualizarListaBtn() {
@@ -940,345 +557,6 @@ function restaurarBotonesGuardados() {
   actualizarListaBtn();
 }
 
-// ══ SUPABASE — REGISTRAR INTERÉS ══
-async function registrarInteres(platoId, tipo) {
-  try {
-    var item = findItem(platoId);
-    if (!item) return;
-    var cat = Object.keys(MENU).find(function(c) { return MENU[c].some(function(p) { return p.id === platoId; }); }) || '';
-    await sb.from('carta_clics').insert({
-      restaurante_id: RESTAURANTE_ID,
-      plato_id: platoId,
-      plato_nombre: item.name,
-      categoria: cat,
-      tipo: tipo
-    });
-  } catch(err) { /* silencioso */ }
-}
-
-// ══ PLATO DEL DÍA ══
-async function cargarPlatoDia() {
-  try {
-    var result = await sb.from('carta').select('*').eq('restaurante_id', RESTAURANTE_ID).eq('badge','hot').eq('activo',true).limit(1);
-    var data = result.data;
-    if (!data || !data.length) return;
-    var plato = data[0];
-    var wrap = document.getElementById('plato-dia-wrap');
-    if (!wrap) return;
-    wrap.style.display = 'block';
-    wrap.innerHTML = '<div class="plato-dia-banner" onclick="scrollToItem('' + plato.id + '')">' +
-      '<div class="plato-dia-inner">' +
-      '<img class="plato-dia-img" src="' + (plato.imagen||'') + '" alt="' + plato.nombre + '" onerror="this.onerror=null">' +
-      '<div style="flex:1">' +
-      '<span class="plato-dia-tag">🌟 Recomendado hoy</span>' +
-      '<div class="plato-dia-name">' + plato.nombre + '</div>' +
-      '<div class="plato-dia-desc">' + (plato.descripcion||'').substring(0,60) + '</div>' +
-      '<div class="plato-dia-price">' + Number(plato.precio).toFixed(2).replace('.',',') + ' €</div>' +
-      '</div></div></div>';
-  } catch(err) { console.error('Error plato del día:', err); }
-}
-
-// ══ MÁS PEDIDOS ESTA SEMANA ══
-async function cargarMasPedidos() {
-  try {
-    var result = await sb.from('carta_clics').select('plato_id, plato_nombre, categoria').eq('restaurante_id', RESTAURANTE_ID).order('fecha', { ascending: false }).limit(200);
-    var data = result.data;
-    if (!data || !data.length) return;
-    var conteo = {};
-    data.forEach(function(c) { conteo[c.plato_id] = (conteo[c.plato_id] || 0) + 1; });
-    var top = Object.entries(conteo).sort(function(a,b){return b[1]-a[1];}).slice(0,6).map(function(e){return e[0];});
-    if (!top.length) return;
-    var wrap = document.getElementById('mas-pedidos-wrap');
-    if (!wrap) return;
-    wrap.style.display = 'block';
-    var chips = top.map(function(id) {
-      var item = findItem(id);
-      if (!item) return '';
-      return '<div class="mas-pedido-chip" onclick="scrollToItem('' + id + '')">' +
-        '<img class="mas-pedido-img" src="' + item.img + '" alt="' + item.name + '" onerror="this.onerror=null">' +
-        '<div class="mas-pedido-body">' +
-        '<div class="mas-pedido-name">' + item.name + '</div>' +
-        '<div class="mas-pedido-price">' + item.price.toFixed(2).replace('.',',') + ' €</div>' +
-        '</div></div>';
-    }).join('');
-    wrap.innerHTML = '<div class="mas-pedidos-section"><div class="mas-pedidos-title">🔥 Lo más visto esta semana</div><div class="mas-pedidos-grid">' + chips + '</div></div>';
-  } catch(err) { console.error('Error más pedidos:', err); }
-}
-
-// ══ INIT ══
-window.addEventListener('DOMContentLoaded', async () => {
-  const params = new URLSearchParams(window.location.search);
-  mesa = params.get('mesa') || '1';
-  document.getElementById('header-mesa-txt').textContent = 'Mesa ' + mesa;
-  document.getElementById('header-mesa-tag').textContent = 'Mesa ' + mesa;
-  await cargarCarta();
-  document.getElementById('loading-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  buildMenu();
-  iniciarPolling();
-  initTracking();
-
-  const cats = ['pizzas','pastas','entrantes','ensaladas','postres','bebidas'];
-  const btns = document.querySelectorAll('.cat-btn');
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        const id = e.target.id.replace('sec-','');
-        const idx = cats.indexOf(id);
-        if (idx >= 0) {
-          btns.forEach((b,i) => b.classList.toggle('active', i===idx));
-          btns[idx]?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
-        }
-      }
-    });
-  }, {threshold:0, rootMargin:'-130px 0px -50% 0px'});
-  cats.forEach(c => { const el = document.getElementById('sec-'+c); if(el) observer.observe(el); });
-  document.getElementById('ask-input').addEventListener('keydown', e => { if(e.key==='Enter') sendAskMessage(); });
-
-  // Cargar plato del día y más pedidos
-  cargarPlatoDia();
-  setTimeout(() => cargarMasPedidos(), 1000);
-});
-
-// ══ SUPABASE — CARTA ══
-async function cargarCarta() {
-  try {
-    const { data, error } = await sb.from('carta').select('*').order('categoria').order('orden',{ascending:true});
-    if (error) throw error;
-    if (!data || !data.length) { showToast('⚠️ La carta está vacía'); return; }
-    MENU = {};
-    data.forEach(item => {
-      if (item.activo === false) return;
-      if (!MENU[item.categoria]) MENU[item.categoria] = [];
-      MENU[item.categoria].push({
-        id:item.id, name:item.nombre, desc:item.descripcion||'',
-        price:Number(item.precio), badge:item.badge||null,
-        allergens:Array.isArray(item.alergenos)?item.alergenos:[],
-        img:item.imagen||'', es_barra:item.es_barra||false,
-      });
-    });
-  } catch(err) { console.error('Error cargando carta:', err); showToast('⚠️ Error al cargar la carta'); }
-}
-
-function iniciarPolling() {
-  if(pollingInterval) return;
-  pollingInterval = setInterval(async()=>{
-    try {
-      const {data} = await sb.from('carta').select('id,precio,nombre,descripcion,activo,badge,alergenos,imagen,es_barra,categoria,orden').order('orden',{ascending:true});
-      if(!data) return;
-      const nuevoHash = data.map(p=>`${p.id}:${p.precio}:${p.nombre}:${p.activo}`).join('|');
-      if(nuevoHash===cartaHash) return;
-      const esLaPrimeraCarga = cartaHash==='';
-      cartaHash = nuevoHash;
-      data.forEach(nr=>actualizarPlatoEnDOM(nr));
-      if(!esLaPrimeraCarga) showToast('🔄 Carta actualizada');
-    } catch(err){}
-  },30000);
-}
-
-function actualizarPlatoEnDOM(nr) {
-  for(const cat of Object.keys(MENU)){
-    const idx=MENU[cat].findIndex(p=>p.id===nr.id);
-    if(idx>=0){
-      MENU[cat][idx]={id:nr.id,name:nr.nombre,desc:nr.descripcion||'',price:Number(nr.precio),badge:nr.badge||null,allergens:Array.isArray(nr.alergenos)?nr.alergenos:[],img:nr.imagen||'',es_barra:nr.es_barra||false};
-      const card=document.getElementById('card-'+nr.id);
-      if(card){
-        if(!nr.activo){card.style.display='none';}
-        else{
-          card.style.display='';
-          const priceEl=card.querySelector('.dish-price'); if(priceEl) priceEl.textContent=Number(nr.precio).toFixed(2).replace('.',',')+' €';
-          const nameEl=card.querySelector('.dish-name'); if(nameEl) nameEl.textContent=nr.nombre;
-          const descEl=card.querySelector('.dish-desc'); if(descEl) descEl.textContent=nr.descripcion||'';
-        }
-      }
-      break;
-    }
-  }
-}
-
-// ══ BUILD MENU ══
-function buildMenu() {
-  const cats = ['pizzas','pastas','entrantes','ensaladas','postres','bebidas'];
-  cats.forEach(cat => {
-    const grid = document.getElementById('grid-'+cat);
-    if(!grid) return;
-    grid.innerHTML='';
-    const items = MENU[cat]||[];
-    const sorted = [...items].sort((a,b) => {
-      if(a.badge==='hot'&&b.badge!=='hot') return -1;
-      if(b.badge==='hot'&&a.badge!=='hot') return 1;
-      if(a.badge==='bestseller'&&!b.badge) return -1;
-      if(b.badge==='bestseller'&&!a.badge) return 1;
-      return b.price - a.price;
-    });
-    sorted.forEach((item,i) => {
-      const card = document.createElement('div');
-      card.className='dish-card'; card.id='card-'+item.id;
-      card.style.animationDelay=(i*0.06)+'s';
-      const badgeHTML = item.badge ? `<div class="dish-badge badge-${item.badge}">${item.badge==='hot'?'🔥':item.badge==='new'?'✨':'⭐'} ${BADGE_LABELS[item.badge]||item.badge}</div>` : '';
-      const allergens = (item.allergens||[]).length ? `<div class="allergens">${(item.allergens||[]).map(a=>`<span class="allergen" title="${allergenLabel(a)}">${a}</span>`).join('')}</div>` : '';
-      card.innerHTML=`
-        <div class="dish-img-wrap">
-          <img class="dish-img" src="${item.img}" alt="${item.name}" loading="lazy" onerror="this.onerror=null">
-          ${badgeHTML}
-          <div class="video-btn" onclick="showVideo('${item.name}')">
-            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Ver vídeo
-          </div>
-        </div>
-        <div class="dish-body">
-          <div class="dish-name">${item.name}</div>
-          ${item.desc && item.desc.length >= 10 ? `<div class="dish-desc">${item.desc}</div>` : ''}
-          ${allergens}
-          <div class="dish-ask" onclick="showAsk('${item.name}')">💬 ¿Tienes alguna duda?</div>
-        </div>
-        <div class="dish-footer">
-          <span class="dish-price">${item.price.toFixed(2).replace('.',',')} €</span>
-          <button class="btn-guardar" id="btn-${item.id}" onclick="toggleGuardar('${item.id}')">
-            🔖 Guardar para pedir
-          </button>
-        </div>`;
-      grid.appendChild(card);
-      // Observer para tracking de tiempo de vista
-      vistaObserver.observe(card);
-    });
-  });
-  buildHeroPlato('hero-pizza-wrap','pizzas');
-  buildHeroPlato('hero-pasta-wrap','pastas');
-  buildHeroChips();
-  buildPostreSpotlight();
-  setTimeout(() => {
-    const primerHero = document.querySelector('#hero-pizza-wrap .dish-hero');
-    if (primerHero) primerHero.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 200);
-  // Restaurar botones guardados si el cliente recargó
-  restaurarBotonesGuardados();
-}
-
-function buildHeroPlato(wrapId, cat) {
-  const wrap = document.getElementById(wrapId);
-  if(!wrap) return;
-  wrap.innerHTML='';
-  const items = MENU[cat]||[];
-  const hero = items.find(i=>i.badge==='hot') || items.find(i=>i.badge==='bestseller') || items[0];
-  if(!hero) return;
-  const precioMedio = items.reduce((a,b)=>a+b.price,0)/items.length;
-  const esChef = hero.price > precioMedio;
-  wrap.innerHTML=`
-    <div class="dish-hero" style="animation-delay:0s">
-      <div style="position:relative;overflow:hidden">
-        <img class="dish-hero-img" src="${hero.img}" alt="${hero.name}" onerror="this.onerror=null">
-        ${hero.badge?`<div class="dish-badge badge-${hero.badge}" style="top:12px;left:12px;font-size:11px">${hero.badge==='hot'?'🔥':hero.badge==='new'?'✨':'⭐'} ${BADGE_LABELS[hero.badge]}</div>`:''}
-        ${esChef?`<div style="position:absolute;top:12px;right:12px;background:#E65100;color:#fff;font-size:10px;font-weight:900;padding:4px 10px;border-radius:20px">👨‍🍳 Elección del chef</div>`:''}
-      </div>
-      <div class="dish-hero-body">
-        <div class="dish-hero-info">
-          <div class="dish-hero-name">${hero.name}</div>
-          <div class="dish-hero-desc">${hero.desc}</div>
-          <div class="dish-hero-footer">
-            <span style="font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:var(--red)">${hero.price.toFixed(2).replace('.',',')} €</span>
-            <button class="add-btn" onclick="registrarInteres('${hero.id}','añadir')" style="padding:10px 20px;font-size:13px">
-              👁 Me interesa
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>`;
-}
-
-function buildHeroChips() {
-  const el = document.getElementById('hero-chips');
-  if(!el) return;
-  const MAS_PEDIDOS = ['pizza-diavola','pizza-4quesos','tiramisú','pasta-carbonara'];
-  el.innerHTML = MAS_PEDIDOS.map(id => {
-    const item = findItem(id);
-    if(!item) return '';
-    return `<div class="hero-chip" onclick="scrollToItem('${id}')">${item.name.split(' ')[0]}</div>`;
-  }).join('');
-}
-
-function buildPostreSpotlight() {
-  const postres = MENU['postres']||[];
-  const estrella = postres.find(p=>p.badge==='bestseller')||postres[0];
-  if(!estrella) return;
-  const el = document.getElementById('postre-spotlight');
-  const img = document.getElementById('postre-spotlight-img');
-  const nombre = document.getElementById('postre-spotlight-name');
-  const btn = document.getElementById('postre-spotlight-btn');
-  if(!el||!img||!nombre||!btn) return;
-  img.src = estrella.img;
-  nombre.textContent = estrella.name + ' — ' + estrella.price.toFixed(2).replace('.',',') + ' €';
-  btn.textContent = '🔖 Guardar para pedir';
-  btn.className = 'btn-guardar';
-  btn.id = 'btn-postre-' + estrella.id;
-  btn.onclick = () => { toggleGuardar(estrella.id); };
-  el.style.display = 'block';
-  const unidades = Math.floor(Math.random()*5)+3;
-  const urgencia = document.createElement('div');
-  urgencia.style.cssText='font-size:12px;font-weight:800;color:#ff3d5a;margin-top:10px;display:flex;align-items:center;gap:5px';
-  urgencia.innerHTML=`⏳ Solo quedan ${unidades}`;
-  btn.parentElement.appendChild(urgencia);
-}
-
-function allergenLabel(emoji) {
-  const map={'🌾':'Gluten','🥛':'Lácteos','🥚':'Huevo','🌰':'Frutos secos','🐟':'Pescado','🦐':'Crustáceos','🍇':'Sulfitos','🧄':'Ajos'};
-  return map[emoji]||'Alérgeno';
-}
-function findItem(id) {
-  for(const items of Object.values(MENU)){const found=items.find(i=>i.id===id);if(found) return found;}
-}
-
-// ══ TRACKING DE COMPORTAMIENTO ══
-var vistaObserver = new IntersectionObserver(function(entries) {
-    entries.forEach(function(e) {
-      var id = e.target.id.replace('card-','');
-      if (e.isIntersecting) {
-        if (!tiempoEnPlato[id + '_inicio']) {
-          tiempoEnPlato[id + '_inicio'] = Date.now();
-        }
-      } else {
-        if (tiempoEnPlato[id + '_inicio']) {
-          tiempoEnPlato[id] = (tiempoEnPlato[id]||0) + (Date.now() - tiempoEnPlato[id+'_inicio']);
-          delete tiempoEnPlato[id+'_inicio'];
-          if (tiempoEnPlato[id] > 4000) {
-            registrarInteres(id, 'ver_detalle');
-          }
-        }
-      }
-    });
-  }, {threshold: 0.7});
-
-function initTracking() {
-  // Observer ya inicializado globalmente arriba
-}
-
-
-function restaurarBotonesGuardados() {
-  Object.keys(listaGuardados).forEach(id => actualizarBtnGuardar(id));
-  actualizarListaBtn();
-}
-
-// ══ NAVEGACIÓN ══
-function scrollToSection(id) {
-  const el=document.getElementById('sec-'+id);
-  if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
-  const cats=['pizzas','pastas','entrantes','ensaladas','postres','bebidas'];
-  document.querySelectorAll('.cat-btn').forEach((b,i)=>b.classList.toggle('active',cats[i]===id));
-}
-function scrollToItem(id) {
-  const el=document.getElementById('card-'+id);
-  if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.outline='3px solid var(--gold)';setTimeout(()=>el.style.outline='',1500);}
-}
-function showVideo(name){document.getElementById('video-modal-title').textContent='Vídeo: '+name;document.getElementById('video-modal').classList.add('open');}
-
-// ══ TOAST ══
-let toastTimer;
-function showToast(msg){
-  const el=document.getElementById('toast');
-  el.textContent=msg;el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>el.classList.remove('show'),2200);
-}
-// ══ FUNCIONES LISTA DE GUARDADOS ══
 function renderLista() {
   var body = document.getElementById('lista-body');
   if (!body) return;
@@ -1288,26 +566,19 @@ function renderLista() {
     return;
   }
   body.innerHTML = items.map(function(item) {
-    return '<div class="lista-item" id="lista-item-' + item.id + '">' +
+    return '<div class="lista-item">' +
       '<img class="lista-item-img" src="' + item.img + '" alt="' + item.name + '" onerror="this.onerror=null">' +
       '<div class="lista-item-info">' +
       '<div class="lista-item-name">' + item.name + '</div>' +
-      '<div class="lista-item-price">' + Number(item.price).toFixed(2).replace('.',',') + ' €</div>' +
+      '<div class="lista-item-price">' + Number(item.price).toFixed(2).replace('.', ',') + ' €</div>' +
       '</div>' +
       '<button class="lista-item-remove" onclick="quitarDeLista(\'' + item.id + '\')">×</button>' +
       '</div>';
   }).join('');
 }
 
-function abrirLista() {
-  renderLista();
-  document.getElementById('lista-screen').classList.add('open');
-}
-
-function cerrarLista() {
-  document.getElementById('lista-screen').classList.remove('open');
-}
-
+function abrirLista() { renderLista(); document.getElementById('lista-screen').classList.add('open'); }
+function cerrarLista() { document.getElementById('lista-screen').classList.remove('open'); }
 function quitarDeLista(id) {
   delete listaGuardados[id];
   sessionStorage.setItem('listaGuardados', JSON.stringify(listaGuardados));
@@ -1315,7 +586,6 @@ function quitarDeLista(id) {
   actualizarListaBtn();
   renderLista();
 }
-
 function limpiarLista() {
   listaGuardados = {};
   sessionStorage.setItem('listaGuardados', JSON.stringify(listaGuardados));
@@ -1327,6 +597,553 @@ function limpiarLista() {
   cerrarLista();
 }
 
+// ══ CARGAR CARTA ══
+async function cargarCarta() {
+  try {
+    var result = await sb.from('carta').select('*').eq('restaurante_id', RESTAURANTE_ID).order('categoria').order('orden', { ascending: true });
+    var data = result.data;
+    if (!data || !data.length) { showToast('⚠️ La carta está vacía'); return; }
+    MENU = {};
+    data.forEach(function(item) {
+      if (item.activo === false) return;
+      if (!MENU[item.categoria]) MENU[item.categoria] = [];
+      MENU[item.categoria].push({
+        id: item.id, name: item.nombre, desc: item.descripcion || '',
+        price: Number(item.precio), badge: item.badge || null,
+        allergens: Array.isArray(item.alergenos) ? item.alergenos : [],
+        img: item.imagen || '', es_barra: item.es_barra || false
+      });
+    });
+  } catch(err) { showToast('⚠️ Error al cargar la carta'); }
+}
+
+// ══ POLLING ══
+function iniciarPolling() {
+  if (pollingInterval) return;
+  pollingInterval = setInterval(async function() {
+    try {
+      var r = await sb.from('carta').select('id,precio,nombre,activo').order('orden', {ascending:true});
+      if (!r.data) return;
+      r.data.forEach(function(nr) {
+        var card = document.getElementById('card-' + nr.id);
+        if (card) {
+          if (!nr.activo) { card.style.display = 'none'; return; }
+          card.style.display = '';
+          var priceEl = card.querySelector('.dish-price');
+          if (priceEl) priceEl.textContent = Number(nr.precio).toFixed(2).replace('.', ',') + ' €';
+        }
+      });
+    } catch(e) {}
+  }, 30000);
+}
+
+// ══ PLATO DEL DÍA ══
+async function cargarPlatoDia() {
+  try {
+    var r = await sb.from('carta').select('*').eq('restaurante_id', RESTAURANTE_ID).eq('badge', 'hot').eq('activo', true).limit(1);
+    if (!r.data || !r.data.length) return;
+    var p = r.data[0];
+    var wrap = document.getElementById('plato-dia-wrap');
+    if (!wrap) return;
+    wrap.style.display = 'block';
+    wrap.innerHTML = '<div class="plato-dia-banner" onclick="scrollToItem(\'' + p.id + '\')">' +
+      '<div class="plato-dia-inner">' +
+      '<img class="plato-dia-img" src="' + (p.imagen || '') + '" alt="' + p.nombre + '" onerror="this.onerror=null">' +
+      '<div style="flex:1">' +
+      '<span class="plato-dia-tag">🌟 Recomendado hoy</span>' +
+      '<div class="plato-dia-name">' + p.nombre + '</div>' +
+      '<div class="plato-dia-desc">' + (p.descripcion || '').substring(0, 60) + '</div>' +
+      '<div class="plato-dia-price">' + Number(p.precio).toFixed(2).replace('.', ',') + ' €</div>' +
+      '</div></div></div>';
+  } catch(e) {}
+}
+
+// ══ MÁS PEDIDOS ══
+async function cargarMasPedidos() {
+  try {
+    var r = await sb.from('carta_clics').select('plato_id').eq('restaurante_id', RESTAURANTE_ID).order('fecha', {ascending:false}).limit(200);
+    if (!r.data || !r.data.length) return;
+    var conteo = {};
+    r.data.forEach(function(c) { conteo[c.plato_id] = (conteo[c.plato_id] || 0) + 1; });
+    var top = Object.entries(conteo).sort(function(a,b){return b[1]-a[1];}).slice(0,6).map(function(e){return e[0];});
+    if (!top.length) return;
+    var wrap = document.getElementById('mas-pedidos-wrap');
+    if (!wrap) return;
+    var chips = top.map(function(id) {
+      var item = findItem(id);
+      if (!item) return '';
+      return '<div class="mas-pedido-chip" onclick="scrollToItem(\'' + id + '\')">' +
+        '<img class="mas-pedido-img" src="' + item.img + '" alt="' + item.name + '" onerror="this.onerror=null">' +
+        '<div class="mas-pedido-body"><div class="mas-pedido-name">' + item.name + '</div>' +
+        '<div class="mas-pedido-price">' + item.price.toFixed(2).replace('.', ',') + ' €</div></div></div>';
+    }).join('');
+    wrap.style.display = 'block';
+    wrap.innerHTML = '<div class="mas-pedidos-section"><div class="mas-pedidos-title">🔥 Lo más visto esta semana</div><div class="mas-pedidos-grid">' + chips + '</div></div>';
+  } catch(e) {}
+}
+
+// ══ HELPER ══
+function findItem(id) {
+  var found = null;
+  Object.values(MENU).forEach(function(items) {
+    var f = items.find(function(i) { return i.id === id; });
+    if (f) found = f;
+  });
+  return found;
+}
+
+function allergenLabel(e) {
+  var map = {'🌾':'Gluten','🥛':'Lácteos','🥚':'Huevo','🌰':'Frutos secos','🐟':'Pescado','🦐':'Crustáceos','🍇':'Sulfitos','🧄':'Ajo'};
+  return map[e] || 'Alérgeno';
+}
+
+// ══ TRACKING ══
+var vistaObserver = new IntersectionObserver(function(entries) {
+  entries.forEach(function(e) {
+    var id = e.target.id.replace('card-', '');
+    if (e.isIntersecting) {
+      tiempoEnPlato[id + '_inicio'] = tiempoEnPlato[id + '_inicio'] || Date.now();
+    } else {
+      if (tiempoEnPlato[id + '_inicio']) {
+        tiempoEnPlato[id] = (tiempoEnPlato[id] || 0) + (Date.now() - tiempoEnPlato[id + '_inicio']);
+        delete tiempoEnPlato[id + '_inicio'];
+        if (tiempoEnPlato[id] > 4000) registrarInteres(id, 'ver_detalle');
+      }
+    }
+  });
+}, { threshold: 0.7 });
+
+// ══ BUILD MENU ══
+function buildMenu() {
+  var cats = ['pizzas', 'pastas', 'entrantes', 'ensaladas', 'postres', 'bebidas'];
+  cats.forEach(function(cat) {
+    var grid = document.getElementById('grid-' + cat);
+    if (!grid) return;
+    grid.innerHTML = '';
+    var items = MENU[cat] || [];
+    var sorted = items.slice().sort(function(a, b) {
+      if (a.badge === 'hot' && b.badge !== 'hot') return -1;
+      if (b.badge === 'hot' && a.badge !== 'hot') return 1;
+      return b.price - a.price;
+    });
+    sorted.forEach(function(item, i) {
+      var card = document.createElement('div');
+      card.className = 'dish-card';
+      card.id = 'card-' + item.id;
+      card.style.animationDelay = (i * 0.06) + 's';
+      var badgeHTML = item.badge ? '<div class="dish-badge badge-' + item.badge + '">' + (item.badge==='hot'?'🔥':item.badge==='new'?'✨':'⭐') + ' ' + (BADGE_LABELS[item.badge]||item.badge) + '</div>' : '';
+      var allergensHTML = (item.allergens||[]).length ? '<div class="allergens">' + item.allergens.map(function(a){return '<span class="allergen" title="'+allergenLabel(a)+'">'+a+'</span>';}).join('') + '</div>' : '';
+      var descHTML = item.desc && item.desc.length >= 10 ? '<div class="dish-desc">' + item.desc + '</div>' : '';
+      card.innerHTML = '<div class="dish-img-wrap">' +
+        '<img class="dish-img" src="' + item.img + '" alt="' + item.name + '" loading="lazy" onerror="this.onerror=null">' +
+        badgeHTML +
+        '<div class="video-btn" onclick="showVideo(\'' + item.name + '\')"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Ver vídeo</div>' +
+        '</div>' +
+        '<div class="dish-body"><div class="dish-name">' + item.name + '</div>' + descHTML + allergensHTML +
+        '<div class="dish-ask" onclick="showAsk(\'' + item.name.replace(/'/g, "\\'") + '\')">💬 ¿Tienes alguna duda?</div></div>' +
+        '<div class="dish-footer">' +
+        '<span class="dish-price">' + item.price.toFixed(2).replace('.', ',') + ' €</span>' +
+        '<button class="btn-guardar" id="btn-' + item.id + '" onclick="toggleGuardar(\'' + item.id + '\')">🔖 Guardar para pedir</button>' +
+        '</div>';
+      grid.appendChild(card);
+      vistaObserver.observe(card);
+    });
+  });
+  buildHeroPlato('hero-pizza-wrap', 'pizzas');
+  buildHeroPlato('hero-pasta-wrap', 'pastas');
+  buildHeroChips();
+  buildPostreSpotlight();
+  restaurarBotonesGuardados();
+  setTimeout(function() {
+    var primerHero = document.querySelector('#hero-pizza-wrap .dish-hero');
+    if (primerHero) primerHero.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 200);
+}
+
+function buildHeroPlato(wrapId, cat) {
+  var wrap = document.getElementById(wrapId);
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  var items = MENU[cat] || [];
+  var hero = items.find(function(i){return i.badge==='hot';}) || items.find(function(i){return i.badge==='bestseller';}) || items[0];
+  if (!hero) return;
+  var precioMedio = items.reduce(function(a,b){return a+b.price;},0)/items.length;
+  var esChef = hero.price > precioMedio;
+  wrap.innerHTML = '<div class="dish-hero">' +
+    '<div style="position:relative;overflow:hidden">' +
+    '<img class="dish-hero-img" src="' + hero.img + '" alt="' + hero.name + '" onerror="this.onerror=null">' +
+    (hero.badge ? '<div class="dish-badge badge-' + hero.badge + '" style="top:12px;left:12px;font-size:11px">' + (hero.badge==='hot'?'🔥':hero.badge==='new'?'✨':'⭐') + ' ' + BADGE_LABELS[hero.badge] + '</div>' : '') +
+    (esChef ? '<div style="position:absolute;top:12px;right:12px;background:#E65100;color:#fff;font-size:10px;font-weight:900;padding:4px 10px;border-radius:20px">👨‍🍳 Elección del chef</div>' : '') +
+    '</div>' +
+    '<div class="dish-hero-body">' +
+    '<div class="dish-hero-name">' + hero.name + '</div>' +
+    '<div class="dish-hero-desc">' + hero.desc + '</div>' +
+    '<div class="dish-hero-footer">' +
+    '<span style="font-family:\'Playfair Display\',serif;font-size:22px;font-weight:900;color:var(--red)">' + hero.price.toFixed(2).replace('.', ',') + ' €</span>' +
+    '<button class="btn-guardar" id="btn-hero-' + hero.id + '" onclick="toggleGuardar(\'' + hero.id + '\')" style="padding:8px 16px;font-size:12px">🔖 Guardar para pedir</button>' +
+    '</div></div></div>';
+}
+
+function buildHeroChips() {
+  var el = document.getElementById('hero-chips');
+  if (!el) return;
+  var MAS_PEDIDOS = ['pizza-diavola', 'pizza-4quesos', 'tiramisú', 'pasta-carbonara'];
+  el.innerHTML = MAS_PEDIDOS.map(function(id) {
+    var item = findItem(id);
+    if (!item) return '';
+    return '<div class="hero-chip" onclick="scrollToItem(\'' + id + '\')">' + item.name.split(' ')[0] + '</div>';
+  }).join('');
+}
+
+function buildPostreSpotlight() {
+  var postres = MENU['postres'] || [];
+  var estrella = postres.find(function(p){return p.badge==='bestseller';}) || postres[0];
+  if (!estrella) return;
+  var el = document.getElementById('postre-spotlight');
+  var img = document.getElementById('postre-spotlight-img');
+  var nombre = document.getElementById('postre-spotlight-name');
+  var btn = document.getElementById('postre-spotlight-btn');
+  if (!el||!img||!nombre||!btn) return;
+  img.src = estrella.img;
+  nombre.textContent = estrella.name + ' — ' + estrella.price.toFixed(2).replace('.', ',') + ' €';
+  btn.id = 'btn-postre-' + estrella.id;
+  btn.onclick = function() { toggleGuardar(estrella.id); };
+  el.style.display = 'block';
+  var unidades = Math.floor(Math.random()*5)+3;
+  var urgencia = document.createElement('div');
+  urgencia.style.cssText = 'font-size:12px;font-weight:800;color:#ff3d5a;margin-top:10px';
+  urgencia.textContent = '⏳ Solo quedan ' + unidades;
+  btn.parentElement.appendChild(urgencia);
+}
+
+// ══ SUGERENCIA POSTRES ══
+function mostrarSugerenciaPostres() {
+  if (sugerenciaMostrada) return;
+  var postres = MENU['postres'] || [];
+  if (!postres.length) return;
+  var cards = postres.slice(0, 4);
+  document.getElementById('sugerencia-cards').innerHTML = cards.map(function(item) {
+    return '<div class="sugerencia-card">' +
+      '<img class="sugerencia-card-img" src="' + item.img + '" alt="' + item.name + '" onerror="this.onerror=null">' +
+      '<div class="sugerencia-card-body">' +
+      '<div class="sugerencia-card-name">' + item.name + '</div>' +
+      '<div class="sugerencia-card-price">' + item.price.toFixed(2).replace('.', ',') + ' €</div>' +
+      '<button class="sugerencia-card-btn" id="sug-btn-' + item.id + '" onclick="guardarDesdeSugerencia(\'' + item.id + '\')">🔖 Guardar para pedir</button>' +
+      '</div></div>';
+  }).join('');
+  document.getElementById('sugerencia-panel').classList.add('open');
+  document.getElementById('sugerencia-overlay').classList.add('open');
+  sugerenciaMostrada = true;
+  sugerenciaTimer = setTimeout(cerrarSugerencia, 15000);
+}
+
+function cerrarSugerencia() {
+  clearTimeout(sugerenciaTimer);
+  document.getElementById('sugerencia-panel').classList.remove('open');
+  document.getElementById('sugerencia-overlay').classList.remove('open');
+}
+
+function guardarDesdeSugerencia(id) {
+  if (!listaGuardados[id]) toggleGuardar(id);
+  var btn = document.getElementById('sug-btn-' + id);
+  if (btn) { btn.textContent = '✓ Guardado'; btn.classList.add('guardado'); }
+}
+
+// ══ ASK MODAL POR PLATO ══
+function showAsk(name) {
+  currentDish = name; chatHistory = [];
+  document.getElementById('ask-dish-name').textContent = name;
+  document.getElementById('ask-messages').innerHTML = '';
+  document.getElementById('ask-input').value = '';
+  document.getElementById('ask-chips').innerHTML = QUICK_QUESTIONS.map(function(q) {
+    return '<div class="ask-chip" onclick="sendQuick(\'' + q.replace(/'/g,"\\'") + '\')">' + q + '</div>';
+  }).join('');
+  appendAIMsg('¡Hola! Estoy aquí para resolver tus dudas sobre <strong>' + name + '</strong>. ¿En qué te puedo ayudar?');
+  document.getElementById('ask-modal').classList.add('open');
+  var item = Object.values(MENU).flat().find(function(i){return i.name===name;});
+  if (item) registrarInteres(item.id, 'pregunta_ia');
+}
+function closeAsk() { document.getElementById('ask-modal').classList.remove('open'); }
+function sendQuick(q) { document.getElementById('ask-input').value = q; sendAskMessage(); }
+
+function appendAIMsg(html) {
+  var el = document.getElementById('ask-messages');
+  el.innerHTML += '<div class="msg ai"><div class="msg-avatar">🍕</div><div class="msg-bubble">' + html + '</div></div>';
+  el.scrollTop = el.scrollHeight;
+}
+function appendUserMsg(text) {
+  var el = document.getElementById('ask-messages');
+  el.innerHTML += '<div class="msg user"><div class="msg-bubble">' + text + '</div><div class="msg-avatar user-av">👤</div></div>';
+  el.scrollTop = el.scrollHeight;
+}
+function showTyping(containerId) {
+  var el = document.getElementById(containerId);
+  el.innerHTML += '<div class="msg ai" id="typing-' + containerId + '"><div class="msg-avatar">🍕</div><div class="msg-bubble typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>';
+  el.scrollTop = el.scrollHeight;
+}
+function removeTyping(containerId) {
+  var t = document.getElementById('typing-' + containerId);
+  if (t) t.remove();
+}
+
+async function sendAskMessage() {
+  var input = document.getElementById('ask-input');
+  var text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  document.getElementById('ask-send-btn').disabled = true;
+  appendUserMsg(text);
+  chatHistory.push({ role: 'user', content: text });
+  showTyping('ask-messages');
+  try {
+    var res = await fetch(EDGE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
+      body: JSON.stringify({
+        system: 'Eres el asistente de Pizza Pronto. El cliente pregunta sobre: "' + currentDish + '". Responde amable, breve (máximo 3 frases). Español. Tono cálido.',
+        messages: chatHistory.slice(-6)
+      })
+    });
+    var data = await res.json();
+    removeTyping('ask-messages');
+    var reply = (data.content && data.content[0] && data.content[0].text) || 'Lo siento, consulta con el camarero.';
+    chatHistory.push({ role: 'assistant', content: reply });
+    appendAIMsg(reply);
+  } catch(e) { removeTyping('ask-messages'); appendAIMsg('En este momento no puedo responder. Consulta con el camarero.'); }
+  document.getElementById('ask-send-btn').disabled = false;
+}
+
+// ══ ASISTENTE GENERAL ══
+function abrirAsistente() {
+  document.getElementById('asistente-chat').classList.add('open');
+  document.getElementById('asistente-overlay').classList.add('open');
+  if (!asistenteVisible) {
+    asistenteVisible = true;
+    appendAsistenteMsg('¡Hola! 😊 Dime qué te apetece y te recomiendo algo de nuestra carta. También puedo ayudarte con alérgenos o ingredientes.');
+  }
+  document.getElementById('asistente-input').focus();
+}
+function cerrarAsistente() {
+  document.getElementById('asistente-chat').classList.remove('open');
+  document.getElementById('asistente-overlay').classList.remove('open');
+}
+
+function procesarRespuestaConBotones(texto) {
+  var todosLosPlatos = Object.values(MENU).flat();
+  var textoLower = texto.toLowerCase();
+  var encontrados = todosLosPlatos.filter(function(item) {
+    return textoLower.indexOf(item.name.toLowerCase()) >= 0;
+  }).slice(0, 3);
+  if (!encontrados.length) return '';
+  var html = '<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">';
+  encontrados.forEach(function(item) {
+    html += '<div class="chat-plato-card">' +
+      '<img class="chat-plato-img" src="' + item.img + '" alt="' + item.name + '" onerror="this.onerror=null">' +
+      '<div class="chat-plato-info">' +
+      '<div class="chat-plato-name">' + item.name + '</div>' +
+      '<div class="chat-plato-price">' + item.price.toFixed(2).replace('.', ',') + ' €</div>' +
+      '</div>' +
+      '<button class="chat-plato-btn" id="chat-btn-' + item.id + '" onclick="chatGuardar(\'' + item.id + '\')">🔖 Guardar</button>' +
+      '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function chatGuardar(id) {
+  if (!listaGuardados[id]) toggleGuardar(id);
+  var btn = document.getElementById('chat-btn-' + id);
+  if (btn) { btn.textContent = '✓ Guardado'; btn.classList.add('guardado'); btn.disabled = true; }
+}
+
+function appendAsistenteMsg(texto, esUsuario, conBotones) {
+  var el = document.getElementById('asistente-messages');
+  if (esUsuario) {
+    el.innerHTML += '<div class="msg user"><div class="msg-bubble">' + texto + '</div><div class="msg-avatar user-av">👤</div></div>';
+  } else {
+    var botonesHTML = conBotones ? procesarRespuestaConBotones(texto) : '';
+    el.innerHTML += '<div class="msg ai"><div class="msg-avatar">🍕</div><div><div class="msg-bubble">' + texto + '</div>' + botonesHTML + '</div></div>';
+  }
+  el.scrollTop = el.scrollHeight;
+}
+
+function generarContextoCarta() {
+  var ctx = 'Carta completa de Pizza Pronto:\n\n';
+  Object.entries(MENU).forEach(function(entry) {
+    var cat = entry[0]; var items = entry[1];
+    if (!items.length) return;
+    ctx += cat.toUpperCase() + ':\n';
+    items.forEach(function(item) {
+      ctx += '- ' + item.name + ': ' + item.price.toFixed(2) + 'EUR';
+      if (item.desc && item.desc.length > 5) ctx += ' | ' + item.desc;
+      if (item.allergens && item.allergens.length) ctx += ' | Alérgenos: ' + item.allergens.join(' ');
+      ctx += '\n';
+    });
+    ctx += '\n';
+  });
+  return ctx;
+}
+
+function enviarPreguntaRapida(q) { document.getElementById('asistente-input').value = q; enviarMensajeAsistente(); }
+
+async function enviarMensajeAsistente() {
+  var input = document.getElementById('asistente-input');
+  var text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  document.getElementById('asistente-send-btn').disabled = true;
+  appendAsistenteMsg(text, true);
+  asistenteChatHistory.push({ role: 'user', content: text });
+  showTyping('asistente-messages');
+  try {
+    var res = await fetch(EDGE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
+      body: JSON.stringify({
+        system: 'Eres el asistente de Pizza Pronto. Ayuda al cliente a elegir qué pedir. Menciona SIEMPRE el nombre exacto de los platos que recomiendas. Responde en español, amable y breve (3-4 frases). ' + generarContextoCarta(),
+        messages: asistenteChatHistory.slice(-8)
+      })
+    });
+    var data = await res.json();
+    removeTyping('asistente-messages');
+    var reply = (data.content && data.content[0] && data.content[0].text) || 'Lo siento, consulta con el camarero.';
+    asistenteChatHistory.push({ role: 'assistant', content: reply });
+    appendAsistenteMsg(reply, false, true);
+  } catch(e) { removeTyping('asistente-messages'); appendAsistenteMsg('En este momento no puedo responder. Consulta con el camarero.'); }
+  document.getElementById('asistente-send-btn').disabled = false;
+}
+
+// ══ ALÉRGENOS ══
+function toggleAlergenos() {
+  var panel = document.getElementById('alergenos-panel');
+  var btn = document.getElementById('alergenos-btn');
+  panelAlergenosAbierto = !panelAlergenosAbierto;
+  panel.style.display = panelAlergenosAbierto ? 'block' : 'none';
+  btn.style.background = panelAlergenosAbierto ? 'var(--red)' : '#fff';
+  btn.style.color = panelAlergenosAbierto ? '#fff' : 'var(--text-soft)';
+}
+function toggleAlergenFiltro(el) { el.classList.toggle('active'); }
+function añadirAlergenPersonalizado() {
+  var input = document.getElementById('alergen-custom-input');
+  var val = input.value.trim(); if (!val) return;
+  var wrap = document.getElementById('alergenos-custom-wrap');
+  var pill = document.createElement('div');
+  pill.className = 'alergen-pill active';
+  pill.dataset.val = val.toLowerCase();
+  pill.innerHTML = '✏️ ' + val + ' <span onclick="this.parentElement.remove()" style="margin-left:4px;cursor:pointer">×</span>';
+  wrap.appendChild(pill); input.value = '';
+}
+function limpiarFiltroAlergenos() {
+  document.querySelectorAll('.alergen-pill').forEach(function(p){p.classList.remove('active');});
+  alergenosFiltro.clear();
+  document.querySelectorAll('.dish-card').forEach(function(card){card.classList.remove('alergen-warning');});
+  document.getElementById('alergenos-btn').innerHTML = '<span style="font-size:18px">🙋</span> ¿Eres alérgico a algo?';
+  document.getElementById('alergenos-btn').style.background = '#fff';
+  document.getElementById('alergenos-btn').style.color = 'var(--text-soft)';
+  document.getElementById('alergenos-panel').style.display = 'none';
+  panelAlergenosAbierto = false;
+}
+function aplicarFiltroAlergenos() {
+  alergenosFiltro.clear();
+  document.querySelectorAll('#alergenos-panel .alergen-pill.active, #alergenos-custom-wrap .alergen-pill').forEach(function(p){alergenosFiltro.add(p.dataset.val);});
+  if (!alergenosFiltro.size) { limpiarFiltroAlergenos(); return; }
+  var marcados = 0;
+  document.querySelectorAll('.dish-card').forEach(function(card) {
+    var id = card.id.replace('card-','');
+    var item = findItem(id); if (!item) return;
+    var tiene = (item.allergens||[]).some(function(a){return alergenosFiltro.has(a);});
+    if (!tiene) {
+      var texto = (item.name + ' ' + item.desc).toLowerCase();
+      tiene = Array.from(alergenosFiltro).some(function(a){ return !a.startsWith('�') && texto.indexOf(a) >= 0; });
+    }
+    card.classList.toggle('alergen-warning', tiene);
+    if (tiene) marcados++;
+  });
+  document.getElementById('alergenos-btn').innerHTML = '<span style="font-size:16px">⚠️</span> ' + marcados + ' platos con alérgenos';
+  document.getElementById('alergenos-btn').style.background = 'var(--red)';
+  document.getElementById('alergenos-btn').style.color = '#fff';
+  document.getElementById('alergenos-panel').style.display = 'none';
+  panelAlergenosAbierto = false;
+  showToast('⚠️ ' + marcados + ' platos contienen tus alérgenos');
+}
+document.addEventListener('click', function(e) {
+  var panel = document.getElementById('alergenos-panel');
+  var btn = document.getElementById('alergenos-btn');
+  if (panelAlergenosAbierto && panel && !panel.contains(e.target) && !btn.contains(e.target)) {
+    panel.style.display = 'none'; panelAlergenosAbierto = false;
+  }
+});
+
+// ══ NAVEGACIÓN ══
+function scrollToSection(id) {
+  var el = document.getElementById('sec-' + id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  var cats = ['pizzas','pastas','entrantes','ensaladas','postres','bebidas'];
+  document.querySelectorAll('.cat-btn').forEach(function(b, i) { b.classList.toggle('active', cats[i]===id); });
+}
+function scrollToItem(id) {
+  var el = document.getElementById('card-' + id);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.style.outline = '3px solid var(--gold)';
+    setTimeout(function(){el.style.outline='';}, 1500);
+  }
+}
+function showVideo(name) {
+  document.getElementById('video-modal-title').textContent = 'Vídeo: ' + name;
+  document.getElementById('video-modal').classList.add('open');
+}
+
+// ══ TOAST ══
+var toastTimer;
+function showToast(msg) {
+  var el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){el.classList.remove('show');}, 2200);
+}
+
+// ══ INIT ══
+window.addEventListener('DOMContentLoaded', async function() {
+  var params = new URLSearchParams(window.location.search);
+  mesa = params.get('mesa') || '1';
+  document.getElementById('header-mesa-txt').textContent = 'Mesa ' + mesa;
+  document.getElementById('header-mesa-tag').textContent = 'Mesa ' + mesa;
+
+  await cargarCarta();
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  buildMenu();
+  iniciarPolling();
+  cargarPlatoDia();
+  setTimeout(cargarMasPedidos, 1000);
+
+  // Observer para nav activo
+  var cats = ['pizzas','pastas','entrantes','ensaladas','postres','bebidas'];
+  var btns = document.querySelectorAll('.cat-btn');
+  var navObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) {
+        var id = e.target.id.replace('sec-','');
+        var idx = cats.indexOf(id);
+        if (idx >= 0) {
+          btns.forEach(function(b,i){b.classList.toggle('active',i===idx);});
+        }
+      }
+    });
+  }, { threshold: 0, rootMargin: '-130px 0px -50% 0px' });
+  cats.forEach(function(c) { var el = document.getElementById('sec-'+c); if(el) navObserver.observe(el); });
+
+  // Asistente visible a los 10s
+  setTimeout(function() {
+    var btn = document.getElementById('asistente-btn');
+    if (btn) btn.classList.add('visible');
+  }, 10000);
+
+  // Inputs enter
+  document.getElementById('ask-input').addEventListener('keydown', function(e){ if(e.key==='Enter') sendAskMessage(); });
+  document.getElementById('asistente-input').addEventListener('keydown', function(e){ if(e.key==='Enter') enviarMensajeAsistente(); });
+});
 </script>
 </body>
 </html>
