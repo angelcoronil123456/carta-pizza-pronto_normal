@@ -887,6 +887,58 @@ document.addEventListener('DOMContentLoaded', () => {
 let tiempoEnPlato = {};      // cuántos ms lleva viendo cada plato
 let platoActualVisible = null;
 let tiempoInicioVista = null;
+let listaGuardados = JSON.parse(sessionStorage.getItem('listaGuardados') || '{}');
+
+// ══ SISTEMA DE GUARDADOS ══
+function toggleGuardar(id) {
+  var item = findItem(id);
+  if (!item) return;
+  if (listaGuardados[id]) {
+    delete listaGuardados[id];
+  } else {
+    listaGuardados[id] = { id: id, name: item.name, price: item.price, img: item.img };
+    registrarInteres(id, 'añadir');
+    if (!sessionStorage.getItem('listaTooltipVisto')) {
+      showToast('🔖 Guardado en tu lista para pedir');
+      sessionStorage.setItem('listaTooltipVisto', '1');
+    }
+  }
+  sessionStorage.setItem('listaGuardados', JSON.stringify(listaGuardados));
+  actualizarBtnGuardar(id);
+  actualizarListaBtn();
+  var totalGuardados = Object.keys(listaGuardados).length;
+  if (totalGuardados === 2 && !sugerenciaMostrada) {
+    setTimeout(function() { mostrarSugerenciaPostres(); }, 4000);
+  }
+}
+
+function actualizarBtnGuardar(id) {
+  var btn = document.getElementById('btn-' + id);
+  if (!btn) return;
+  if (listaGuardados[id]) {
+    btn.className = 'btn-guardar guardado';
+    btn.innerHTML = '✓ Guardado';
+  } else {
+    btn.className = 'btn-guardar';
+    btn.innerHTML = '🔖 Guardar para pedir';
+  }
+}
+
+function actualizarListaBtn() {
+  var total = Object.keys(listaGuardados).length;
+  var btn = document.getElementById('lista-btn');
+  var badge = document.getElementById('lista-badge');
+  var txt = document.getElementById('lista-txt');
+  if (!btn) return;
+  badge.textContent = total;
+  txt.textContent = total === 1 ? '1 plato para pedir' : total + ' platos para pedir';
+  btn.classList.toggle('visible', total > 0);
+}
+
+function restaurarBotonesGuardados() {
+  Object.keys(listaGuardados).forEach(function(id) { actualizarBtnGuardar(id); });
+  actualizarListaBtn();
+}
 
 // ══ INIT ══
 window.addEventListener('DOMContentLoaded', async () => {
