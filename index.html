@@ -1093,9 +1093,11 @@ function aplicarFiltroAlergenos() {
     card.classList.toggle('alergen-warning', tiene);
     if (tiene) marcados++;
   });
-  document.getElementById('alergenos-btn').innerHTML = '<span style="font-size:16px">⚠️</span> ' + marcados + ' platos con alérgenos';
-  document.getElementById('alergenos-btn').style.background = 'var(--red)';
-  document.getElementById('alergenos-btn').style.color = '#fff';
+  // Solo fondo rojo, mantener el ⚠️ centrado sin texto
+  var btnAl = document.getElementById('alergenos-btn');
+  btnAl.innerHTML = '⚠️';
+  btnAl.style.background = 'var(--red)';
+  btnAl.style.borderColor = 'var(--red)';
   document.getElementById('alergenos-panel').style.display = 'none';
   panelAlergenosAbierto = false;
   showToast('⚠️ ' + marcados + ' platos contienen tus alérgenos');
