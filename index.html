@@ -1073,7 +1073,8 @@ function limpiarFiltroAlergenos() {
   document.querySelectorAll('.alergen-pill').forEach(function(p){p.classList.remove('active');});
   alergenosFiltro.clear();
   document.querySelectorAll('.dish-card').forEach(function(card){card.classList.remove('alergen-warning');});
-  actualizarEstiloAlergenosBtn();
+  var btnAl = document.getElementById('alergenos-btn');
+  if (btnAl) { btnAl.innerHTML = '⚠️'; btnAl.style.background = 'rgba(255,255,255,.85)'; btnAl.style.borderColor = '#e8ddd0'; }
   document.getElementById('alergenos-panel').style.display = 'none';
   panelAlergenosAbierto = false;
 }
