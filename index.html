@@ -1048,11 +1048,15 @@ async function enviarMensajeAsistente() {
 // ══ ALÉRGENOS ══
 function toggleAlergenos() {
   var panel = document.getElementById('alergenos-panel');
-  var btn = document.getElementById('alergenos-btn');
   panelAlergenosAbierto = !panelAlergenosAbierto;
   panel.style.display = panelAlergenosAbierto ? 'block' : 'none';
-  btn.style.background = panelAlergenosAbierto ? 'var(--red)' : '#fff';
-  btn.style.color = panelAlergenosAbierto ? '#fff' : 'var(--text-soft)';
+  // Solo poner rojo si hay filtro activo, si no, dejar blanco siempre
+  if (!panelAlergenosAbierto && alergenosFiltro.size === 0) {
+    var btn = document.getElementById('alergenos-btn');
+    btn.style.background = 'rgba(255,255,255,.85)';
+    btn.style.color = '';
+    btn.style.borderColor = '#e8ddd0';
+  }
 }
 function toggleAlergenFiltro(el) { el.classList.toggle('active'); }
 function añadirAlergenPersonalizado() {
@@ -1069,9 +1073,7 @@ function limpiarFiltroAlergenos() {
   document.querySelectorAll('.alergen-pill').forEach(function(p){p.classList.remove('active');});
   alergenosFiltro.clear();
   document.querySelectorAll('.dish-card').forEach(function(card){card.classList.remove('alergen-warning');});
-  document.getElementById('alergenos-btn').innerHTML = '<span style="font-size:18px">🙋</span> ¿Eres alérgico a algo?';
-  document.getElementById('alergenos-btn').style.background = '#fff';
-  document.getElementById('alergenos-btn').style.color = 'var(--text-soft)';
+  actualizarEstiloAlergenosBtn();
   document.getElementById('alergenos-panel').style.display = 'none';
   panelAlergenosAbierto = false;
 }
