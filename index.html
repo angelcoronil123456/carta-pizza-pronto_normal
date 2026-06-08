@@ -54,7 +54,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 .dish-card{background:#fff;border-radius:var(--radius-sm);overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06);animation:fadeSlideUp .4s ease both;position:relative;display:flex;flex-direction:column}
 @keyframes fadeSlideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .dish-img-wrap{position:relative;overflow:hidden}
-.dish-img{width:100%;height:120px;object-fit:cover;display:block;transition:transform .3s}
+.dish-img{width:100%;height:150px;object-fit:cover;display:block;transition:transform .3s}
 .dish-card:active .dish-img{transform:scale(1.04)}
 .dish-badge{position:absolute;top:8px;left:8px;background:var(--red);color:#fff;font-size:9px;font-weight:900;padding:3px 8px;border-radius:20px;letter-spacing:.3px}
 .badge-hot{background:#e65100}
@@ -276,8 +276,6 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
   <div style="padding:16px 16px 0">
     <div class="hero-banner">
       <div class="promo-tag">⭐ Lo más pedido</div>
-      <div class="promo-title">Auténtica cocina italiana</div>
-      <div class="promo-sub">Masa madre, ingredientes frescos cada día</div>
       <div class="hero-chips" id="hero-chips"></div>
     </div>
   </div>
@@ -312,8 +310,13 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
   <div class="postre-spotlight" id="postre-spotlight">
     <img class="postre-spotlight-img" id="postre-spotlight-img" src="" alt="Postre">
     <div class="postre-overlay">
-      <span class="postre-tag">🍮 No te lo pierdas</span>
-      <div class="postre-name" id="postre-spotlight-name"></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+        <img id="postre-spotlight-thumb" style="width:56px;height:56px;border-radius:12px;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,255,255,.3)" src="" alt="">
+        <div>
+          <span class="postre-tag">🍮 No te lo pierdas</span>
+          <div class="postre-name" id="postre-spotlight-name" style="font-size:18px"></div>
+        </div>
+      </div>
       <div class="postre-actions">
         <button class="btn-guardar" id="postre-spotlight-btn">🔖 Guardar para pedir</button>
       </div>
@@ -805,6 +808,8 @@ function buildPostreSpotlight() {
   var btn = document.getElementById('postre-spotlight-btn');
   if (!el||!img||!nombre||!btn) return;
   img.src = estrella.img;
+  var thumb = document.getElementById('postre-spotlight-thumb');
+  if (thumb) { thumb.src = estrella.img; thumb.alt = estrella.name; }
   nombre.textContent = estrella.name + ' — ' + estrella.price.toFixed(2).replace('.', ',') + ' €';
   btn.id = 'btn-postre-' + estrella.id;
   btn.onclick = function() { toggleGuardar(estrella.id); };
