@@ -305,7 +305,11 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
     <button class="cat-btn" onclick="scrollToSection('bebidas')">🥤 Bebidas</button>
   </div>
 
-  <div id="plato-dia-wrap" style="display:none"></div>
+
+  <div id="destacados-wrap" style="padding:20px 16px 0;display:none">
+    <h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--text);margin-bottom:4px">Destacados</h2>
+    <p style="font-size:12px;color:var(--text-soft);margin-bottom:0">Lo mejor para orientarte antes de elegir</p>
+  </div>
   <div id="rec-dia-wrap" style="display:none"></div>
   <div id="top-pedidos-wrap" style="display:none"></div>
 
@@ -726,27 +730,6 @@ function iniciarPolling() {
   }, 30000);
 }
 
-// ══ PLATO DEL DÍA ══
-async function cargarPlatoDia() {
-  try {
-    var r = await sb.from('carta').select('*').eq('restaurante_id', RESTAURANTE_ID).eq('badge', 'hot').eq('activo', true).limit(1);
-    if (!r.data || !r.data.length) return;
-    var p = r.data[0];
-    var wrap = document.getElementById('plato-dia-wrap');
-    if (!wrap) return;
-    wrap.style.display = 'block';
-    wrap.innerHTML = '<div class="plato-dia-banner" onclick="scrollToItem(\'' + p.id + '\')">' +
-      '<div class="plato-dia-inner">' +
-      '<img class="plato-dia-img" src="' + (p.imagen || '') + '" alt="' + p.nombre + '" onerror="this.onerror=null">' +
-      '<div style="flex:1">' +
-      '<span class="plato-dia-tag">🌟 Recomendado hoy</span>' +
-      '<div class="plato-dia-name">' + p.nombre + '</div>' +
-      '<div class="plato-dia-desc">' + (p.descripcion || '').substring(0, 60) + '</div>' +
-      '<div class="plato-dia-price">' + Number(p.precio).toFixed(2).replace('.', ',') + ' €</div>' +
-      '</div></div></div>';
-  } catch(e) {}
-}
-
 // ══ RECOMENDADOS DEL DÍA (plato menos vendido por categoría, cambia cada día) ══
 async function cargarRecomendadosDelDia() {
   try {
@@ -815,9 +798,11 @@ async function cargarRecomendadosDelDia() {
         '<div class="rec-dia-cat">' + rec.cat + '</div>' +
         '<div class="rec-dia-name">' + item.name + '</div>' +
         '<div class="rec-dia-price">' + item.price.toFixed(2).replace('.',',') + ' €</div>' +
+        '<button onclick="event.stopPropagation();toggleGuardar(\'' + item.id + '\')" style="width:100%;margin-top:5px;padding:4px;background:var(--red);border:none;border-radius:6px;color:#fff;font-size:9px;font-weight:800;cursor:pointer">🔖 Guardar</button>' +
         '</div></div>';
     }).join('');
 
+    var dw = document.getElementById('destacados-wrap'); if(dw) dw.style.display='block';
     wrap.style.display = 'block';
     wrap.innerHTML = '<div class="rec-dia-section">' +
       '<div class="rec-dia-title">⭐ Recomendado hoy</div>' +
@@ -876,8 +861,10 @@ async function cargarTopPedidos() {
         '<div class="top-pedido-body">' +
         '<div class="top-pedido-name">' + item.name + '</div>' +
         '<div class="top-pedido-price">' + item.price.toFixed(2).replace('.',',') + ' €</div>' +
+        '<button onclick="event.stopPropagation();toggleGuardar(\'' + item.id + '\')" style="width:100%;margin-top:5px;padding:4px;background:var(--red);border:none;border-radius:6px;color:#fff;font-size:9px;font-weight:800;cursor:pointer">🔖 Guardar</button>' +
         '</div></div>';
     }).join('');
+    var dw2 = document.getElementById('destacados-wrap'); if(dw2) dw2.style.display='block';
     wrap.style.display = 'block';
     wrap.innerHTML = '<div class="top-pedidos">' +
       '<div class="top-pedidos-title">🔥 Lo más pedido la semana pasada</div>' +
@@ -1373,7 +1360,6 @@ window.addEventListener('DOMContentLoaded', async function() {
   document.getElementById('app').style.display = 'block';
   buildMenu();
   iniciarPolling();
-  cargarPlatoDia();
   setTimeout(cargarRecomendadosDelDia, 600);
   setTimeout(cargarTopPedidos, 800);
 
