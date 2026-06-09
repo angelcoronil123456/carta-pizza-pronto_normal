@@ -830,17 +830,22 @@ async function cargarRecomendadosDelDia() {
 // ══ TOP PEDIDOS SEMANA ══
 async function cargarTopPedidos() {
   try {
-    // Semana natural: desde el lunes de esta semana
+    // Semana ANTERIOR completa (lunes a domingo pasados)
     var hoy = new Date();
     var diaSemana = hoy.getDay(); // 0=dom, 1=lun...
     var diasDesdelunes = diaSemana === 0 ? 6 : diaSemana - 1;
-    var inicioSemana = new Date(hoy);
-    inicioSemana.setDate(hoy.getDate() - diasDesdelunes);
-    inicioSemana.setHours(0,0,0,0);
+    // Inicio semana anterior = lunes de hace 2 semanas + 7 días = lunes pasado
+    var lunesPasado = new Date(hoy);
+    lunesPasado.setDate(hoy.getDate() - diasDesdelunes - 7);
+    lunesPasado.setHours(0,0,0,0);
+    var domingoPassado = new Date(lunesPasado);
+    domingoPassado.setDate(lunesPasado.getDate() + 7);
+    domingoPassado.setHours(23,59,59,999);
     var r = await sb.from('carta_clics')
       .select('plato_id')
       .eq('restaurante_id', RESTAURANTE_ID)
-      .gte('fecha', inicioSemana.toISOString());
+      .gte('fecha', lunesPasado.toISOString())
+      .lte('fecha', domingoPassado.toISOString());
     if (!r.data || !r.data.length) return;
     // Contar
     var conteo = {};
@@ -850,14 +855,23 @@ async function cargarTopPedidos() {
       .sort(function(a,b){return b[1]-a[1];})
       .slice(0,6)
       .map(function(e){return e[0];});
-    if (!top.length) return;
+    // Un top por categoría (sin bebidas)
+    var catLabels = {'pizzas':'🍕','pastas':'🍝','entrantes':'🥗','ensaladas':'🥬','postres':'🍮'};
+    var cats = ['pizzas','pastas','entrantes','ensaladas','postres'];
+    var topPorCat = [];
+    cats.forEach(function(cat) {
+      var items = (MENU[cat]||[]).filter(function(p){ return p.img && p.img.length > 5; });
+      if (!items.length) return;
+      var mejor = items.sort(function(a,b){ return (conteo[b.id]||0)-(conteo[a.id]||0); })[0];
+      if (conteo[mejor.id]) topPorCat.push({item: mejor, cat: catLabels[cat], ventas: conteo[mejor.id]});
+    });
+    if (!topPorCat.length) return;
     var wrap = document.getElementById('top-pedidos-wrap');
     if (!wrap) return;
-    var cards = top.map(function(id, idx) {
-      var item = findItem(id);
-      if (!item) return '';
-      return '<div class="top-pedido-card" onclick="scrollToItem(\'' + id + '\')">' +
-        '<div class="top-pedido-num">' + (idx+1) + '</div>' +
+    var cards = topPorCat.map(function(rec, idx) {
+      var item = rec.item;
+      return '<div class="top-pedido-card" onclick="scrollToItem(\'' + item.id + '\')">' +
+        '<div class="top-pedido-num">' + rec.cat + '</div>' +
         '<img class="top-pedido-img" src="' + item.img + '" alt="' + item.name + '" onerror="this.onerror=null">' +
         '<div class="top-pedido-body">' +
         '<div class="top-pedido-name">' + item.name + '</div>' +
@@ -866,7 +880,7 @@ async function cargarTopPedidos() {
     }).join('');
     wrap.style.display = 'block';
     wrap.innerHTML = '<div class="top-pedidos">' +
-      '<div class="top-pedidos-title">🔥 Lo más pedido esta semana</div>' +
+      '<div class="top-pedidos-title">🔥 Lo más pedido la semana pasada</div>' +
       '<div class="top-pedidos-grid">' + cards + '</div>' +
       '</div>';
   } catch(e) {}
