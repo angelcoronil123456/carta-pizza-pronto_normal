@@ -297,7 +297,8 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
   </div>
 
   <div class="cat-nav">
-    <button class="cat-btn active" onclick="scrollToSection('pizzas')">🍕 Pizzas</button>
+    <button class="cat-btn active" onclick="scrollToSection('destacados')">⭐ Destacados</button>
+    <button class="cat-btn" onclick="scrollToSection('pizzas')">🍕 Pizzas</button>
     <button class="cat-btn" onclick="scrollToSection('pastas')">🍝 Pastas</button>
     <button class="cat-btn" onclick="scrollToSection('entrantes')">🥗 Entrantes</button>
     <button class="cat-btn" onclick="scrollToSection('ensaladas')">🥬 Ensaladas</button>
@@ -306,12 +307,14 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
   </div>
 
 
+  <div id="sec-destacados" style="scroll-margin-top:110px">
   <div id="destacados-wrap" style="padding:20px 16px 0;display:none">
     <h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--text);margin-bottom:4px">Destacados</h2>
     <p style="font-size:12px;color:var(--text-soft);margin-bottom:0">Lo mejor para orientarte antes de elegir</p>
   </div>
   <div id="rec-dia-wrap" style="display:none"></div>
   <div id="top-pedidos-wrap" style="display:none"></div>
+  </div><!-- /sec-destacados -->
 
 
 
@@ -798,7 +801,7 @@ async function cargarRecomendadosDelDia() {
         '<div class="rec-dia-cat">' + rec.cat + '</div>' +
         '<div class="rec-dia-name">' + item.name + '</div>' +
         '<div class="rec-dia-price">' + item.price.toFixed(2).replace('.',',') + ' €</div>' +
-        '<button onclick="event.stopPropagation();toggleGuardar(\'' + item.id + '\')" style="width:100%;margin-top:5px;padding:4px;background:var(--red);border:none;border-radius:6px;color:#fff;font-size:9px;font-weight:800;cursor:pointer">🔖 Guardar</button>' +
+        '<button id="dest-btn-' + item.id + '" onclick="event.stopPropagation();destGuardar(\'' + item.id + '\')" style="width:100%;margin-top:5px;padding:5px;background:#fff;border:1.5px solid #e0d5ca;border-radius:6px;color:var(--text-soft);font-size:9px;font-weight:800;cursor:pointer">🔖 Guardar para pedir</button>' +
         '</div></div>';
     }).join('');
 
@@ -855,13 +858,19 @@ async function cargarTopPedidos() {
     if (!wrap) return;
     var cards = topPorCat.map(function(rec, idx) {
       var item = rec.item;
+      var alerg = (item.allergens||[]).map(function(a){return '<span style="font-size:11px">'+a+'</span>';}).join('');
+      var desc = item.desc && item.desc.length > 5 ? item.desc.substring(0,55)+(item.desc.length>55?'…':'') : '';
       return '<div class="top-pedido-card" onclick="scrollToItem(\'' + item.id + '\')">' +
-        '<div class="top-pedido-num">' + rec.cat + '</div>' +
         '<img class="top-pedido-img" src="' + item.img + '" alt="' + item.name + '" onerror="this.onerror=null">' +
         '<div class="top-pedido-body">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">' +
+        '<div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.4px;color:var(--text-soft)">' + rec.cat + '</div>' +
+        (alerg ? '<div style="display:flex;gap:1px">' + alerg + '</div>' : '') +
+        '</div>' +
         '<div class="top-pedido-name">' + item.name + '</div>' +
+        (desc ? '<div style="font-size:10px;color:var(--text-soft);line-height:1.3;margin-bottom:3px">' + desc + '</div>' : '') +
         '<div class="top-pedido-price">' + item.price.toFixed(2).replace('.',',') + ' €</div>' +
-        '<button onclick="event.stopPropagation();toggleGuardar(\'' + item.id + '\')" style="width:100%;margin-top:5px;padding:4px;background:var(--red);border:none;border-radius:6px;color:#fff;font-size:9px;font-weight:800;cursor:pointer">🔖 Guardar</button>' +
+        '<button id="dest-btn-' + item.id + '" onclick="event.stopPropagation();destGuardar(\'' + item.id + '\')" style="width:100%;margin-top:5px;padding:5px;background:#fff;border:1.5px solid #e0d5ca;border-radius:6px;color:var(--text-soft);font-size:9px;font-weight:800;cursor:pointer">🔖 Guardar para pedir</button>' +
         '</div></div>';
     }).join('');
     var dw2 = document.getElementById('destacados-wrap'); if(dw2) dw2.style.display='block';
@@ -1252,6 +1261,24 @@ async function enviarMensajeAsistente() {
   document.getElementById('asistente-send-btn').disabled = false;
 }
 
+// ══ GUARDAR DESDE DESTACADOS ══
+function destGuardar(id) {
+  toggleGuardar(id);
+  var btn = document.getElementById('dest-btn-' + id);
+  if (!btn) return;
+  if (listaGuardados[id]) {
+    btn.style.background = 'var(--red)';
+    btn.style.border = 'none';
+    btn.style.color = '#fff';
+    btn.textContent = '✓ Guardado';
+  } else {
+    btn.style.background = '#fff';
+    btn.style.border = '1.5px solid #e0d5ca';
+    btn.style.color = 'var(--text-soft)';
+    btn.textContent = '🔖 Guardar para pedir';
+  }
+}
+
 // ══ ALÉRGENOS ══
 function toggleAlergenos() {
   var panel = document.getElementById('alergenos-panel');
@@ -1320,9 +1347,9 @@ document.addEventListener('click', function(e) {
 
 // ══ NAVEGACIÓN ══
 function scrollToSection(id) {
-  var el = document.getElementById('sec-' + id);
+  var el = document.getElementById('sec-' + id) || document.getElementById(id === 'destacados' ? 'sec-destacados' : 'sec-' + id);
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  var cats = ['pizzas','pastas','entrantes','ensaladas','postres','bebidas'];
+  var cats = ['destacados','pizzas','pastas','entrantes','ensaladas','postres','bebidas'];
   document.querySelectorAll('.cat-btn').forEach(function(b, i) { b.classList.toggle('active', cats[i]===id); });
 }
 function scrollToItem(id) {
@@ -1364,16 +1391,14 @@ window.addEventListener('DOMContentLoaded', async function() {
   setTimeout(cargarTopPedidos, 800);
 
   // Observer para nav activo
-  var cats = ['pizzas','pastas','entrantes','ensaladas','postres','bebidas'];
+  var cats = ['destacados','pizzas','pastas','entrantes','ensaladas','postres','bebidas'];
   var btns = document.querySelectorAll('.cat-btn');
   var navObserver = new IntersectionObserver(function(entries) {
     entries.forEach(function(e) {
       if (e.isIntersecting) {
         var id = e.target.id.replace('sec-','');
         var idx = cats.indexOf(id);
-        if (idx >= 0) {
-          btns.forEach(function(b,i){b.classList.toggle('active',i===idx);});
-        }
+        if (idx >= 0) btns.forEach(function(b,i){b.classList.toggle('active',i===idx);});
       }
     });
   }, { threshold: 0, rootMargin: '-130px 0px -50% 0px' });
