@@ -144,7 +144,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 .lista-item-remove{background:none;border:none;font-size:20px;color:#ccc;cursor:pointer;padding:4px;flex-shrink:0}
 .lista-empty{text-align:center;padding:60px 24px;color:var(--text-soft)}
 .lista-footer{padding:16px 20px;background:#fff;border-top:1px solid #f0e8e0;flex-shrink:0}
-.btn-limpiar-lista{width:100%;padding:14px;background:#f0e8e0;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:800;cursor:pointer;color:var(--text-soft)}
+.btn-limpiar-lista{width:100%;padding:14px;background:rgba(200,16,46,.08);border:1.5px solid rgba(200,16,46,.25);border-radius:var(--radius-sm);font-size:14px;font-weight:800;cursor:pointer;color:var(--red)}
 
 /* ASISTENTE FLOTANTE */
 .asistente-btn{position:fixed;bottom:16px;right:8px;z-index:58;display:none;flex-direction:column;align-items:flex-end;cursor:pointer;animation:slideInRight .5s cubic-bezier(.34,1.56,.64,1);user-select:none}
@@ -424,7 +424,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 <div class="sugerencia-panel" id="sugerencia-panel">
   <div class="sugerencia-panel-head">
     <div>
-      <div class="sugerencia-panel-title">🍮 ¿Ya tienes postre?</div>
+      <div class="sugerencia-panel-title">🍮 Los postres más populares</div>
       <div style="font-size:12px;color:var(--text-soft)">Los más pedidos hoy</div>
     </div>
     <button class="sugerencia-close" onclick="cerrarSugerencia()">×</button>
@@ -590,8 +590,9 @@ function renderLista() {
     body.innerHTML = '<div class="lista-empty"><div style="font-size:48px;margin-bottom:12px">🔖</div><div style="font-weight:700">Tu lista está vacía</div><div style="font-size:13px;margin-top:6px;opacity:.7">Guarda los platos que te apetezcan</div></div>';
     return;
   }
-  body.innerHTML = items.map(function(item) {
-    return '<div class="lista-item">' +
+  var hh = '';
+  items.forEach(function(item) {
+    hh += '<div class="lista-item">' +
       '<img class="lista-item-img" src="' + item.img + '" alt="' + item.name + '" onerror="this.onerror=null">' +
       '<div class="lista-item-info">' +
       '<div class="lista-item-name">' + item.name + '</div>' +
@@ -599,7 +600,28 @@ function renderLista() {
       '</div>' +
       '<button class="lista-item-remove" onclick="quitarDeLista(\'' + item.id + '\')">×</button>' +
       '</div>';
-  }).join('');
+  });
+  var guardadosIds = Object.keys(listaGuardados);
+  var sugeridos = [];
+  ['postres','entrantes','bebidas'].forEach(function(cat) {
+    (MENU[cat]||[]).forEach(function(p) {
+      if (sugeridos.length < 4 && guardadosIds.indexOf(p.id) < 0) sugeridos.push(p);
+    });
+  });
+  if (sugeridos.length) {
+    hh += '<div style="margin-top:20px"><div style="font-family:Playfair Display,serif;font-size:16px;font-weight:900;color:var(--text);margin-bottom:12px">¿Te apetece algo más? 😋</div><div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:4px">';
+    sugeridos.forEach(function(p) {
+      hh += '<div style="flex-shrink:0;width:120px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.07);border:1.5px solid #f0e8e0">' +
+        '<img src="' + p.img + '" style="width:100%;height:75px;object-fit:cover" onerror="this.onerror=null">' +
+        '<div style="padding:7px 8px 9px">' +
+        '<div style="font-size:11px;font-weight:800;color:var(--text);margin-bottom:3px;line-height:1.3">' + p.name + '</div>' +
+        '<div style="font-size:11px;font-weight:900;color:var(--red);margin-bottom:5px">' + p.price.toFixed(2).replace('.',',') + ' €</div>' +
+        '<button onclick="toggleGuardar(\'' + p.id + '\')" style="width:100%;padding:4px;background:var(--red);border:none;border-radius:6px;color:#fff;font-size:9px;font-weight:800;cursor:pointer">🔖 Guardar</button>' +
+        '</div></div>';
+    });
+    hh += '</div></div>';
+  }
+  body.innerHTML = hh;
 }
 
 function abrirLista() { renderLista(); document.getElementById('lista-screen').classList.add('open'); }
@@ -803,6 +825,7 @@ function buildHeroPlato(wrapId, cat) {
     '<div class="dish-hero-body">' +
     '<div class="dish-hero-name">' + hero.name + '</div>' +
     '<div class="dish-hero-desc">' + hero.desc + '</div>' +
+    ((hero.allergens && hero.allergens.length) ? '<div class="allergens" style="margin-bottom:8px">' + hero.allergens.map(function(a){return '<span class="allergen" title="'+allergenLabel(a)+'">'+a+'</span>';}).join('') + '</div>' : '') +
     '<div class="dish-hero-footer">' +
     '<span style="font-family:\'Playfair Display\',serif;font-size:22px;font-weight:900;color:var(--red)">' + hero.price.toFixed(2).replace('.', ',') + ' €</span>' +
     '<button class="btn-guardar" id="btn-hero-' + hero.id + '" onclick="toggleGuardar(\'' + hero.id + '\')" style="padding:8px 16px;font-size:12px">🔖 Guardar para pedir</button>' +
