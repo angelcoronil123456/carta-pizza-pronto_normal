@@ -325,9 +325,9 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 
   <div id="sec-destacados" style="scroll-margin-top:110px">
   <div id="destacados-wrap" style="padding:20px 16px 0;display:none">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px">
       <h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--text);margin:0">Destacados</h2>
-      <a href="https://maps.app.goo.gl/ZXtj1fRr9zwk7mgA8" target="_blank" style="background:var(--gold);color:var(--dark);border-radius:50px;padding:7px 13px;font-size:11px;font-weight:900;text-decoration:none;white-space:nowrap;flex-shrink:0">⭐ Tu opinión nos importa, ¡valóranos!</a>
+      <a href="https://maps.app.goo.gl/ZXtj1fRr9zwk7mgA8" target="_blank" style="font-size:11px;font-weight:700;color:var(--text-soft);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:3px;flex-shrink:0">⭐ <span style="border-bottom:1px dashed #ccc">Valóranos</span></a>
     </div>
     
   </div>
@@ -364,7 +364,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
     <div class="dish-grid" id="grid-ensaladas"></div>
   </div>
 
-  <div class="postre-spotlight" id="postre-spotlight">
+  <div class="postre-spotlight" id="postre-spotlight" style="cursor:pointer">
     <img class="postre-spotlight-img" id="postre-spotlight-img" src="" alt="Postre">
     <div class="postre-overlay">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
@@ -913,7 +913,7 @@ async function cargarTopPedidos() {
     var dw2 = document.getElementById('destacados-wrap'); if(dw2) dw2.style.display='block';
     wrap.style.display = 'block';
     wrap.innerHTML = '<div class="top-pedidos">' +
-      '<div class="top-pedidos-title">🔥 Lo más pedido la semana pasada</div>' +
+      '<div class="top-pedidos-title">🔥 Los favoritos de la semana</div>' +
       '<div class="top-pedidos-grid auto-scroll" id="top-pedidos-grid">' + cards + '</div>' +
       '</div>';
   } catch(e) {}
@@ -1052,13 +1052,12 @@ function buildHeroPlato(wrapId, cat) {
   }
   if (!hero) hero = items.find(function(i){return i.badge==='hot';}) || items.find(function(i){return i.badge==='bestseller';}) || items[0];
   if (!hero) return;
-  var precioMedio = items.reduce(function(a,b){return a+b.price;},0)/items.length;
-  var esChef = hero.price > precioMedio;
+
   wrap.innerHTML = '<div class="dish-hero">' +
     '<div style="position:relative;overflow:hidden">' +
-    '<img class="dish-hero-img" src="' + hero.img + '" alt="' + hero.name + '" onerror="this.onerror=null">' +
+    '<img class="dish-hero-img" src="' + hero.img + '" alt="' + hero.name + '" onerror="this.onerror=null" onclick="abrirPlatoModal(\'' + hero.id + '\')" style="cursor:pointer">' +
     (hero.badge ? '<div class="dish-badge badge-' + hero.badge + '" style="top:12px;left:12px;font-size:11px">' + (hero.badge==='hot'?'🔥':hero.badge==='new'?'✨':'⭐') + ' ' + BADGE_LABELS[hero.badge] + '</div>' : '') +
-    (esChef ? '<div style="position:absolute;top:12px;right:12px;background:#E65100;color:#fff;font-size:10px;font-weight:900;padding:4px 10px;border-radius:20px">👨‍🍳 Elección del chef</div>' : '') +
+    '<div style="position:absolute;top:12px;right:12px;background:#E65100;color:#fff;font-size:10px;font-weight:900;padding:4px 10px;border-radius:20px">👨‍🍳 Elección del chef</div>' +
     '</div>' +
     '<div class="dish-hero-body">' +
     '<div class="dish-hero-name">' + hero.name + '</div>' +
@@ -1073,8 +1072,13 @@ function buildHeroPlato(wrapId, cat) {
 
 
 function buildPostreSpotlight() {
-  var postres = MENU['postres'] || [];
-  var estrella = postres.find(function(p){return p.badge==='bestseller';}) || postres[0];
+  var postres = (MENU['postres'] || []).filter(function(p){ return p.img && p.img.length > 5; });
+  if (!postres.length) return;
+  // Rotar cada día usando la fecha como semilla
+  var hoy = new Date();
+  var semilla = hoy.getFullYear() * 10000 + (hoy.getMonth()+1) * 100 + hoy.getDate();
+  var idx = semilla % postres.length;
+  var estrella = postres[idx];
   if (!estrella) return;
   var el = document.getElementById('postre-spotlight');
   var img = document.getElementById('postre-spotlight-img');
@@ -1088,6 +1092,7 @@ function buildPostreSpotlight() {
   btn.id = 'btn-postre-' + estrella.id;
   btn.onclick = function() { toggleGuardar(estrella.id); };
   el.style.display = 'block';
+  el.onclick = function(e) { if (!e.target.closest('.btn-guardar')) abrirPlatoModal(estrella.id); };
   var unidades = Math.floor(Math.random()*5)+3;
   var urgencia = document.createElement('div');
   urgencia.style.cssText = 'font-size:12px;font-weight:800;color:#ff3d5a;margin-top:10px';
@@ -1511,80 +1516,53 @@ window.addEventListener('DOMContentLoaded', async function() {
   function iniciarAutoScroll(el) {
     if (!el) return;
     var velocidad = 0.3;
-    var pausando = false;
-    var arrastrando = false;
-    var startX = 0;
-    var scrollStart = 0;
-    var velMomentum = 0;
-    var lastX = 0;
-    var lastTime = 0;
+    var pausado = false;
+    var pausaTimer = null;
+
+    function reanudar() {
+      pausado = false;
+    }
+
+    function pausarTras(ms) {
+      pausado = true;
+      clearTimeout(pausaTimer);
+      pausaTimer = setTimeout(reanudar, ms);
+    }
+
+    // Solo pausar cuando toquen ESTA franja
+    el.addEventListener('touchstart', function() {
+      pausarTras(99999); // pausa indefinida mientras toca
+    }, { passive: true });
+    el.addEventListener('touchend', function() {
+      pausarTras(2000); // 2s tras soltar, luego sigue
+    }, { passive: true });
+    el.addEventListener('mousedown', function() { pausarTras(99999); });
+    el.addEventListener('mouseup', function() { pausarTras(2000); });
+    el.addEventListener('mouseleave', function() { pausarTras(500); });
 
     function animar() {
-      if (!arrastrando && !pausando) {
-        // Momentum suave tras soltar
-        if (Math.abs(velMomentum) > 0.1) {
-          el.scrollLeft += velMomentum;
-          velMomentum *= 0.92;
-        } else {
-          velMomentum = 0;
-          el.scrollLeft += velocidad;
-        }
-        // Al llegar al final: pausa 5s luego vuelve suavemente
+      if (!pausado) {
+        el.scrollLeft += velocidad;
+        // Solo al llegar al final: pausa 5s y vuelve suavemente al inicio
         if (el.scrollLeft >= el.scrollWidth - el.clientWidth - 2) {
-          pausando = true;
+          pausado = true;
           setTimeout(function() {
-            var inicio = el.scrollLeft;
-            var duracion = 600;
+            var desde = el.scrollLeft;
+            var dur = 700;
             var t0 = performance.now();
-            function volverInicio(t) {
-              var prog = Math.min((t - t0) / duracion, 1);
-              var ease = 1 - Math.pow(1 - prog, 3);
-              el.scrollLeft = inicio * (1 - ease);
-              if (prog < 1) requestAnimationFrame(volverInicio);
-              else { el.scrollLeft = 0; pausando = false; }
+            function easing(t) {
+              var p = Math.min((t - t0) / dur, 1);
+              var e = 1 - Math.pow(1 - p, 3);
+              el.scrollLeft = desde * (1 - e);
+              if (p < 1) requestAnimationFrame(easing);
+              else { el.scrollLeft = 0; pausado = false; }
             }
-            requestAnimationFrame(volverInicio);
+            requestAnimationFrame(easing);
           }, 5000);
         }
       }
       requestAnimationFrame(animar);
     }
-
-    // Touch
-    el.addEventListener('touchstart', function(e) {
-      arrastrando = true; pausando = false; velMomentum = 0;
-      startX = e.touches[0].pageX;
-      scrollStart = el.scrollLeft;
-      lastX = startX; lastTime = Date.now();
-    }, { passive: true });
-    el.addEventListener('touchmove', function(e) {
-      var dx = startX - e.touches[0].pageX;
-      el.scrollLeft = scrollStart + dx;
-      var now = Date.now();
-      velMomentum = (lastX - e.touches[0].pageX) / Math.max(now - lastTime, 1) * 16;
-      lastX = e.touches[0].pageX; lastTime = now;
-    }, { passive: true });
-    el.addEventListener('touchend', function() {
-      arrastrando = false;
-    });
-
-    // Mouse
-    el.addEventListener('mousedown', function(e) {
-      arrastrando = true; pausando = false; velMomentum = 0;
-      startX = e.pageX; scrollStart = el.scrollLeft;
-      lastX = startX; lastTime = Date.now();
-      e.preventDefault();
-    });
-    el.addEventListener('mousemove', function(e) {
-      if (!arrastrando) return;
-      el.scrollLeft = scrollStart + (startX - e.pageX);
-      var now = Date.now();
-      velMomentum = (lastX - e.pageX) / Math.max(now - lastTime, 1) * 16;
-      lastX = e.pageX; lastTime = now;
-    });
-    el.addEventListener('mouseup', function() { arrastrando = false; });
-    el.addEventListener('mouseleave', function() { arrastrando = false; });
-
     requestAnimationFrame(animar);
   }
 
