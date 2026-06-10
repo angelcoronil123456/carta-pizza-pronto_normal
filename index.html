@@ -267,6 +267,12 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 .top-pedido-price{font-family:'Playfair Display',serif;font-size:14px;font-weight:900;color:var(--red)}
 .top-pedido-num{position:absolute;top:8px;left:8px;background:var(--dark);color:var(--gold);font-size:10px;font-weight:900;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center}
 
+/* AUTO SCROLL CARRUSEL */
+.auto-scroll-wrap{overflow:hidden;position:relative;cursor:grab}
+.auto-scroll-wrap:active{cursor:grabbing}
+.auto-scroll-wrap.rec-dia-grid,
+.auto-scroll-wrap.top-pedidos-grid{overflow:hidden}
+
 /* BOTTOM PAD */
 .bottom-pad{height:100px}
 
@@ -810,7 +816,7 @@ async function cargarRecomendadosDelDia() {
     wrap.innerHTML = '<div class="rec-dia-section">' +
       '<div class="rec-dia-title">⭐ Recomendado hoy</div>' +
       '<div class="rec-dia-sub">Un plato de cada sección que quizás no has probado</div>' +
-      '<div class="rec-dia-grid">' + cards + '</div>' +
+      '<div class="rec-dia-grid auto-scroll" id="rec-dia-grid">' + cards + '</div>' +
       '</div>';
   } catch(e) {}
 }
@@ -877,7 +883,7 @@ async function cargarTopPedidos() {
     wrap.style.display = 'block';
     wrap.innerHTML = '<div class="top-pedidos">' +
       '<div class="top-pedidos-title">🔥 Lo más pedido la semana pasada</div>' +
-      '<div class="top-pedidos-grid">' + cards + '</div>' +
+      '<div class="top-pedidos-grid auto-scroll" id="top-pedidos-grid">' + cards + '</div>' +
       '</div>';
   } catch(e) {}
 }
@@ -1173,13 +1179,18 @@ function cerrarAsistente() {
 
 function procesarRespuestaConBotones(texto) {
   var todosLosPlatos = Object.values(MENU).flat();
-  var textoLower = texto.toLowerCase();
+  var textoLower = texto.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // quitar acentos para comparar
   var encontrados = todosLosPlatos.filter(function(item) {
-    var nombre = item.name.toLowerCase();
-    // Buscar nombre completo o primera palabra del nombre
-    var primeraPalabra = nombre.split(' ')[0];
-    return textoLower.indexOf(nombre) >= 0 ||
-           (primeraPalabra.length > 4 && textoLower.indexOf(primeraPalabra) >= 0);
+    var nombre = item.name.toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    // Buscar nombre completo
+    if (textoLower.indexOf(nombre) >= 0) return true;
+    // Buscar palabras clave del nombre (ignorando artículos)
+    var palabras = nombre.split(' ').filter(function(p){ return p.length > 3; });
+    return palabras.length > 0 && palabras.every(function(p){
+      return textoLower.indexOf(p) >= 0;
+    });
   }).slice(0, 3);
   if (!encontrados.length) return '';
   var html = '<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">';
@@ -1248,7 +1259,7 @@ async function enviarMensajeAsistente() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
       body: JSON.stringify({
-        system: 'Eres el asistente de Pizza Pronto. Ayuda al cliente a elegir qué pedir. Menciona SIEMPRE el nombre exacto de los platos que recomiendas. Responde en español, amable y breve (3-4 frases). ' + generarContextoCarta(),
+        system: 'Eres el asistente de Pizza Pronto. Ayuda al cliente a elegir qué pedir. IMPORTANTE: cuando recomiendes platos, escribe SIEMPRE su nombre EXACTAMENTE igual a como aparece en la carta, sin cambiar ni una letra. Responde en español, amable y breve (3-4 frases). ' + generarContextoCarta(),
         messages: asistenteChatHistory.slice(-8)
       })
     });
@@ -1420,6 +1431,77 @@ window.addEventListener('DOMContentLoaded', async function() {
   // Inputs enter
   document.getElementById('ask-input').addEventListener('keydown', function(e){ if(e.key==='Enter') sendAskMessage(); });
   document.getElementById('asistente-input').addEventListener('keydown', function(e){ if(e.key==='Enter') enviarMensajeAsistente(); });
+
+  // ══ AUTO SCROLL CARRUSEL ══
+  function iniciarAutoScroll(el) {
+    if (!el) return;
+    var velocidad = 0.5; // px por frame — muy lento
+    var animId = null;
+    var arrastrandо = false;
+    var startX = 0;
+    var scrollStart = 0;
+
+    function animar() {
+      if (!arrastrandо) {
+        el.scrollLeft += velocidad;
+        // Cuando llega al final, vuelve al inicio suavemente
+        if (el.scrollLeft >= el.scrollWidth - el.clientWidth - 1) {
+          el.scrollLeft = 0;
+        }
+      }
+      animId = requestAnimationFrame(animar);
+    }
+
+    // Touch
+    el.addEventListener('touchstart', function(e) {
+      arrastrandо = true;
+      startX = e.touches[0].pageX;
+      scrollStart = el.scrollLeft;
+    }, { passive: true });
+
+    el.addEventListener('touchmove', function(e) {
+      var diff = startX - e.touches[0].pageX;
+      el.scrollLeft = scrollStart + diff;
+    }, { passive: true });
+
+    el.addEventListener('touchend', function() {
+      setTimeout(function(){ arrastrandо = false; }, 800);
+    });
+
+    // Mouse (desktop)
+    el.addEventListener('mousedown', function(e) {
+      arrastrandо = true;
+      startX = e.pageX;
+      scrollStart = el.scrollLeft;
+    });
+    el.addEventListener('mousemove', function(e) {
+      if (!arrastrandо) return;
+      el.scrollLeft = scrollStart + (startX - e.pageX);
+    });
+    el.addEventListener('mouseup', function() {
+      setTimeout(function(){ arrastrandо = false; }, 800);
+    });
+    el.addEventListener('mouseleave', function() {
+      setTimeout(function(){ arrastrandо = false; }, 800);
+    });
+
+    animId = requestAnimationFrame(animar);
+  }
+
+  // Iniciar auto scroll cuando las secciones carguen
+  var autoScrollObserver = new MutationObserver(function() {
+    var recGrid = document.getElementById('rec-dia-grid');
+    var topGrid = document.getElementById('top-pedidos-grid');
+    if (recGrid && !recGrid.dataset.autoScroll) {
+      recGrid.dataset.autoScroll = '1';
+      iniciarAutoScroll(recGrid);
+    }
+    if (topGrid && !topGrid.dataset.autoScroll) {
+      topGrid.dataset.autoScroll = '1';
+      iniciarAutoScroll(topGrid);
+    }
+  });
+  autoScrollObserver.observe(document.body, { childList: true, subtree: true });
 
   // Detectar si la página lleva más de 2 horas abierta sin actividad
   var ultimaActividad = Date.now();
