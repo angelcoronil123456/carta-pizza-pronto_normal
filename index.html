@@ -60,8 +60,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 .badge-hot{background:#e65100}
 .badge-new{background:#1565c0}
 .badge-bestseller{background:var(--red)}
-.video-btn{position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.6);color:#fff;font-size:10px;font-weight:700;padding:4px 8px;border-radius:20px;display:flex;align-items:center;gap:4px;cursor:pointer;backdrop-filter:blur(4px)}
-.video-btn svg{width:10px;height:10px;fill:#fff}
+
 .dish-body{padding:11px 12px;flex:1;display:flex;flex-direction:column}
 .dish-name{font-size:13px;font-weight:800;color:var(--text);line-height:1.3;margin-bottom:3px}
 .dish-desc{font-size:11px;color:var(--text-soft);line-height:1.4;flex:1}
@@ -276,6 +275,18 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 /* BOTTOM PAD */
 .bottom-pad{height:100px}
 
+/* MODAL DETALLE PLATO */
+.plato-modal{position:fixed;inset:0;z-index:850;display:none;flex-direction:column;background:rgba(0,0,0,.6);backdrop-filter:blur(4px)}
+.plato-modal.open{display:flex}
+.plato-modal-inner{margin-top:auto;background:#fff;border-radius:28px 28px 0 0;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -8px 40px rgba(0,0,0,.25)}
+.plato-modal-img{width:100%;height:220px;object-fit:cover;flex-shrink:0}
+.plato-modal-body{padding:20px 20px 24px;overflow-y:auto;flex:1}
+.plato-modal-name{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:var(--text);margin-bottom:6px}
+.plato-modal-desc{font-size:14px;color:var(--text-soft);line-height:1.6;margin-bottom:12px}
+.plato-modal-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
+.plato-modal-price{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--red)}
+.plato-modal-close{position:absolute;top:16px;right:16px;background:rgba(0,0,0,.4);border:none;border-radius:50%;width:36px;height:36px;color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1}
+
 /* TOAST */
 .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--dark);color:#fff;padding:10px 20px;border-radius:50px;font-size:13px;font-weight:700;white-space:nowrap;z-index:999;opacity:0;transition:all .3s;pointer-events:none;max-width:90vw;text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -296,10 +307,9 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
       <div class="header-logo">🍕</div>
       <div>
         <div class="header-name">Pizza Pronto</div>
-        <div class="header-mesa" id="header-mesa-txt">Mesa 1</div>
+        <div class="header-mesa" style="font-size:10px;color:rgba(255,255,255,.55)">📍 Av. Francia, 2 · Algeciras</div>
       </div>
     </div>
-    <div class="header-tag" id="header-mesa-tag">Mesa 1</div>
   </div>
 
   <div class="cat-nav">
@@ -315,8 +325,11 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 
   <div id="sec-destacados" style="scroll-margin-top:110px">
   <div id="destacados-wrap" style="padding:20px 16px 0;display:none">
-    <h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--text);margin-bottom:4px">Destacados</h2>
-    <p style="font-size:12px;color:var(--text-soft);margin-bottom:0">Lo mejor para orientarte antes de elegir</p>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--text);margin:0">Destacados</h2>
+      <a href="https://maps.app.goo.gl/ZXtj1fRr9zwk7mgA8" target="_blank" style="background:var(--gold);color:var(--dark);border-radius:50px;padding:7px 13px;font-size:11px;font-weight:900;text-decoration:none;white-space:nowrap;flex-shrink:0">⭐ Tu opinión nos importa, ¡valóranos!</a>
+    </div>
+    
   </div>
   <div id="rec-dia-wrap" style="display:none"></div>
   <div id="top-pedidos-wrap" style="display:none"></div>
@@ -504,9 +517,6 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
   <div style="font-size:11px;color:var(--text-soft);text-align:center;margin-top:12px;line-height:1.4;background:#fff8e6;border-radius:8px;padding:8px">⚠️ Confirma siempre con el camarero antes de pedir</div>
 </div>
 
-<!-- VIDEO MODAL -->
-<div class="video-modal" id="video-modal" onclick="this.classList.remove('open')">
-  <div style="color:#fff;font-size:16px;font-weight:700" id="video-modal-title"></div>
   <div style="color:rgba(255,255,255,.5);font-size:13px">Próximamente disponible</div>
   <button class="video-modal-close">Cerrar</button>
 </div>
@@ -518,6 +528,26 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
   <div style="font-size:15px;color:rgba(255,255,255,.6);line-height:1.6;margin-bottom:32px">Para seguir viendo la carta<br>escanea de nuevo el código QR de tu mesa</div>
   <div style="font-size:80px;margin-bottom:20px">🔲</div>
   <div style="font-size:13px;color:rgba(255,255,255,.4)">Busca el código QR en tu mesa</div>
+</div>
+
+<!-- MODAL DETALLE PLATO -->
+<div class="plato-modal" id="plato-modal" onclick="closePlatoModal(event)">
+  <div class="plato-modal-inner" id="plato-modal-inner">
+    <div style="position:relative">
+      <img class="plato-modal-img" id="plato-modal-img" src="" alt="">
+      <button class="plato-modal-close" onclick="document.getElementById('plato-modal').classList.remove('open')">×</button>
+      <div id="plato-modal-badge" style="position:absolute;bottom:12px;left:16px"></div>
+    </div>
+    <div class="plato-modal-body">
+      <div class="plato-modal-name" id="plato-modal-name"></div>
+      <div class="plato-modal-desc" id="plato-modal-desc"></div>
+      <div id="plato-modal-allergens" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px"></div>
+      <div class="plato-modal-footer">
+        <div class="plato-modal-price" id="plato-modal-price"></div>
+        <button class="btn-guardar" id="plato-modal-btn" onclick="modalGuardar()">🔖 Guardar para pedir</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -800,14 +830,15 @@ async function cargarRecomendadosDelDia() {
 
     var cards = recomendados.map(function(rec) {
       var item = rec.item;
-      return '<div class="rec-dia-card" onclick="scrollToItem(\'' + item.id + '\')">' +
+      return '<div class="rec-dia-card" onclick="abrirPlatoModal(\'' + item.id + '\')">' +
         '<div class="rec-dia-badge">Hoy</div>' +
         '<img class="rec-dia-img" src="' + item.img + '" alt="' + item.name + '" onerror="this.onerror=null">' +
         '<div class="rec-dia-body">' +
         '<div class="rec-dia-cat">' + rec.cat + '</div>' +
         '<div class="rec-dia-name">' + item.name + '</div>' +
         '<div class="rec-dia-price">' + item.price.toFixed(2).replace('.',',') + ' €</div>' +
-        '<button id="dest-btn-' + item.id + '" onclick="event.stopPropagation();destGuardar(\'' + item.id + '\')" style="width:100%;margin-top:5px;padding:5px;background:#fff;border:1.5px solid #e0d5ca;border-radius:6px;color:var(--text-soft);font-size:9px;font-weight:800;cursor:pointer">🔖 Guardar para pedir</button>' +
+        (item.desc && item.desc.length > 5 ? '<div style="font-size:9px;color:var(--text-soft);line-height:1.3;margin:3px 0">' + item.desc.substring(0,45) + (item.desc.length>45?'…':'') + '</div>' : '') +
+        '<button id="dest-btn-' + item.id + '" onclick="event.stopPropagation();destGuardar(\'' + item.id + '\')" class="btn-guardar" style="width:100%;margin-top:5px;font-size:9px">🔖 Guardar para pedir</button>' +
         '</div></div>';
     }).join('');
 
@@ -850,7 +881,7 @@ async function cargarTopPedidos() {
       .slice(0,6)
       .map(function(e){return e[0];});
     // Un top por categoría (sin bebidas)
-    var catLabels = {'pizzas':'🍕','pastas':'🍝','entrantes':'🥗','ensaladas':'🥬','postres':'🍮'};
+    var catLabels = {'pizzas':'🍕 Pizzas','pastas':'🍝 Pastas','entrantes':'🥗 Entrantes','ensaladas':'🥬 Ensaladas','postres':'🍮 Postres'};
     var cats = ['pizzas','pastas','entrantes','ensaladas','postres'];
     var topPorCat = [];
     cats.forEach(function(cat) {
@@ -866,7 +897,7 @@ async function cargarTopPedidos() {
       var item = rec.item;
       var alerg = (item.allergens||[]).map(function(a){return '<span style="font-size:11px">'+a+'</span>';}).join('');
       var desc = item.desc && item.desc.length > 5 ? item.desc.substring(0,55)+(item.desc.length>55?'…':'') : '';
-      return '<div class="top-pedido-card" onclick="scrollToItem(\'' + item.id + '\')">' +
+      return '<div class="top-pedido-card" onclick="abrirPlatoModal(\'' + item.id + '\')">' +
         '<img class="top-pedido-img" src="' + item.img + '" alt="' + item.name + '" onerror="this.onerror=null">' +
         '<div class="top-pedido-body">' +
         '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">' +
@@ -876,7 +907,7 @@ async function cargarTopPedidos() {
         '<div class="top-pedido-name">' + item.name + '</div>' +
         (desc ? '<div style="font-size:10px;color:var(--text-soft);line-height:1.3;margin-bottom:3px">' + desc + '</div>' : '') +
         '<div class="top-pedido-price">' + item.price.toFixed(2).replace('.',',') + ' €</div>' +
-        '<button id="dest-btn-' + item.id + '" onclick="event.stopPropagation();destGuardar(\'' + item.id + '\')" style="width:100%;margin-top:5px;padding:5px;background:#fff;border:1.5px solid #e0d5ca;border-radius:6px;color:var(--text-soft);font-size:9px;font-weight:800;cursor:pointer">🔖 Guardar para pedir</button>' +
+        '<button id="dest-btn-' + item.id + '" onclick="event.stopPropagation();destGuardar(\'' + item.id + '\')" class="btn-guardar" style="width:100%;margin-top:5px;font-size:9px">🔖 Guardar para pedir</button>' +
         '</div></div>';
     }).join('');
     var dw2 = document.getElementById('destacados-wrap'); if(dw2) dw2.style.display='block';
@@ -983,6 +1014,7 @@ function buildMenu() {
       var badgeHTML = item.badge ? '<div class="dish-badge badge-' + item.badge + '">' + (item.badge==='hot'?'🔥':item.badge==='new'?'✨':'⭐') + ' ' + (BADGE_LABELS[item.badge]||item.badge) + '</div>' : '';
       var allergensHTML = (item.allergens||[]).length ? '<div class="allergens">' + item.allergens.map(function(a){return '<span class="allergen" title="'+allergenLabel(a)+'">'+a+'</span>';}).join('') + '</div>' : '';
       var descHTML = item.desc && item.desc.length >= 10 ? '<div class="dish-desc">' + item.desc + '</div>' : '';
+      card.onclick = function(e) { if (!e.target.closest('.btn-guardar') && !e.target.closest('.dish-ask')) abrirPlatoModal(item.id); };
       card.innerHTML = '<div class="dish-img-wrap">' +
         '<img class="dish-img" src="' + item.img + '" alt="' + item.name + '" loading="lazy" onerror="this.onerror=null">' +
         badgeHTML +
@@ -1004,10 +1036,8 @@ function buildMenu() {
   buildHeroPlato('hero-ensaladas-wrap', 'ensaladas');
   buildPostreSpotlight();
   restaurarBotonesGuardados();
-  setTimeout(function() {
-    var primerHero = document.querySelector('#hero-pizza-wrap .dish-hero');
-    if (primerHero) primerHero.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 200);
+  // No scrollear a pizzas, el inicio ya es Destacados
+  // setTimeout eliminado intencionalmente
 }
 
 function buildHeroPlato(wrapId, cat) {
@@ -1272,6 +1302,38 @@ async function enviarMensajeAsistente() {
   document.getElementById('asistente-send-btn').disabled = false;
 }
 
+// ══ MODAL DETALLE PLATO ══
+var platoModalId = null;
+function abrirPlatoModal(id) {
+  var item = findItem(id);
+  if (!item) return;
+  platoModalId = id;
+  document.getElementById('plato-modal-img').src = item.img;
+  document.getElementById('plato-modal-name').textContent = item.name;
+  document.getElementById('plato-modal-desc').textContent = item.desc && item.desc.length > 5 ? item.desc : 'Sin descripción disponible.';
+  document.getElementById('plato-modal-price').textContent = item.price.toFixed(2).replace('.',',') + ' €';
+  var badgeEl = document.getElementById('plato-modal-badge');
+  badgeEl.innerHTML = item.badge ? '<div style="background:' + (item.badge==='hot'?'#e65100':item.badge==='new'?'#1565c0':'var(--red)') + ';color:#fff;font-size:10px;font-weight:900;padding:4px 12px;border-radius:20px">' + (item.badge==='hot'?'🔥 Top':item.badge==='new'?'✨ Nuevo':'⭐ Popular') + '</div>' : '';
+  var alEl = document.getElementById('plato-modal-allergens');
+  alEl.innerHTML = (item.allergens||[]).map(function(a){ return '<span style="font-size:18px" title="'+allergenLabel(a)+'">'+a+'</span>'; }).join('');
+  var btn = document.getElementById('plato-modal-btn');
+  if (listaGuardados[id]) { btn.className='btn-guardar guardado'; btn.innerHTML='✓ Guardado'; }
+  else { btn.className='btn-guardar'; btn.innerHTML='🔖 Guardar para pedir'; }
+  document.getElementById('plato-modal').classList.add('open');
+  registrarInteres(id, 'ver_detalle');
+}
+function closePlatoModal(e) {
+  if (e && e.target !== document.getElementById('plato-modal')) return;
+  document.getElementById('plato-modal').classList.remove('open');
+}
+function modalGuardar() {
+  if (!platoModalId) return;
+  toggleGuardar(platoModalId);
+  var btn = document.getElementById('plato-modal-btn');
+  if (listaGuardados[platoModalId]) { btn.className='btn-guardar guardado'; btn.innerHTML='✓ Guardado'; }
+  else { btn.className='btn-guardar'; btn.innerHTML='🔖 Guardar para pedir'; }
+}
+
 // ══ GUARDAR DESDE DESTACADOS ══
 function destGuardar(id) {
   toggleGuardar(id);
@@ -1361,7 +1423,14 @@ function scrollToSection(id) {
   var el = document.getElementById('sec-' + id) || document.getElementById(id === 'destacados' ? 'sec-destacados' : 'sec-' + id);
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   var cats = ['destacados','pizzas','pastas','entrantes','ensaladas','postres','bebidas'];
-  document.querySelectorAll('.cat-btn').forEach(function(b, i) { b.classList.toggle('active', cats[i]===id); });
+  var btns = document.querySelectorAll('.cat-btn');
+  btns.forEach(function(b, i) {
+    b.classList.toggle('active', cats[i]===id);
+    if (cats[i]===id) {
+      var nav = document.querySelector('.cat-nav');
+      if (nav) nav.scrollTo({ left: b.offsetLeft + b.offsetWidth/2 - nav.clientWidth/2, behavior: 'smooth' });
+    }
+  });
 }
 function scrollToItem(id) {
   var el = document.getElementById('card-' + id);
@@ -1370,10 +1439,6 @@ function scrollToItem(id) {
     el.style.outline = '3px solid var(--gold)';
     setTimeout(function(){el.style.outline='';}, 1500);
   }
-}
-function showVideo(name) {
-  document.getElementById('video-modal-title').textContent = 'Vídeo: ' + name;
-  document.getElementById('video-modal').classList.add('open');
 }
 
 // ══ TOAST ══
@@ -1389,8 +1454,6 @@ function showToast(msg) {
 window.addEventListener('DOMContentLoaded', async function() {
   var params = new URLSearchParams(window.location.search);
   mesa = params.get('mesa') || '1';
-  document.getElementById('header-mesa-txt').textContent = 'Mesa ' + mesa;
-  document.getElementById('header-mesa-tag').textContent = 'Mesa ' + mesa;
 
   await cargarCarta();
   await cargarHeroesDinamicos(); // cargar héroes dinámicos antes de construir el menú
@@ -1409,7 +1472,19 @@ window.addEventListener('DOMContentLoaded', async function() {
       if (e.isIntersecting) {
         var id = e.target.id.replace('sec-','');
         var idx = cats.indexOf(id);
-        if (idx >= 0) btns.forEach(function(b,i){b.classList.toggle('active',i===idx);});
+        if (idx >= 0) {
+          btns.forEach(function(b,i){b.classList.toggle('active',i===idx);});
+          // Centrar el botón activo en la barra de nav
+          var activeBtn = btns[idx];
+          if (activeBtn) {
+            var nav = document.querySelector('.cat-nav');
+            if (nav) {
+              var btnCenter = activeBtn.offsetLeft + activeBtn.offsetWidth / 2;
+              var navCenter = nav.clientWidth / 2;
+              nav.scrollTo({ left: btnCenter - navCenter, behavior: 'smooth' });
+            }
+          }
+        }
       }
     });
   }, { threshold: 0, rootMargin: '-130px 0px -50% 0px' });
@@ -1425,8 +1500,8 @@ window.addEventListener('DOMContentLoaded', async function() {
       var mini = document.getElementById('asistente-btn-mini');
       if (chef) { chef.style.animation = 'none'; chef.style.opacity = '0'; chef.style.transition = 'opacity .5s'; setTimeout(function(){ chef.classList.remove('visible'); chef.style.opacity = ''; }, 500); }
       if (mini) mini.classList.add('visible');
-    }, 20000);
-  }, 10000);
+    }, 10000);
+  }, 5000);
 
   // Inputs enter
   document.getElementById('ask-input').addEventListener('keydown', function(e){ if(e.key==='Enter') sendAskMessage(); });
@@ -1435,57 +1510,82 @@ window.addEventListener('DOMContentLoaded', async function() {
   // ══ AUTO SCROLL CARRUSEL ══
   function iniciarAutoScroll(el) {
     if (!el) return;
-    var velocidad = 0.5; // px por frame — muy lento
-    var animId = null;
-    var arrastrandо = false;
+    var velocidad = 0.3;
+    var pausando = false;
+    var arrastrando = false;
     var startX = 0;
     var scrollStart = 0;
+    var velMomentum = 0;
+    var lastX = 0;
+    var lastTime = 0;
 
     function animar() {
-      if (!arrastrandо) {
-        el.scrollLeft += velocidad;
-        // Cuando llega al final, vuelve al inicio suavemente
-        if (el.scrollLeft >= el.scrollWidth - el.clientWidth - 1) {
-          el.scrollLeft = 0;
+      if (!arrastrando && !pausando) {
+        // Momentum suave tras soltar
+        if (Math.abs(velMomentum) > 0.1) {
+          el.scrollLeft += velMomentum;
+          velMomentum *= 0.92;
+        } else {
+          velMomentum = 0;
+          el.scrollLeft += velocidad;
+        }
+        // Al llegar al final: pausa 5s luego vuelve suavemente
+        if (el.scrollLeft >= el.scrollWidth - el.clientWidth - 2) {
+          pausando = true;
+          setTimeout(function() {
+            var inicio = el.scrollLeft;
+            var duracion = 600;
+            var t0 = performance.now();
+            function volverInicio(t) {
+              var prog = Math.min((t - t0) / duracion, 1);
+              var ease = 1 - Math.pow(1 - prog, 3);
+              el.scrollLeft = inicio * (1 - ease);
+              if (prog < 1) requestAnimationFrame(volverInicio);
+              else { el.scrollLeft = 0; pausando = false; }
+            }
+            requestAnimationFrame(volverInicio);
+          }, 5000);
         }
       }
-      animId = requestAnimationFrame(animar);
+      requestAnimationFrame(animar);
     }
 
     // Touch
     el.addEventListener('touchstart', function(e) {
-      arrastrandо = true;
+      arrastrando = true; pausando = false; velMomentum = 0;
       startX = e.touches[0].pageX;
       scrollStart = el.scrollLeft;
+      lastX = startX; lastTime = Date.now();
     }, { passive: true });
-
     el.addEventListener('touchmove', function(e) {
-      var diff = startX - e.touches[0].pageX;
-      el.scrollLeft = scrollStart + diff;
+      var dx = startX - e.touches[0].pageX;
+      el.scrollLeft = scrollStart + dx;
+      var now = Date.now();
+      velMomentum = (lastX - e.touches[0].pageX) / Math.max(now - lastTime, 1) * 16;
+      lastX = e.touches[0].pageX; lastTime = now;
     }, { passive: true });
-
     el.addEventListener('touchend', function() {
-      setTimeout(function(){ arrastrandо = false; }, 800);
+      arrastrando = false;
     });
 
-    // Mouse (desktop)
+    // Mouse
     el.addEventListener('mousedown', function(e) {
-      arrastrandо = true;
-      startX = e.pageX;
-      scrollStart = el.scrollLeft;
+      arrastrando = true; pausando = false; velMomentum = 0;
+      startX = e.pageX; scrollStart = el.scrollLeft;
+      lastX = startX; lastTime = Date.now();
+      e.preventDefault();
     });
     el.addEventListener('mousemove', function(e) {
-      if (!arrastrandо) return;
+      if (!arrastrando) return;
       el.scrollLeft = scrollStart + (startX - e.pageX);
+      var now = Date.now();
+      velMomentum = (lastX - e.pageX) / Math.max(now - lastTime, 1) * 16;
+      lastX = e.pageX; lastTime = now;
     });
-    el.addEventListener('mouseup', function() {
-      setTimeout(function(){ arrastrandо = false; }, 800);
-    });
-    el.addEventListener('mouseleave', function() {
-      setTimeout(function(){ arrastrandо = false; }, 800);
-    });
+    el.addEventListener('mouseup', function() { arrastrando = false; });
+    el.addEventListener('mouseleave', function() { arrastrando = false; });
 
-    animId = requestAnimationFrame(animar);
+    requestAnimationFrame(animar);
   }
 
   // Iniciar auto scroll cuando las secciones carguen
