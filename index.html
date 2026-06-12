@@ -593,7 +593,28 @@ var panelAlergenosAbierto = false;
 var sugerenciaMostrada = false;
 var sugerenciaTimer = null;
 var tiempoEnPlato = {};
-var listaGuardados = JSON.parse(sessionStorage.getItem('listaGuardados') || '{}');
+var TIEMPO_EXPIRACION_MS = 60 * 60 * 1000; // 1 hora de inactividad
+
+function cargarListaGuardadosConExpiracion() {
+  var ultimaActividad = parseInt(localStorage.getItem('ultimaActividadCarta') || '0', 10);
+  var ahora = Date.now();
+  if (ultimaActividad && (ahora - ultimaActividad) > TIEMPO_EXPIRACION_MS) {
+    // Han pasado más de 1 hora sin actividad: empezar de cero
+    localStorage.removeItem('listaGuardados');
+    localStorage.removeItem('ultimaActividadCarta');
+    return {};
+  }
+  try {
+    return JSON.parse(localStorage.getItem('listaGuardados') || '{}');
+  } catch(e) { return {}; }
+}
+
+function registrarActividadCarta() {
+  localStorage.setItem('ultimaActividadCarta', Date.now().toString());
+}
+
+var listaGuardados = cargarListaGuardadosConExpiracion();
+registrarActividadCarta();
 var HEROES_DINAMICOS = {}; // platoId más popular por categoría esta semana
 
 // ══ REGISTRAR INTERÉS ══
@@ -640,7 +661,8 @@ function toggleGuardar(id) {
       sessionStorage.setItem('listaTooltipVisto', '1');
     }
   }
-  sessionStorage.setItem('listaGuardados', JSON.stringify(listaGuardados));
+  localStorage.setItem('listaGuardados', JSON.stringify(listaGuardados));
+  registrarActividadCarta();
   actualizarBtnGuardar(id);
   actualizarListaBtn();
   var total = Object.keys(listaGuardados).length;
@@ -747,14 +769,16 @@ function abrirLista() { renderLista(); document.getElementById('lista-screen').c
 function cerrarLista() { document.getElementById('lista-screen').classList.remove('open'); }
 function quitarDeLista(id) {
   delete listaGuardados[id];
-  sessionStorage.setItem('listaGuardados', JSON.stringify(listaGuardados));
+  localStorage.setItem('listaGuardados', JSON.stringify(listaGuardados));
+  registrarActividadCarta();
   actualizarBtnGuardar(id);
   actualizarListaBtn();
   renderLista();
 }
 function limpiarLista() {
   listaGuardados = {};
-  sessionStorage.setItem('listaGuardados', JSON.stringify(listaGuardados));
+  localStorage.setItem('listaGuardados', JSON.stringify(listaGuardados));
+  registrarActividadCarta();
   document.querySelectorAll('.btn-guardar.guardado').forEach(function(btn) {
     btn.className = 'btn-guardar';
     btn.innerHTML = '🔖 Guardar para pedir';
@@ -1544,6 +1568,18 @@ function showToast(msg) {
 }
 
 // ══ INIT ══
+// Registrar actividad en cualquier interacción del usuario (con throttle)
+var ultimoRegistroActividad = 0;
+['touchstart', 'scroll', 'click'].forEach(function(evt) {
+  window.addEventListener(evt, function() {
+    var ahora = Date.now();
+    if (ahora - ultimoRegistroActividad > 30000) { // máximo cada 30s
+      ultimoRegistroActividad = ahora;
+      registrarActividadCarta();
+    }
+  }, { passive: true });
+});
+
 window.addEventListener('DOMContentLoaded', async function() {
   window.scrollTo(0, 0);
   var params = new URLSearchParams(window.location.search);
