@@ -553,6 +553,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
         <div class="plato-modal-price" id="plato-modal-price"></div>
         <button class="btn-guardar" id="plato-modal-btn" onclick="modalGuardar()">🔖 Guardar para pedir</button>
       </div>
+      <button id="plato-modal-ask-btn" onclick="abrirPreguntaDesdeModal()" style="width:100%;margin-top:10px;padding:10px;background:rgba(200,16,46,.07);border:1.5px solid rgba(200,16,46,.18);border-radius:50px;color:var(--red);font-size:13px;font-weight:800;cursor:pointer">💬 Pregúntale a la IA sobre este plato</button>
     </div>
   </div>
 </div>
@@ -595,6 +596,17 @@ var HEROES_DINAMICOS = {}; // platoId más popular por categoría esta semana
 // ══ REGISTRAR INTERÉS ══
 async function registrarInteres(platoId, tipo) {
   try {
+    // Caso especial: registro de sesión (carga de página), no asociado a un plato
+    if (tipo === 'sesion') {
+      await sb.from('carta_clics').insert({
+        restaurante_id: RESTAURANTE_ID,
+        plato_id: '__sesion__',
+        plato_nombre: 'Sesión',
+        categoria: '',
+        tipo: 'sesion'
+      });
+      return;
+    }
     var item = findItem(platoId);
     if (!item) return;
     var cat = '';
@@ -1037,20 +1049,9 @@ async function registrarChatIA(pregunta, respuesta, platoRelacionado, origen) {
 }
 
 // ══ TRACKING ══
-var vistaObserver = new IntersectionObserver(function(entries) {
-  entries.forEach(function(e) {
-    var id = e.target.id.replace('card-', '');
-    if (e.isIntersecting) {
-      tiempoEnPlato[id + '_inicio'] = tiempoEnPlato[id + '_inicio'] || Date.now();
-    } else {
-      if (tiempoEnPlato[id + '_inicio']) {
-        tiempoEnPlato[id] = (tiempoEnPlato[id] || 0) + (Date.now() - tiempoEnPlato[id + '_inicio']);
-        delete tiempoEnPlato[id + '_inicio'];
-        if (tiempoEnPlato[id] > 4000) registrarInteres(id, 'ver_detalle');
-      }
-    }
-  });
-}, { threshold: 0.7 });
+// El conteo de "ver_detalle" ahora solo se registra al abrir el modal en grande (abrirPlatoModal),
+// no por tiempo de scroll. Mantenemos el observer por si se necesita en el futuro, sin registrar.
+var vistaObserver = new IntersectionObserver(function(entries) {}, { threshold: 0.7 });
 
 // ══ BUILD MENU ══
 function buildMenu() {
@@ -1400,6 +1401,14 @@ function abrirPlatoModal(id) {
   document.getElementById('plato-modal').classList.add('open');
   registrarInteres(id, 'ver_detalle');
 }
+function abrirPreguntaDesdeModal() {
+  if (!platoModalId) return;
+  var item = findItem(platoModalId);
+  if (!item) return;
+  document.getElementById('plato-modal').classList.remove('open');
+  showAsk(item.name);
+}
+
 function closePlatoModal(e) {
   if (e && e.target !== document.getElementById('plato-modal')) return;
   document.getElementById('plato-modal').classList.remove('open');
@@ -1531,6 +1540,9 @@ window.addEventListener('DOMContentLoaded', async function() {
   window.scrollTo(0, 0);
   var params = new URLSearchParams(window.location.search);
   mesa = params.get('mesa') || '1';
+
+  // Registrar sesión (una visita = una carga de carta), separado por restaurante
+  registrarInteres('__sesion__', 'sesion');
 
   await cargarCarta();
   await cargarHeroesDinamicos(); // cargar héroes dinámicos antes de construir el menú
