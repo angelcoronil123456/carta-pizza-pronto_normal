@@ -255,7 +255,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 
 /* TOP PEDIDOS */
 .top-pedidos{margin:16px 16px 0}
-.top-pedidos-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;color:var(--text);margin-bottom:12px}
+.top-pedidos-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;color:var(--text);margin-bottom:4px}
 .top-pedidos-grid{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
 .top-pedidos-grid::-webkit-scrollbar{display:none}
 .top-pedido-card{flex-shrink:0;width:140px;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.09);background:#fff;cursor:pointer;position:relative}
@@ -325,9 +325,9 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 
   <div id="sec-destacados" style="scroll-margin-top:110px">
   <div id="destacados-wrap" style="padding:20px 16px 0;display:none">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px">
-      <h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--text);margin:0">Destacados</h2>
-      <a href="https://maps.app.goo.gl/ZXtj1fRr9zwk7mgA8" target="_blank" style="font-size:11px;font-weight:700;color:var(--text-soft);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:3px;flex-shrink:0">⭐ <span style="border-bottom:1px dashed #ccc">Valóranos</span></a>
+    <div style="margin-bottom:4px">
+      <h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--text);margin:0 0 6px">Destacados</h2>
+      <a href="https://maps.app.goo.gl/ZXtj1fRr9zwk7mgA8" target="_blank" style="font-size:12px;font-weight:700;color:var(--red);text-decoration:none;display:inline-flex;align-items:center;gap:5px;background:rgba(200,16,46,.07);border-radius:50px;padding:6px 14px">⭐ Tu opinión nos importa, ¡valóranos!</a>
     </div>
     
   </div>
@@ -914,6 +914,7 @@ async function cargarTopPedidos() {
     wrap.style.display = 'block';
     wrap.innerHTML = '<div class="top-pedidos">' +
       '<div class="top-pedidos-title">🔥 Los favoritos de la semana</div>' +
+      '<div style="font-size:12px;color:var(--text-soft);margin-bottom:12px;margin-top:-8px">Lo que arrasa cada semana</div>' +
       '<div class="top-pedidos-grid auto-scroll" id="top-pedidos-grid">' + cards + '</div>' +
       '</div>';
   } catch(e) {}
@@ -1457,6 +1458,7 @@ function showToast(msg) {
 
 // ══ INIT ══
 window.addEventListener('DOMContentLoaded', async function() {
+  window.scrollTo(0, 0);
   var params = new URLSearchParams(window.location.search);
   mesa = params.get('mesa') || '1';
 
@@ -1465,6 +1467,7 @@ window.addEventListener('DOMContentLoaded', async function() {
   document.getElementById('loading-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   buildMenu();
+  window.scrollTo(0, 0);
   iniciarPolling();
   setTimeout(cargarRecomendadosDelDia, 600);
   setTimeout(cargarTopPedidos, 800);
@@ -1544,9 +1547,10 @@ window.addEventListener('DOMContentLoaded', async function() {
     function animar() {
       if (!pausado) {
         el.scrollLeft += velocidad;
-        // Cuando pasa la mitad (elementos duplicados), salta al inicio sin que se note
-        if (el.scrollLeft >= mitad) {
-          el.scrollLeft -= mitad;
+        // Salto invisible: cuando se acerca al final del primer set, restar exactamente
+        // un múltiplo de "mitad" para mantener la posición relativa idéntica
+        if (el.scrollLeft >= mitad - 1) {
+          el.scrollLeft = el.scrollLeft - mitad;
         }
       }
       requestAnimationFrame(animar);
