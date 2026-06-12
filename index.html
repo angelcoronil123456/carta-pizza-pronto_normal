@@ -286,6 +286,9 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 .plato-modal-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
 .plato-modal-price{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--red)}
 .plato-modal-close{position:absolute;top:16px;right:16px;background:rgba(0,0,0,.4);border:none;border-radius:50%;width:36px;height:36px;color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1}
+.plato-modal-guardar-grande{width:100%;padding:14px;border-radius:50px;border:none;background:#fff;color:var(--text-soft);border:1.5px solid #e0d5ca;font-size:15px;font-weight:900;cursor:pointer;transition:all .2s;margin-top:14px}
+.plato-modal-guardar-grande.guardado{background:var(--red);border-color:var(--red);color:#fff}
+.plato-modal-ask-link{display:block;text-align:center;margin-top:10px;font-size:12px;font-weight:700;color:var(--text-soft);background:none;border:none;cursor:pointer;padding:6px}
 
 /* TOAST */
 .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--dark);color:#fff;padding:10px 20px;border-radius:50px;font-size:13px;font-weight:700;white-space:nowrap;z-index:999;opacity:0;transition:all .3s;pointer-events:none;max-width:90vw;text-align:center}
@@ -549,11 +552,11 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
       <div class="plato-modal-name" id="plato-modal-name"></div>
       <div class="plato-modal-desc" id="plato-modal-desc"></div>
       <div id="plato-modal-allergens" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px"></div>
-      <div class="plato-modal-footer">
+      <div class="plato-modal-footer" style="margin-top:0">
         <div class="plato-modal-price" id="plato-modal-price"></div>
-        <button class="btn-guardar" id="plato-modal-btn" onclick="modalGuardar()">🔖 Guardar para pedir</button>
       </div>
-      <button id="plato-modal-ask-btn" onclick="abrirPreguntaDesdeModal()" style="width:100%;margin-top:10px;padding:10px;background:rgba(200,16,46,.07);border:1.5px solid rgba(200,16,46,.18);border-radius:50px;color:var(--red);font-size:13px;font-weight:800;cursor:pointer">💬 Pregúntale a la IA sobre este plato</button>
+      <button class="plato-modal-guardar-grande" id="plato-modal-btn" onclick="modalGuardar()">🔖 Guardar para pedir</button>
+      <button class="plato-modal-ask-link" id="plato-modal-ask-btn" onclick="abrirPreguntaDesdeModal()">💬 ¿Tienes alguna duda? Pregúntale a la IA</button>
     </div>
   </div>
 </div>
@@ -756,6 +759,11 @@ function limpiarLista() {
     btn.className = 'btn-guardar';
     btn.innerHTML = '🔖 Guardar para pedir';
   });
+  var modalBtn = document.getElementById('plato-modal-btn');
+  if (modalBtn && modalBtn.classList.contains('guardado')) {
+    modalBtn.className = 'plato-modal-guardar-grande';
+    modalBtn.innerHTML = '🔖 Guardar para pedir';
+  }
   actualizarListaBtn();
   cerrarLista();
 }
@@ -1396,8 +1404,8 @@ function abrirPlatoModal(id) {
   var alEl = document.getElementById('plato-modal-allergens');
   alEl.innerHTML = (item.allergens||[]).map(function(a){ return '<span style="font-size:18px" title="'+allergenLabel(a)+'">'+a+'</span>'; }).join('');
   var btn = document.getElementById('plato-modal-btn');
-  if (listaGuardados[id]) { btn.className='btn-guardar guardado'; btn.innerHTML='✓ Guardado'; }
-  else { btn.className='btn-guardar'; btn.innerHTML='🔖 Guardar para pedir'; }
+  if (listaGuardados[id]) { btn.className='plato-modal-guardar-grande guardado'; btn.innerHTML='✓ Guardado'; }
+  else { btn.className='plato-modal-guardar-grande'; btn.innerHTML='🔖 Guardar para pedir'; }
   document.getElementById('plato-modal').classList.add('open');
   registrarInteres(id, 'ver_detalle');
 }
@@ -1417,8 +1425,8 @@ function modalGuardar() {
   if (!platoModalId) return;
   toggleGuardar(platoModalId);
   var btn = document.getElementById('plato-modal-btn');
-  if (listaGuardados[platoModalId]) { btn.className='btn-guardar guardado'; btn.innerHTML='✓ Guardado'; }
-  else { btn.className='btn-guardar'; btn.innerHTML='🔖 Guardar para pedir'; }
+  if (listaGuardados[platoModalId]) { btn.className='plato-modal-guardar-grande guardado'; btn.innerHTML='✓ Guardado'; }
+  else { btn.className='plato-modal-guardar-grande'; btn.innerHTML='🔖 Guardar para pedir'; }
 }
 
 // ══ GUARDAR DESDE DESTACADOS ══
