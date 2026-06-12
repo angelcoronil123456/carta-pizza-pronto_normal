@@ -255,7 +255,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 
 /* TOP PEDIDOS */
 .top-pedidos{margin:16px 16px 0}
-.top-pedidos-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;color:var(--text);margin-bottom:4px}
+.top-pedidos-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;color:var(--text);margin-bottom:6px}
 .top-pedidos-grid{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
 .top-pedidos-grid::-webkit-scrollbar{display:none}
 .top-pedido-card{flex-shrink:0;width:140px;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.09);background:#fff;cursor:pointer;position:relative}
@@ -290,6 +290,13 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 /* TOAST */
 .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--dark);color:#fff;padding:10px 20px;border-radius:50px;font-size:13px;font-weight:700;white-space:nowrap;z-index:999;opacity:0;transition:all .3s;pointer-events:none;max-width:90vw;text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* TOAST VALORACIÓN */
+.toast-valoracion{position:fixed;top:70px;right:12px;z-index:998;background:#fff;border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.15);padding:12px 14px;max-width:230px;display:flex;align-items:flex-start;gap:8px;opacity:0;transform:translateX(20px);transition:all .4s ease;pointer-events:none}
+.toast-valoracion.show{opacity:1;transform:translateX(0);pointer-events:auto}
+.toast-valoracion-close{background:none;border:none;font-size:16px;color:#ccc;cursor:pointer;padding:0;line-height:1;flex-shrink:0}
+.toast-valoracion-text{font-size:12px;line-height:1.4;color:var(--text)}
+.toast-valoracion-link{color:var(--red);font-weight:800;text-decoration:none}
 </style>
 </head>
 <body>
@@ -321,14 +328,14 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
     <button class="cat-btn" onclick="scrollToSection('postres')">🍮 Postres</button>
     <button class="cat-btn" onclick="scrollToSection('bebidas')">🥤 Bebidas</button>
   </div>
+  <div style="padding:8px 16px 0;display:flex;justify-content:flex-end">
+    <a href="https://maps.app.goo.gl/ZXtj1fRr9zwk7mgA8" target="_blank" style="font-size:11px;font-weight:700;color:var(--red);text-decoration:none;display:inline-flex;align-items:center;gap:4px;background:rgba(200,16,46,.07);border-radius:50px;padding:5px 12px">⭐ Tu opinión nos importa, ¡valóranos!</a>
+  </div>
 
 
   <div id="sec-destacados" style="scroll-margin-top:110px">
   <div id="destacados-wrap" style="padding:20px 16px 0;display:none">
-    <div style="margin-bottom:4px">
-      <h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--text);margin:0 0 6px">Destacados</h2>
-      <a href="https://maps.app.goo.gl/ZXtj1fRr9zwk7mgA8" target="_blank" style="font-size:12px;font-weight:700;color:var(--red);text-decoration:none;display:inline-flex;align-items:center;gap:5px;background:rgba(200,16,46,.07);border-radius:50px;padding:6px 14px">⭐ Tu opinión nos importa, ¡valóranos!</a>
-    </div>
+    <h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--text);margin:0 0 4px">Destacados</h2>
     
   </div>
   <div id="rec-dia-wrap" style="display:none"></div>
@@ -551,6 +558,10 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="toast-valoracion" id="toast-valoracion">
+  <div class="toast-valoracion-text">¿Te está gustando la experiencia? <a href="https://maps.app.goo.gl/ZXtj1fRr9zwk7mgA8" target="_blank" class="toast-valoracion-link">Cuéntanosla ⭐</a></div>
+  <button class="toast-valoracion-close" onclick="document.getElementById('toast-valoracion').classList.remove('show')">×</button>
+</div>
 
 <script>
 // ══ CONFIG ══
@@ -620,6 +631,14 @@ function toggleGuardar(id) {
   var total = Object.keys(listaGuardados).length;
   if (total === 2 && !sugerenciaMostrada) {
     setTimeout(mostrarSugerenciaPostres, 4000);
+  }
+  if (total === 3 && !sessionStorage.getItem('toastValoracionMostrado')) {
+    sessionStorage.setItem('toastValoracionMostrado', '1');
+    setTimeout(function() {
+      var tv = document.getElementById('toast-valoracion');
+      tv.classList.add('show');
+      setTimeout(function(){ tv.classList.remove('show'); }, 5000);
+    }, 1000);
   }
 }
 
@@ -701,7 +720,7 @@ function renderLista() {
         '<div style="padding:7px 8px 9px">' +
         '<div style="font-size:11px;font-weight:800;color:var(--text);margin-bottom:3px;line-height:1.3">' + p.name + '</div>' +
         '<div style="font-size:11px;font-weight:900;color:var(--red);margin-bottom:5px">' + p.price.toFixed(2).replace('.',',') + ' €</div>' +
-        '<button onclick="toggleGuardar(\'' + p.id + '\')" style="width:100%;padding:4px;background:var(--red);border:none;border-radius:6px;color:#fff;font-size:9px;font-weight:800;cursor:pointer">🔖 Guardar</button>' +
+        '<button onclick="toggleGuardar(\'' + p.id + '\'); renderLista();" style="width:100%;padding:4px;background:var(--red);border:none;border-radius:6px;color:#fff;font-size:9px;font-weight:800;cursor:pointer">🔖 Guardar</button>' +
         '</div></div>';
     });
     hh += '</div></div>';
@@ -914,7 +933,7 @@ async function cargarTopPedidos() {
     wrap.style.display = 'block';
     wrap.innerHTML = '<div class="top-pedidos">' +
       '<div class="top-pedidos-title">🔥 Los favoritos de la semana</div>' +
-      '<div style="font-size:12px;color:var(--text-soft);margin-bottom:12px;margin-top:-8px">Lo que arrasa cada semana</div>' +
+      '<div style="font-size:12px;color:var(--text-soft);margin-bottom:12px">Lo que arrasa cada semana</div>' +
       '<div class="top-pedidos-grid auto-scroll" id="top-pedidos-grid">' + cards + '</div>' +
       '</div>';
   } catch(e) {}
@@ -1519,38 +1538,36 @@ window.addEventListener('DOMContentLoaded', async function() {
   function iniciarAutoScroll(el) {
     if (!el) return;
 
-    // Duplicar los hijos para efecto infinito
+    // Triplicar los hijos para que el salto nunca sea visible
     var hijos = Array.from(el.children);
-    hijos.forEach(function(h) {
-      var clon = h.cloneNode(true);
-      clon.setAttribute('aria-hidden', 'true');
-      el.appendChild(clon);
-    });
-    var mitad = el.scrollWidth / 2;
+    for (var rep = 0; rep < 2; rep++) {
+      hijos.forEach(function(h) {
+        var clon = h.cloneNode(true);
+        clon.setAttribute('aria-hidden', 'true');
+        el.appendChild(clon);
+      });
+    }
+    var unidad = el.scrollWidth / 3;
 
     var velocidad = 0.4;
     var pausado = false;
-    var pausaTimer = null;
 
-    function pausarTras(ms) {
-      pausado = true;
-      clearTimeout(pausaTimer);
-      pausaTimer = setTimeout(function(){ pausado = false; }, ms);
-    }
+    el.addEventListener('touchstart', function(){ pausado = true; }, { passive: true });
+    el.addEventListener('touchend',   function(){ pausado = false; }, { passive: true });
+    el.addEventListener('mousedown',  function(){ pausado = true; });
+    el.addEventListener('mouseup',    function(){ pausado = false; });
+    el.addEventListener('mouseleave', function(){ pausado = false; });
 
-    el.addEventListener('touchstart', function(){ pausarTras(99999); }, { passive: true });
-    el.addEventListener('touchend',   function(){ pausarTras(1500);  }, { passive: true });
-    el.addEventListener('mousedown',  function(){ pausarTras(99999); });
-    el.addEventListener('mouseup',    function(){ pausarTras(1500);  });
-    el.addEventListener('mouseleave', function(){ pausarTras(400);   });
+    // Posicionar en el segundo tercio para tener margen en ambas direcciones
+    el.scrollLeft = unidad;
 
     function animar() {
       if (!pausado) {
         el.scrollLeft += velocidad;
-        // Salto invisible: cuando se acerca al final del primer set, restar exactamente
-        // un múltiplo de "mitad" para mantener la posición relativa idéntica
-        if (el.scrollLeft >= mitad - 1) {
-          el.scrollLeft = el.scrollLeft - mitad;
+        // Cuando se acerca al final del segundo tercio, reposicionar al inicio del segundo
+        // sin que se note porque el contenido es idéntico
+        if (el.scrollLeft >= unidad * 2) {
+          el.scrollLeft -= unidad;
         }
       }
       requestAnimationFrame(animar);
