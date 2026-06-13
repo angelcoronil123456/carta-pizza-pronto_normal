@@ -19,6 +19,11 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 
 /* LOADING */
 #loading-screen{position:fixed;inset:0;background:var(--dark);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999}
+#expirada-screen{position:fixed;inset:0;background:var(--dark);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:9999;text-align:center;padding:30px}
+#expirada-screen .expirada-icon{font-size:56px;margin-bottom:16px}
+#expirada-screen .expirada-titulo{color:#fff;font-family:'Playfair Display',serif;font-size:22px;font-weight:900;margin-bottom:8px}
+#expirada-screen .expirada-texto{color:rgba(255,255,255,.7);font-size:14px;margin-bottom:24px;max-width:280px;line-height:1.5}
+
 .loading-logo{font-size:64px;margin-bottom:16px;animation:pulse 1.5s ease-in-out infinite}
 .loading-name{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;color:#fff;margin-bottom:24px}
 .loading-bar{width:160px;height:3px;background:rgba(255,255,255,.2);border-radius:10px;overflow:hidden}
@@ -286,9 +291,9 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 .plato-modal-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
 .plato-modal-price{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--red)}
 .plato-modal-close{position:absolute;top:16px;right:16px;background:rgba(0,0,0,.4);border:none;border-radius:50%;width:36px;height:36px;color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1}
-.plato-modal-guardar-grande{width:100%;padding:14px;border-radius:50px;border:none;background:#fff;color:var(--text-soft);border:1.5px solid #e0d5ca;font-size:15px;font-weight:900;cursor:pointer;transition:all .2s;margin-top:14px}
-.plato-modal-guardar-grande.guardado{background:var(--red);border-color:var(--red);color:#fff}
-.plato-modal-ask-link{display:block;text-align:center;margin-top:10px;font-size:12px;font-weight:700;color:var(--text-soft);background:none;border:none;cursor:pointer;padding:6px}
+.plato-modal-ask-grande{width:100%;padding:14px;border-radius:50px;border:none;background:rgba(200,16,46,.08);border:1.5px solid rgba(200,16,46,.2);color:var(--red);font-size:15px;font-weight:900;cursor:pointer;transition:all .2s;margin-top:14px}
+.plato-modal-guardar-pequeno{display:block;width:100%;text-align:center;margin-top:10px;font-size:13px;font-weight:800;color:var(--text-soft);background:none;border:1.5px solid #e0d5ca;border-radius:50px;cursor:pointer;padding:8px}
+.plato-modal-guardar-pequeno.guardado{background:var(--red);border-color:var(--red);color:#fff}
 
 /* TOAST */
 .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--dark);color:#fff;padding:10px 20px;border-radius:50px;font-size:13px;font-weight:700;white-space:nowrap;z-index:999;opacity:0;transition:all .3s;pointer-events:none;max-width:90vw;text-align:center}
@@ -309,6 +314,12 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
   <div class="loading-name">Pizza Pronto</div>
   <div class="loading-bar"><div class="loading-fill"></div></div>
   <div class="loading-txt">Cargando la carta...</div>
+</div>
+
+<div id="expirada-screen">
+  <div class="expirada-icon">📱</div>
+  <div class="expirada-titulo">Sesión finalizada</div>
+  <div class="expirada-texto">Vuelve a escanear el código QR de tu mesa para entrar de nuevo.</div>
 </div>
 
 <div id="app">
@@ -555,8 +566,8 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
       <div class="plato-modal-footer" style="margin-top:0">
         <div class="plato-modal-price" id="plato-modal-price"></div>
       </div>
-      <button class="plato-modal-guardar-grande" id="plato-modal-btn" onclick="modalGuardar()">🔖 Guardar para pedir</button>
-      <button class="plato-modal-ask-link" id="plato-modal-ask-btn" onclick="abrirPreguntaDesdeModal()">💬 ¿Tienes alguna duda? Pregúntale a la IA</button>
+      <button class="plato-modal-ask-grande" onclick="abrirPreguntaDesdeModal()">💬 ¿Tienes alguna duda? Pregúntame</button>
+      <button class="plato-modal-guardar-pequeno" id="plato-modal-btn" onclick="modalGuardar()">🔖 Guardar para pedir</button>
     </div>
   </div>
 </div>
@@ -593,7 +604,25 @@ var panelAlergenosAbierto = false;
 var sugerenciaMostrada = false;
 var sugerenciaTimer = null;
 var tiempoEnPlato = {};
-var TIEMPO_EXPIRACION_MS = 60 * 60 * 1000; // 1 hora de inactividad
+var TIEMPO_EXPIRACION_MS = 60 * 60 * 1000; // 1 hora de inactividad (lista de guardados)
+var TIEMPO_SESION_MS = 5 * 60 * 60 * 1000; // 5 horas de inactividad (sesión completa)
+
+function comprobarSesionExpirada() {
+  var ultimaActividad = parseInt(localStorage.getItem('ultimaActividadCarta') || '0', 10);
+  if (!ultimaActividad) return false; // primera visita, no expira
+  var ahora = Date.now();
+  return (ahora - ultimaActividad) > TIEMPO_SESION_MS;
+}
+
+function mostrarPantallaExpirada() {
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('expirada-screen').style.display = 'flex';
+  // Limpiar todo para que, si recargan, empiecen de cero
+  localStorage.removeItem('listaGuardados');
+  localStorage.removeItem('ultimaActividadCarta');
+  sessionStorage.removeItem('toastValoracionMostrado');
+}
 
 function cargarListaGuardadosConExpiracion() {
   var ultimaActividad = parseInt(localStorage.getItem('ultimaActividadCarta') || '0', 10);
@@ -785,7 +814,7 @@ function limpiarLista() {
   });
   var modalBtn = document.getElementById('plato-modal-btn');
   if (modalBtn && modalBtn.classList.contains('guardado')) {
-    modalBtn.className = 'plato-modal-guardar-grande';
+    modalBtn.className = 'plato-modal-guardar-pequeno';
     modalBtn.innerHTML = '🔖 Guardar para pedir';
   }
   actualizarListaBtn();
@@ -1157,9 +1186,9 @@ function buildHeroPlato(wrapId, cat) {
   if (!hero) hero = items.find(function(i){return i.badge==='hot';}) || items.find(function(i){return i.badge==='bestseller';}) || items[0];
   if (!hero) return;
 
-  wrap.innerHTML = '<div class="dish-hero">' +
+  wrap.innerHTML = '<div class="dish-hero" onclick="abrirPlatoModal(\'' + hero.id + '\')" style="cursor:pointer">' +
     '<div style="position:relative;overflow:hidden">' +
-    '<img class="dish-hero-img" src="' + hero.img + '" alt="' + hero.name + '" onerror="this.onerror=null" onclick="abrirPlatoModal(\'' + hero.id + '\')" style="cursor:pointer">' +
+    '<img class="dish-hero-img" src="' + hero.img + '" alt="' + hero.name + '" onerror="this.onerror=null">' +
     (hero.badge ? '<div class="dish-badge badge-' + hero.badge + '" style="top:12px;left:12px;font-size:11px">' + (hero.badge==='hot'?'🔥':hero.badge==='new'?'✨':'⭐') + ' ' + BADGE_LABELS[hero.badge] + '</div>' : '') +
     '<div style="position:absolute;top:12px;right:12px;background:#E65100;color:#fff;font-size:10px;font-weight:900;padding:4px 10px;border-radius:20px">👨‍🍳 Elección del chef</div>' +
     '</div>' +
@@ -1169,7 +1198,7 @@ function buildHeroPlato(wrapId, cat) {
     ((hero.allergens && hero.allergens.length) ? '<div class="allergens" style="margin-bottom:8px">' + hero.allergens.map(function(a){return '<span class="allergen" title="'+allergenLabel(a)+'">'+a+'</span>';}).join('') + '</div>' : '') +
     '<div class="dish-hero-footer">' +
     '<span style="font-family:\'Playfair Display\',serif;font-size:22px;font-weight:900;color:var(--red)">' + hero.price.toFixed(2).replace('.', ',') + ' €</span>' +
-    '<button class="btn-guardar" id="btn-hero-' + hero.id + '" onclick="toggleGuardar(\'' + hero.id + '\')" style="padding:8px 16px;font-size:12px">🔖 Guardar para pedir</button>' +
+    '<button class="btn-guardar" id="btn-hero-' + hero.id + '" onclick="event.stopPropagation();toggleGuardar(\'' + hero.id + '\')" style="padding:8px 16px;font-size:12px">🔖 Guardar para pedir</button>' +
     '</div></div></div>';
 }
 
@@ -1428,8 +1457,8 @@ function abrirPlatoModal(id) {
   var alEl = document.getElementById('plato-modal-allergens');
   alEl.innerHTML = (item.allergens||[]).map(function(a){ return '<span style="font-size:18px" title="'+allergenLabel(a)+'">'+a+'</span>'; }).join('');
   var btn = document.getElementById('plato-modal-btn');
-  if (listaGuardados[id]) { btn.className='plato-modal-guardar-grande guardado'; btn.innerHTML='✓ Guardado'; }
-  else { btn.className='plato-modal-guardar-grande'; btn.innerHTML='🔖 Guardar para pedir'; }
+  if (listaGuardados[id]) { btn.className='plato-modal-guardar-pequeno guardado'; btn.innerHTML='✓ Guardado'; }
+  else { btn.className='plato-modal-guardar-pequeno'; btn.innerHTML='🔖 Guardar para pedir'; }
   document.getElementById('plato-modal').classList.add('open');
   registrarInteres(id, 'ver_detalle');
 }
@@ -1449,8 +1478,8 @@ function modalGuardar() {
   if (!platoModalId) return;
   toggleGuardar(platoModalId);
   var btn = document.getElementById('plato-modal-btn');
-  if (listaGuardados[platoModalId]) { btn.className='plato-modal-guardar-grande guardado'; btn.innerHTML='✓ Guardado'; }
-  else { btn.className='plato-modal-guardar-grande'; btn.innerHTML='🔖 Guardar para pedir'; }
+  if (listaGuardados[platoModalId]) { btn.className='plato-modal-guardar-pequeno guardado'; btn.innerHTML='✓ Guardado'; }
+  else { btn.className='plato-modal-guardar-pequeno'; btn.innerHTML='🔖 Guardar para pedir'; }
 }
 
 // ══ GUARDAR DESDE DESTACADOS ══
@@ -1580,7 +1609,20 @@ var ultimoRegistroActividad = 0;
   }, { passive: true });
 });
 
+// Si el usuario vuelve a la pestaña tras dejarla en segundo plano más de 5h, mostrar pantalla de expirada
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible' && comprobarSesionExpirada()) {
+    mostrarPantallaExpirada();
+  }
+});
+
 window.addEventListener('DOMContentLoaded', async function() {
+  // Si han pasado más de 5 horas sin actividad, mostrar pantalla de "vuelve a escanear"
+  if (comprobarSesionExpirada()) {
+    mostrarPantallaExpirada();
+    return;
+  }
+
   window.scrollTo(0, 0);
   var params = new URLSearchParams(window.location.search);
   mesa = params.get('mesa') || '1';
