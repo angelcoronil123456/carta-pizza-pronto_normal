@@ -1653,18 +1653,18 @@ window.addEventListener('DOMContentLoaded', async function() {
   }, { threshold: 0, rootMargin: '-130px 0px -50% 0px' });
   cats.forEach(function(c) { var el = document.getElementById('sec-'+c); if(el) navObserver.observe(el); });
 
-  // Chef aparece a los 10s, desaparece a los 30s y aparece botón mini
+  // Chef aparece a los 20s, dura 15s visible, luego aparece botón mini
   setTimeout(function() {
     var btn = document.getElementById('asistente-btn');
     if (btn) btn.classList.add('visible');
-    // Después de 20 segundos, ocultar chef y mostrar botón mini
+    // Después de 15 segundos, ocultar chef y mostrar botón mini
     setTimeout(function() {
       var chef = document.getElementById('asistente-btn');
       var mini = document.getElementById('asistente-btn-mini');
       if (chef) { chef.style.animation = 'none'; chef.style.opacity = '0'; chef.style.transition = 'opacity .5s'; setTimeout(function(){ chef.classList.remove('visible'); chef.style.opacity = ''; }, 500); }
       if (mini) mini.classList.add('visible');
-    }, 10000);
-  }, 5000);
+    }, 15000);
+  }, 20000);
 
   // Inputs enter
   document.getElementById('ask-input').addEventListener('keydown', function(e){ if(e.key==='Enter') sendAskMessage(); });
