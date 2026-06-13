@@ -226,9 +226,6 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 .sugerencia-card-btn.guardado{background:var(--green)}
 
 /* VIDEO MODAL */
-.video-modal{position:fixed;inset:0;z-index:850;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px}
-.video-modal.open{display:flex}
-.video-modal-close{background:rgba(255,255,255,.15);border:none;border-radius:50px;padding:10px 24px;color:#fff;font-size:14px;font-weight:700;cursor:pointer}
 
 /* ALÉRGENOS */
 #alergenos-btn{position:fixed;bottom:20px;left:12px;z-index:59;background:rgba(255,255,255,.85);border:1px solid #e8ddd0;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,.1);user-select:none;backdrop-filter:blur(4px)}
@@ -395,6 +392,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
           <div class="postre-name" id="postre-spotlight-name" style="font-size:18px"></div>
         </div>
       </div>
+      <div class="dish-ask" id="postre-spotlight-ask" style="color:#fff;margin-bottom:8px">💬 ¿Tienes alguna duda?</div>
       <div class="postre-actions">
         <button class="btn-guardar" id="postre-spotlight-btn">🔖 Guardar para pedir</button>
       </div>
@@ -536,19 +534,6 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
     <button onclick="aplicarFiltroAlergenos()" style="flex:2;padding:11px;background:var(--red);border:none;border-radius:12px;font-size:14px;font-weight:900;color:#fff;cursor:pointer">✓ Filtrar carta</button>
   </div>
   <div style="font-size:11px;color:var(--text-soft);text-align:center;margin-top:12px;line-height:1.4;background:#fff8e6;border-radius:8px;padding:8px">⚠️ Confirma siempre con el camarero antes de pedir</div>
-</div>
-
-  <div style="color:rgba(255,255,255,.5);font-size:13px">Próximamente disponible</div>
-  <button class="video-modal-close">Cerrar</button>
-</div>
-
-<!-- PANTALLA SESIÓN CADUCADA -->
-<div id="sesion-caducada" style="position:fixed;inset:0;z-index:9999;background:var(--dark);display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center">
-  <div style="font-size:64px;margin-bottom:20px">📱</div>
-  <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:900;color:#fff;margin-bottom:12px">Sesión terminada</div>
-  <div style="font-size:15px;color:rgba(255,255,255,.6);line-height:1.6;margin-bottom:32px">Para seguir viendo la carta<br>escanea de nuevo el código QR de tu mesa</div>
-  <div style="font-size:80px;margin-bottom:20px">🔲</div>
-  <div style="font-size:13px;color:rgba(255,255,255,.4)">Busca el código QR en tu mesa</div>
 </div>
 
 <!-- MODAL DETALLE PLATO -->
@@ -1151,7 +1136,6 @@ function buildMenu() {
       card.innerHTML = '<div class="dish-img-wrap">' +
         '<img class="dish-img" src="' + item.img + '" alt="' + item.name + '" loading="lazy" onerror="this.onerror=null">' +
         badgeHTML +
-        '<div class="video-btn" onclick="showVideo(\'' + item.name + '\')"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Ver vídeo</div>' +
         '</div>' +
         '<div class="dish-body"><div class="dish-name">' + item.name + '</div>' + descHTML + allergensHTML +
         '<div class="dish-ask" onclick="showAsk(\'' + item.name.replace(/'/g, "\\'") + '\')">💬 ¿Tienes alguna duda?</div></div>' +
@@ -1196,6 +1180,7 @@ function buildHeroPlato(wrapId, cat) {
     '<div class="dish-hero-name">' + hero.name + '</div>' +
     '<div class="dish-hero-desc">' + hero.desc + '</div>' +
     ((hero.allergens && hero.allergens.length) ? '<div class="allergens" style="margin-bottom:8px">' + hero.allergens.map(function(a){return '<span class="allergen" title="'+allergenLabel(a)+'">'+a+'</span>';}).join('') + '</div>' : '') +
+    '<div class="dish-ask" onclick="event.stopPropagation();showAsk(\'' + hero.name.replace(/'/g, "\\'") + '\')" style="margin-bottom:8px">💬 ¿Tienes alguna duda?</div>' +
     '<div class="dish-hero-footer">' +
     '<span style="font-family:\'Playfair Display\',serif;font-size:22px;font-weight:900;color:var(--red)">' + hero.price.toFixed(2).replace('.', ',') + ' €</span>' +
     '<button class="btn-guardar" id="btn-hero-' + hero.id + '" onclick="event.stopPropagation();toggleGuardar(\'' + hero.id + '\')" style="padding:8px 16px;font-size:12px">🔖 Guardar para pedir</button>' +
@@ -1223,9 +1208,11 @@ function buildPostreSpotlight() {
   if (thumb) { thumb.src = estrella.img; thumb.alt = estrella.name; }
   nombre.textContent = estrella.name + ' — ' + estrella.price.toFixed(2).replace('.', ',') + ' €';
   btn.id = 'btn-postre-' + estrella.id;
-  btn.onclick = function() { toggleGuardar(estrella.id); };
+  btn.onclick = function(e) { e.stopPropagation(); toggleGuardar(estrella.id); };
+  var askEl = document.getElementById('postre-spotlight-ask');
+  if (askEl) askEl.onclick = function(e) { e.stopPropagation(); showAsk(estrella.name); };
   el.style.display = 'block';
-  el.onclick = function(e) { if (!e.target.closest('.btn-guardar')) abrirPlatoModal(estrella.id); };
+  el.onclick = function(e) { if (!e.target.closest('.btn-guardar') && !e.target.closest('.dish-ask')) abrirPlatoModal(estrella.id); };
   var unidades = Math.floor(Math.random()*5)+3;
   var urgencia = document.createElement('div');
   urgencia.style.cssText = 'font-size:12px;font-weight:800;color:#ff3d5a;margin-top:10px';
@@ -1728,28 +1715,19 @@ window.addEventListener('DOMContentLoaded', async function() {
   var autoScrollObserver = new MutationObserver(function() {
     var recGrid = document.getElementById('rec-dia-grid');
     var topGrid = document.getElementById('top-pedidos-grid');
+    var ambosListos = true;
     if (recGrid && !recGrid.dataset.autoScroll) {
       recGrid.dataset.autoScroll = '1';
       iniciarAutoScroll(recGrid);
-    }
+    } else if (!recGrid) { ambosListos = false; }
     if (topGrid && !topGrid.dataset.autoScroll) {
       topGrid.dataset.autoScroll = '1';
       iniciarAutoScroll(topGrid);
-    }
+    } else if (!topGrid) { ambosListos = false; }
+    // Una vez inicializados ambos carruseles, dejar de observar (ya no es necesario)
+    if (ambosListos) autoScrollObserver.disconnect();
   });
   autoScrollObserver.observe(document.body, { childList: true, subtree: true });
-
-  // Detectar si la página lleva más de 2 horas abierta sin actividad
-  var ultimaActividad = Date.now();
-  var TIEMPO_MAX = 2 * 60 * 60 * 1000; // 2 horas
-  document.addEventListener('touchstart', function(){ ultimaActividad = Date.now(); });
-  document.addEventListener('click', function(){ ultimaActividad = Date.now(); });
-  setInterval(function() {
-    if (Date.now() - ultimaActividad > TIEMPO_MAX) {
-      document.getElementById('sesion-caducada').style.display = 'flex';
-    }
-  }, 60000); // revisar cada minuto
-  document.getElementById('asistente-input').addEventListener('keydown', function(e){ if(e.key==='Enter') enviarMensajeAsistente(); });
 });
 </script>
 </body>
