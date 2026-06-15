@@ -568,6 +568,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 var SUPABASE_URL = 'https://onrymhwvjbvkygsawaiv.supabase.co';
 var SUPABASE_KEY = 'sb_publishable_6F5blZ0ttgM8fklnbe6byg_raAZCzeX';
 var EDGE_URL = 'https://onrymhwvjbvkygsawaiv.supabase.co/functions/v1/chat-ia';
+var REGISTRAR_EVENTO_URL = EDGE_URL.replace('chat-ia', 'registrar-evento');
 var RESTAURANTE_ID = 'pizzapronto-normal';
 var GOOGLE_REVIEW_URL = 'https://maps.app.goo.gl/ZcxjTXKSpg4ov8dL7';
 var BADGE_LABELS = { bestseller:'⭐ Popular', new:'✨ Nuevo', hot:'🔥 Top' };
@@ -634,29 +635,22 @@ var HEROES_DINAMICOS = {}; // platoId más popular por categoría esta semana
 // ══ REGISTRAR INTERÉS ══
 async function registrarInteres(platoId, tipo) {
   try {
-    // Caso especial: registro de sesión (carga de página), no asociado a un plato
+    var body;
     if (tipo === 'sesion') {
-      await sb.from('carta_clics').insert({
-        restaurante_id: RESTAURANTE_ID,
-        plato_id: '__sesion__',
-        plato_nombre: 'Sesión',
-        categoria: '',
-        tipo: 'sesion'
+      body = { accion: 'clic', restaurante_id: RESTAURANTE_ID, plato_id: '__sesion__', plato_nombre: 'Sesión', categoria: '', tipo: 'sesion' };
+    } else {
+      var item = findItem(platoId);
+      if (!item) return;
+      var cat = '';
+      Object.keys(MENU).forEach(function(c) {
+        if (MENU[c].some(function(p) { return p.id === platoId; })) cat = c;
       });
-      return;
+      body = { accion: 'clic', restaurante_id: RESTAURANTE_ID, plato_id: platoId, plato_nombre: item.name, categoria: cat, tipo: tipo };
     }
-    var item = findItem(platoId);
-    if (!item) return;
-    var cat = '';
-    Object.keys(MENU).forEach(function(c) {
-      if (MENU[c].some(function(p) { return p.id === platoId; })) cat = c;
-    });
-    await sb.from('carta_clics').insert({
-      restaurante_id: RESTAURANTE_ID,
-      plato_id: platoId,
-      plato_nombre: item.name,
-      categoria: cat,
-      tipo: tipo
+    await fetch(REGISTRAR_EVENTO_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
+      body: JSON.stringify(body)
     });
   } catch(e) {}
 }
@@ -1084,12 +1078,10 @@ function allergenLabel(e) {
 // ══ LOG CHAT IA ══
 async function registrarChatIA(pregunta, respuesta, platoRelacionado, origen) {
   try {
-    await sb.from('chat_ia_logs').insert({
-      restaurante_id: RESTAURANTE_ID,
-      pregunta: pregunta,
-      respuesta: respuesta,
-      plato_relacionado: platoRelacionado || null,
-      origen: origen
+    await fetch(REGISTRAR_EVENTO_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
+      body: JSON.stringify({ accion: 'chat', restaurante_id: RESTAURANTE_ID, pregunta: pregunta, respuesta: respuesta, plato_relacionado: platoRelacionado || null, origen: origen })
     });
   } catch(e) {}
 }
