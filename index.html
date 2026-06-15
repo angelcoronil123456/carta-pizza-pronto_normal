@@ -445,6 +445,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
       <div class="asistente-chip" onclick="enviarPreguntaRapida('¿Qué postres tenéis?')">Postres 🍮</div>
       <div class="asistente-chip" onclick="enviarPreguntaRapida('¿Tenéis opciones vegetarianas?')">Vegetariano 🥗</div>
       <div class="asistente-chip" onclick="enviarPreguntaRapida('¿Cuál es el plato más económico?')">Económico 💰</div>
+      <div class="asistente-chip" onclick="enviarPreguntaRapida('Quiero un menú según mi presupuesto')">Menú según mi presupuesto 🧮</div>
       <div class="asistente-chip" onclick="enviarPreguntaRapida('¿Qué bebidas tenéis?')">Bebidas 🥤</div>
       <div class="asistente-chip" onclick="enviarPreguntaRapida('¿Qué lleva la pizza Diavola?')">Ingredientes 📋</div>
     </div>
@@ -572,7 +573,23 @@ var REGISTRAR_EVENTO_URL = EDGE_URL.replace('chat-ia', 'registrar-evento');
 var RESTAURANTE_ID = 'pizzapronto-normal';
 var GOOGLE_REVIEW_URL = 'https://maps.app.goo.gl/ZcxjTXKSpg4ov8dL7';
 var BADGE_LABELS = { bestseller:'⭐ Popular', new:'✨ Nuevo', hot:'🔥 Top' };
-var QUICK_QUESTIONS = ['¿Qué ingredientes lleva?','¿Es apto para veganos?','¿Contiene gluten?','¿Qué tan picante es?'];
+var QUICK_QUESTIONS_POR_CATEGORIA = {
+  pizzas: ['¿Qué ingredientes lleva?','¿Es apta para veganos?','¿Contiene gluten?','¿Qué tan picante es?'],
+  pastas: ['¿Qué ingredientes lleva?','¿Es apta para veganos?','¿Contiene gluten?','¿Qué tan picante es?'],
+  entrantes: ['¿Qué ingredientes lleva?','¿Es apto para veganos?','¿Contiene gluten?','¿Se puede compartir?'],
+  ensaladas: ['¿Qué ingredientes lleva?','¿Es apta para veganos?','¿Contiene frutos secos?','¿El aliño viene aparte?'],
+  postres: ['¿Qué ingredientes lleva?','¿Es apto para veganos?','¿Contiene gluten?','¿Cuánto azúcar tiene?'],
+  bebidas: ['¿Qué tamaño tiene?','¿Está fría o se sirve con hielo?','¿Tiene alcohol?','¿Combina bien con qué plato?'],
+  default: ['¿Qué ingredientes lleva?','¿Es apto para veganos?','¿Contiene gluten?']
+};
+
+function getQuickQuestions(name) {
+  var cat = '';
+  Object.keys(MENU).forEach(function(c) {
+    if ((MENU[c]||[]).some(function(p){ return p.name === name; })) cat = c;
+  });
+  return QUICK_QUESTIONS_POR_CATEGORIA[cat] || QUICK_QUESTIONS_POR_CATEGORIA.default;
+}
 var SENSITIVE_KW = ['alergi','gluten','lactosa','celiaco','intolerancia','fruto seco','nuez','cacahuete','marisco','huevo','anafilax'];
 
 var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1251,7 +1268,7 @@ function showAsk(name) {
   document.getElementById('ask-dish-name').textContent = name;
   document.getElementById('ask-messages').innerHTML = '';
   document.getElementById('ask-input').value = '';
-  document.getElementById('ask-chips').innerHTML = QUICK_QUESTIONS.map(function(q) {
+  document.getElementById('ask-chips').innerHTML = getQuickQuestions(name).map(function(q) {
     return '<div class="ask-chip" onclick="sendQuick(\'' + q.replace(/'/g,"\\'") + '\')">' + q + '</div>';
   }).join('');
   appendAIMsg('¡Hola! Estoy aquí para resolver tus dudas sobre <strong>' + name + '</strong>. ¿En qué te puedo ayudar?');
@@ -1407,7 +1424,7 @@ async function enviarMensajeAsistente() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
       body: JSON.stringify({
-        system: 'Eres el asistente de Pizza Pronto. Ayuda al cliente a elegir qué pedir. IMPORTANTE: cuando recomiendes platos, escribe SIEMPRE su nombre EXACTAMENTE igual a como aparece en la carta, sin cambiar ni una letra. Responde en español, amable y breve (3-4 frases). ' + generarContextoCarta(),
+        system: 'Eres el asistente de Pizza Pronto. Ayuda al cliente a elegir qué pedir. IMPORTANTE: cuando recomiendes platos, escribe SIEMPRE su nombre EXACTAMENTE igual a como aparece en la carta, sin cambiar ni una letra. Responde en español, amable y breve (3-4 frases). ' + 'Si el cliente menciona un presupuesto (por ejemplo "tengo 15 euros" o "quiero un menú según mi presupuesto"), pregunta cuánto quiere gastar si no lo ha dicho, y luego propón una combinación real de platos de la carta cuya suma se acerque al presupuesto sin superarlo (puede quedar algo por debajo, nunca por encima). Indica el precio de cada plato elegido y la suma total al final. ' + generarContextoCarta(),
         messages: asistenteChatHistory.slice(-8)
       })
     });
