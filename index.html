@@ -1256,8 +1256,6 @@ function showAsk(name) {
   }).join('');
   appendAIMsg('¡Hola! Estoy aquí para resolver tus dudas sobre <strong>' + name + '</strong>. ¿En qué te puedo ayudar?');
   document.getElementById('ask-modal').classList.add('open');
-  var item = Object.values(MENU).flat().find(function(i){return i.name===name;});
-  if (item) registrarInteres(item.id, 'pregunta_ia');
 }
 function closeAsk() { document.getElementById('ask-modal').classList.remove('open'); }
 function sendQuick(q) { document.getElementById('ask-input').value = q; sendAskMessage(); }
@@ -1306,6 +1304,8 @@ async function sendAskMessage() {
     chatHistory.push({ role: 'assistant', content: reply });
     appendAIMsg(reply);
     registrarChatIA(text, reply, currentDish, 'plato');
+    var dishItem = Object.values(MENU).flat().find(function(i){return i.name===currentDish;});
+    if (dishItem) registrarInteres(dishItem.id, 'pregunta_ia');
   } catch(e) { removeTyping('ask-messages'); appendAIMsg('En este momento no puedo responder. Consulta con el camarero.'); }
   document.getElementById('ask-send-btn').disabled = false;
 }
