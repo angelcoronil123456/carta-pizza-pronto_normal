@@ -230,44 +230,48 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 /* ALÉRGENOS */
 #alergenos-btn{position:fixed;top:12px;right:12px;z-index:59;background:rgba(255,255,255,.85);border:1px solid #e8ddd0;border-radius:50px;padding:6px 12px 6px 10px;display:flex;align-items:center;gap:5px;cursor:pointer;font-size:16px;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,.1);user-select:none;backdrop-filter:blur(4px);font-family:'Nunito',sans-serif;font-weight:900;font-size:12px;color:var(--text)}
 /* BOTÓN FLOTANTE PRESUPUESTO */
-#btn-menu-presupuesto-wrap{position:sticky;top:103px;z-index:48;background:#fff;border-bottom:1px solid #f0e8e0;padding:6px 16px;display:flex;justify-content:flex-end}
-#btn-menu-presupuesto{background:#C05E1A;color:#fff;border:none;border-radius:50px;padding:7px 16px;display:flex;align-items:center;gap:6px;cursor:pointer;font-family:'Nunito',sans-serif;font-size:12px;font-weight:900;white-space:nowrap;box-shadow:0 2px 8px rgba(192,94,26,.3)}
+#btn-menu-presupuesto{position:fixed;top:108px;right:8px;z-index:57;background:#059669;color:#fff;border:none;border-radius:0 0 50px 50px;padding:6px 14px 8px;display:flex;align-items:center;gap:6px;cursor:pointer;font-family:'Nunito',sans-serif;font-size:12px;font-weight:900;white-space:nowrap;box-shadow:0 4px 12px rgba(5,150,105,.3)}
 #btn-menu-presupuesto:active{transform:scale(.97)}
 
 /* MODAL PRESUPUESTO */
 #modal-presupuesto{position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.5);display:none;align-items:flex-end;justify-content:center}
 #modal-presupuesto.open{display:flex}
-#modal-pres-box{background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:500px;padding:20px 16px 32px;max-height:92vh;overflow-y:auto}
+#modal-pres-box{background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:500px;height:78vh;display:flex;flex-direction:column}
+.pres-header{padding:16px 16px 0;flex-shrink:0}
 .pres-titulo{font-family:'Playfair Display',serif;font-size:18px;font-weight:900;text-align:center;margin-bottom:4px}
-.pres-sub{font-size:12px;color:var(--text-soft);text-align:center;margin-bottom:16px}
-.pres-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
-.pres-btn-amt{background:#f5f0eb;border:2px solid transparent;border-radius:50px;padding:10px 18px;font-size:15px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;color:var(--text);transition:all .2s}
+.pres-sub{font-size:12px;color:var(--text-soft);text-align:center;margin-bottom:12px}
+.pres-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:12px;padding:0 4px}
+.pres-btn-amt{background:#f5f0eb;border:2px solid transparent;border-radius:50px;padding:9px 16px;font-size:15px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;color:var(--text);transition:all .2s}
 .pres-btn-amt.active,.pres-btn-amt:hover{background:var(--red);color:#fff;border-color:var(--red)}
-.pres-menus{display:grid;grid-template-columns:1fr 1.08fr 1fr;gap:8px;margin-top:4px}
-@media(max-width:380px){.pres-menus{grid-template-columns:1fr}}
-.pres-menu{border:1.5px solid var(--border);border-radius:16px;padding:12px;position:relative;display:flex;flex-direction:column}
-.pres-menu.rec{border-color:var(--red);background:rgba(200,16,46,.03);box-shadow:0 4px 16px rgba(200,16,46,.12)}
-.pres-badge{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--red);color:#fff;font-size:10px;font-weight:900;padding:3px 10px;border-radius:20px;white-space:nowrap}
-.pres-menu-nombre{font-size:11px;font-weight:900;color:var(--text-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;text-align:center}
-.pres-plato-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:4px}
-.pres-plato-nombre{font-size:12px;font-weight:700;flex:1;min-width:0}
-.pres-plato-precio{font-size:11px;color:var(--text-soft);white-space:nowrap}
-.pres-cambiar-btn{background:none;border:1px solid var(--border);border-radius:50px;padding:2px 7px;font-size:10px;font-weight:700;cursor:pointer;color:var(--text-soft);white-space:nowrap;font-family:'Nunito',sans-serif;flex-shrink:0}
-.pres-cambiar-btn:active{background:#f5f0eb}
-.pres-total{font-size:14px;font-weight:900;color:var(--red);text-align:center;margin-top:auto;padding-top:8px;border-top:1px solid var(--border)}
-.pres-añadir-btn{width:100%;background:var(--red);color:#fff;border:none;border-radius:50px;padding:10px;font-size:12px;font-weight:900;cursor:pointer;margin-top:8px;font-family:'Nunito',sans-serif}
-.pres-loading{text-align:center;padding:24px;color:var(--text-soft);font-size:13px;grid-column:1/-1}
-.pres-alt-wrap{background:#f5f0eb;border-radius:12px;padding:10px;margin-top:4px;display:none;grid-column:1/-1}
+.pres-scroll{flex:1;overflow-y:auto;padding:0 16px 24px}
+.pres-menu-card{border:1.5px solid var(--border);border-radius:20px;margin-bottom:20px;overflow:hidden;position:relative}
+.pres-menu-card.rec{border-color:var(--red);box-shadow:0 4px 20px rgba(200,16,46,.15)}
+.pres-badge{position:absolute;top:12px;right:12px;background:var(--red);color:#fff;font-size:10px;font-weight:900;padding:4px 10px;border-radius:20px}
+.pres-card-header{padding:14px 16px 10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.pres-menu-nombre{font-family:'Playfair Display',serif;font-size:15px;font-weight:900}
+.pres-total{font-size:16px;font-weight:900;color:var(--red)}
+.pres-añadir-btn{background:var(--red);color:#fff;border:none;border-radius:50px;padding:8px 16px;font-size:12px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap}
+.pres-platos-list{padding:12px 16px}
+.pres-plato-item{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #f5f0eb}
+.pres-plato-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.pres-plato-img{width:72px;height:72px;border-radius:12px;object-fit:cover;flex-shrink:0;background:#f5f0eb}
+.pres-plato-info{flex:1;min-width:0}
+.pres-plato-nombre{font-size:13px;font-weight:900;margin-bottom:2px}
+.pres-plato-desc{font-size:11px;color:var(--text-soft);line-height:1.4;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pres-plato-precio{font-size:12px;font-weight:800;color:var(--red)}
+.pres-cambiar-btn{background:#f5f0eb;border:none;border-radius:50px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;color:var(--text);font-family:'Nunito',sans-serif;margin-top:4px;display:inline-block}
+.pres-loading{text-align:center;padding:40px;color:var(--text-soft);font-size:14px}
+.pres-alt-wrap{background:#f5f0eb;border-radius:14px;padding:12px 16px;margin:0 16px 12px;display:none}
 .pres-alt-wrap.show{display:block}
-.pres-alt-titulo{font-size:11px;font-weight:900;color:var(--text-soft);margin-bottom:8px}
+.pres-alt-titulo{font-size:11px;font-weight:900;color:var(--text-soft);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
 .pres-alt-platos{display:flex;flex-wrap:wrap;gap:6px}
-.pres-alt-pill{background:#fff;border:1.5px solid var(--border);border-radius:50px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif}
-.pres-alt-pill:active,.pres-alt-pill.sel{background:var(--red);color:#fff;border-color:var(--red)}
-.pres-upsell{background:#fff8e6;border:1.5px solid #ffe082;border-radius:14px;padding:12px 14px;margin-top:12px;display:none;grid-column:1/-1}
+.pres-alt-pill{background:#fff;border:1.5px solid var(--border);border-radius:50px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif}
+.pres-alt-pill:active{background:var(--red);color:#fff;border-color:var(--red)}
+.pres-upsell{background:#fff8e6;border:1.5px solid #ffe082;border-radius:16px;padding:14px 16px;margin:0 0 16px;display:none}
 .pres-upsell.show{display:block}
-.pres-upsell-titulo{font-size:12px;font-weight:900;margin-bottom:8px}
+.pres-upsell-titulo{font-size:13px;font-weight:900;margin-bottom:10px}
 .pres-upsell-items{display:flex;flex-wrap:wrap;gap:8px}
-.pres-upsell-pill{background:#fff;border:1.5px solid #ffe082;border-radius:50px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif}
+.pres-upsell-pill{background:#fff;border:1.5px solid #ffe082;border-radius:50px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif}
 
 #alergenos-panel{position:fixed;bottom:64px;left:12px;z-index:59;background:#fff;border-radius:20px;padding:20px;box-shadow:0 8px 40px rgba(0,0,0,.18);width:300px;display:none}
 .alergen-pill{background:#f0e8e0;border:2px solid #e8ddd0;border-radius:50px;padding:5px 11px;font-size:12px;font-weight:700;color:var(--text-soft);cursor:pointer;transition:all .15s;user-select:none}
@@ -380,11 +384,9 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
     <button class="cat-btn" onclick="scrollToSection('bebidas')">🥤 Bebidas</button>
   </div>
 
-<!-- BOTÓN PRESUPUESTO STICKY -->
-<div id="btn-menu-presupuesto-wrap">
-  <div id="btn-menu-presupuesto" onclick="abrirModalPresupuesto()">
-    🧑‍🍳 El chef elige por ti
-  </div>
+<!-- BOTÓN FLOTANTE PRESUPUESTO -->
+<div id="btn-menu-presupuesto" onclick="abrirModalPresupuesto()">
+  🧑‍🍳 El chef elige por ti
 </div>
 
   <div id="sec-destacados" style="scroll-margin-top:110px">
@@ -554,23 +556,30 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 <!-- MODAL PRESUPUESTO -->
 <div id="modal-presupuesto" onclick="if(event.target===this)cerrarModalPresupuesto()">
   <div id="modal-pres-box">
-    <div class="pres-titulo">🧑‍🍳 Tu menú a medida</div>
-    <div class="pres-sub">¿Cuánto quieres gastar por persona?</div>
-    <div class="pres-btns">
-      <button class="pres-btn-amt" onclick="seleccionarPresupuesto(10,this)">10€</button>
-      <button class="pres-btn-amt" onclick="seleccionarPresupuesto(15,this)">15€</button>
-      <button class="pres-btn-amt" onclick="seleccionarPresupuesto(20,this)">20€</button>
-      <button class="pres-btn-amt" onclick="seleccionarPresupuesto(25,this)">25€</button>
-      <button class="pres-btn-amt" onclick="seleccionarPresupuesto(30,this)">30€</button>
+    <div class="pres-header">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div class="pres-titulo">🧑‍🍳 El chef elige por ti</div>
+        <button onclick="cerrarModalPresupuesto()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-soft);line-height:1;padding:0">×</button>
+      </div>
+      <div class="pres-sub">¿Cuánto quieres gastar por persona?</div>
+      <div class="pres-btns">
+        <button class="pres-btn-amt" onclick="seleccionarPresupuesto(10,this)">10€</button>
+        <button class="pres-btn-amt" onclick="seleccionarPresupuesto(15,this)">15€</button>
+        <button class="pres-btn-amt" onclick="seleccionarPresupuesto(20,this)">20€</button>
+        <button class="pres-btn-amt" onclick="seleccionarPresupuesto(25,this)">25€</button>
+        <button class="pres-btn-amt" onclick="seleccionarPresupuesto(30,this)">30€</button>
+      </div>
     </div>
-    <div class="pres-menus" id="pres-menus-wrap"></div>
-    <div class="pres-alt-wrap" id="pres-alt-wrap">
-      <div class="pres-alt-titulo" id="pres-alt-titulo">Elige una alternativa:</div>
-      <div class="pres-alt-platos" id="pres-alt-platos"></div>
-    </div>
-    <div class="pres-upsell" id="pres-upsell">
-      <div class="pres-upsell-titulo">🔥 ¿Le añades algo más?</div>
-      <div class="pres-upsell-items" id="pres-upsell-items"></div>
+    <div class="pres-scroll" id="pres-scroll">
+      <div id="pres-menus-wrap"></div>
+      <div class="pres-alt-wrap" id="pres-alt-wrap">
+        <div class="pres-alt-titulo" id="pres-alt-titulo">Elige una alternativa:</div>
+        <div class="pres-alt-platos" id="pres-alt-platos"></div>
+      </div>
+      <div class="pres-upsell" id="pres-upsell">
+        <div class="pres-upsell-titulo">🔥 ¿Le añades algo más?</div>
+        <div class="pres-upsell-items" id="pres-upsell-items"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1625,21 +1634,36 @@ function renderMenusPresupuesto() {
   var wrap = document.getElementById('pres-menus-wrap');
   wrap.innerHTML = presMenusData.map(function(menu, mi) {
     var esRec = mi === 1;
-    var platosHtml = menu.platos.map(function(p, pi) {
-      return '<div class="pres-plato-row">'
-        + '<span class="pres-plato-nombre">' + p.nombre + '</span>'
-        + '<span class="pres-plato-precio">' + p.precio.toFixed(2).replace('.',',') + '€</span>'
-        + '<button class="pres-cambiar-btn" onclick="mostrarAlternativas(' + mi + ',' + pi + ',this)">🔄</button>'
-        + '</div>';
-    }).join('');
     var total = menu.platos.reduce(function(s,p){ return s+p.precio; }, 0);
     menu.total = total;
-    return '<div class="pres-menu' + (esRec ? ' rec' : '') + '">'
+    var platosHtml = menu.platos.map(function(p, pi) {
+      // Buscar item real en MENU para foto y descripción
+      var item = null;
+      Object.values(MENU).forEach(function(arr) {
+        var f = arr.find(function(x){ return x.name === p.nombre; });
+        if (f) item = f;
+      });
+      var imgSrc = (item && item.img) ? item.img : '';
+      var desc = (item && item.desc) ? item.desc : '';
+      return '<div class="pres-plato-item">'
+        + (imgSrc ? '<img class="pres-plato-img" src="' + imgSrc + '" alt="' + p.nombre + '" onerror="this.style.display=\'none\'">' : '<div class="pres-plato-img"></div>')
+        + '<div class="pres-plato-info">'
+        + '<div class="pres-plato-nombre">' + p.nombre + '</div>'
+        + (desc ? '<div class="pres-plato-desc">' + desc + '</div>' : '')
+        + '<div class="pres-plato-precio">' + p.precio.toFixed(2).replace('.',',') + '€</div>'
+        + '<button class="pres-cambiar-btn" onclick="mostrarAlternativas(' + mi + ',' + pi + ',this)">🔄 Cambiar</button>'
+        + '</div></div>';
+    }).join('');
+
+    return '<div class="pres-menu-card' + (esRec ? ' rec' : '') + '">'
       + (esRec ? '<div class="pres-badge">⭐ Recomendado</div>' : '')
+      + '<div class="pres-card-header">'
       + '<div class="pres-menu-nombre">' + menu.nombre + '</div>'
-      + platosHtml
-      + '<div class="pres-total">' + total.toFixed(2).replace('.',',') + '€</div>'
-      + '<button class="pres-añadir-btn" onclick="añadirMenuCompleto(' + mi + ')">🛒 Añadir menú</button>'
+      + '<div style="display:flex;align-items:center;gap:10px">'
+      + '<div class="pres-total" id="pres-total-' + mi + '">' + total.toFixed(2).replace('.',',') + '€</div>'
+      + '<button class="pres-añadir-btn" onclick="añadirMenuCompleto(' + mi + ')">🛒 Añadir</button>'
+      + '</div></div>'
+      + '<div class="pres-platos-list">' + platosHtml + '</div>'
       + '</div>';
   }).join('');
 }
@@ -1683,6 +1707,9 @@ function elegirAlternativa(nombre, precio) {
   document.getElementById('pres-alt-wrap').classList.remove('show');
   presCambioActivo = null;
   renderMenusPresupuesto();
+  // Scroll suave al menú que se acaba de cambiar
+  var card = document.querySelectorAll('.pres-menu-card')[mi];
+  if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function añadirMenuCompleto(menuIdx) {
