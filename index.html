@@ -1700,15 +1700,77 @@ async function generarMenusPresupuesto(amt) {
   var wrap = document.getElementById('pres-menus-wrap');
   wrap.innerHTML = '<div class="pres-loading">🧑‍🍳 Preparando tus opciones...</div>';
 
+  // Rangos estrictos
+  var econMin = amt * 0.90, econMax = amt * 1.00;
+  var recMin  = amt * 1.10, recMax  = amt * 1.22;
+  var premMin = amt * 1.22, premMax = amt * 1.38;
+
+  // Filtrar platos por categoría y precio máximo
+  function platosDeCat(cats, maxPrecio) {
+    var result = [];
+    (Array.isArray(cats) ? cats : [cats]).forEach(function(cat) {
+      (MENU[cat]||[]).forEach(function(p) {
+        if (p.price <= maxPrecio) result.push({ nombre: p.name, categoria: cat, precio: p.price });
+      });
+    });
+    return result;
+  }
+
+  // Construir carta filtrada por rango para cada menú
+  var cartaEcon = {
+    principales: platosDeCat(['pizzas','pastas','ensaladas'], econMax - 1),
+    bebidas: platosDeCat('bebidas', econMax * 0.4)
+  };
+  var cartaRec = {
+    principales: platosDeCat(['pizzas','pastas','ensaladas'], recMax - 2),
+    bebidas: platosDeCat('bebidas', recMax * 0.3),
+    postres: platosDeCat('postres', recMax * 0.3)
+  };
+  var cartaPrem = {
+    entrantes: platosDeCat('entrantes', premMax * 0.25),
+    principales: platosDeCat(['pizzas','pastas','ensaladas'], premMax - 3),
+    bebidas: platosDeCat('bebidas', premMax * 0.25),
+    postres: platosDeCat('postres', premMax * 0.25)
+  };
+
+  function formatCarta(obj) {
+    return Object.entries(obj).map(function(e) {
+      return e[0].toUpperCase() + ' disponibles:\n' + e[1].map(function(p){
+        return '- ' + p.nombre + ' (' + p.precio.toFixed(2) + '\u20ac)';
+      }).join('\n');
+    }).join('\n\n');
+  }
+
+  var systemPrompt = 'Eres el chef de Pizza Pronto, experto en marketing gastronómico. Genera 3 menús DIFERENTES usando SOLO los platos listados para cada menú. Devuelve ÚNICAMENTE JSON válido sin markdown.'
+    + ' FORMATO: {"menus":[{"nombre":"Menú económico","platos":[{"nombre":"...","categoria":"...","precio":0.00}]},{"nombre":"Menú recomendado","platos":[...]},{"nombre":"Menú premium","platos":[...]}]}'
+    + ' REGLAS: (1) Económico = 1 principal + 1 bebida, total entre ' + econMin.toFixed(2) + '€ y ' + econMax.toFixed(2) + '€.'
+    + ' (2) Recomendado = 1 principal + 1 bebida + 1 postre, total entre ' + recMin.toFixed(2) + '€ y ' + recMax.toFixed(2) + '€.'
+    + ' (3) Premium = 1 entrante + 1 principal + 1 bebida + 1 postre, total entre ' + premMin.toFixed(2) + '€ y ' + premMax.toFixed(2) + '€.'
+    + ' (4) Los 3 principales deben ser DIFERENTES entre sí. (5) USA SOLO platos de las listas y respeta sus precios EXACTOS. (6) Varía las opciones cada vez para dar diversidad.';
+
+  var userMsg = 'Presupuesto: ' + amt + '\u20ac\n\n'
+    + 'PLATOS PARA MENU ECONOMICO:\n' + formatCarta(cartaEcon)
+    + '\n\nPLATOS PARA MENU RECOMENDADO:\n' + formatCarta(cartaRec)
+    + '\n\nPLATOS PARA MENU PREMIUM:\n' + formatCarta(cartaPrem);
+
   try {
-    // Calcular menús localmente con precios exactos — sin IA para el cálculo de precios
-    presMenusData = calcularMenuLocal(amt);
-    if (!presMenusData[0].platos.length && !presMenusData[1].platos.length) {
-      throw new Error('Sin combinaciones');
-    }
+    var res = await fetch(EDGE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
+      body: JSON.stringify({
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userMsg }]
+      })
+    });
+    var data = await res.json();
+    var texto = (data.content && data.content[0] && data.content[0].text) || '';
+    texto = texto.replace(/```json|```/g, '').trim();
+    var parsed = JSON.parse(texto);
+    presMenusData = parsed.menus || [];
+    if (presMenusData.length !== 3) throw new Error('Menus incorrectos');
     renderMenusPresupuesto();
   } catch(e) {
-    wrap.innerHTML = '<div class="pres-loading">No encontré combinaciones para ese presupuesto. Prueba con otro importe.</div>';
+    wrap.innerHTML = '<div class="pres-loading">No pude generar opciones. Inténtalo de nuevo.</div>';
   }
 }
 
