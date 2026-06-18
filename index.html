@@ -229,28 +229,44 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 
 /* ALÉRGENOS */
 #alergenos-btn{position:fixed;top:12px;right:12px;z-index:59;background:rgba(255,255,255,.85);border:1px solid #e8ddd0;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,.1);user-select:none;backdrop-filter:blur(4px)}
-/* BARRA PRESUPUESTO */
-#barra-presupuesto{position:fixed;bottom:0;left:0;right:0;z-index:58;background:#fff;border-top:1px solid #e8ddd0;padding:10px 16px;display:flex;align-items:center;justify-content:center;box-shadow:0 -4px 16px rgba(0,0,0,.08)}
-#barra-presupuesto-btn{background:var(--red);color:#fff;border:none;border-radius:50px;padding:12px 24px;font-size:14px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;width:100%;max-width:400px;display:flex;align-items:center;justify-content:center;gap:8px}
+/* BOTÓN FLOTANTE PRESUPUESTO */
+#btn-menu-presupuesto{position:fixed;bottom:76px;left:12px;z-index:58;background:#fff;border:1.5px solid var(--border);border-radius:50px;padding:8px 14px;display:flex;align-items:center;gap:6px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.12);font-family:'Nunito',sans-serif;font-size:12px;font-weight:900;color:var(--text);white-space:nowrap;backdrop-filter:blur(4px)}
+#btn-menu-presupuesto:active{transform:scale(.97)}
 
 /* MODAL PRESUPUESTO */
 #modal-presupuesto{position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.5);display:none;align-items:flex-end;justify-content:center}
 #modal-presupuesto.open{display:flex}
-#modal-presupuesto-box{background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:500px;padding:24px 20px 32px;max-height:90vh;overflow-y:auto}
-#modal-presupuesto-box h2{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;margin-bottom:6px;text-align:center}
-#modal-presupuesto-box p{font-size:13px;color:var(--text-soft);text-align:center;margin-bottom:20px}
-.presupuesto-input-wrap{display:flex;gap:10px;margin-bottom:20px}
-.presupuesto-input-wrap input{flex:1;padding:14px;font-size:20px;font-weight:900;text-align:center;border:2px solid var(--border);border-radius:16px;outline:none;font-family:'Nunito',sans-serif}
-.presupuesto-input-wrap input:focus{border-color:var(--red)}
-.presupuesto-input-wrap button{background:var(--red);color:#fff;border:none;border-radius:16px;padding:14px 20px;font-size:14px;font-weight:900;cursor:pointer;white-space:nowrap;font-family:'Nunito',sans-serif}
-.presupuesto-opciones{display:flex;flex-direction:column;gap:12px}
-.presupuesto-opcion{border:1.5px solid var(--border);border-radius:16px;padding:16px;position:relative}
-.presupuesto-opcion.recomendada{border-color:var(--red);background:rgba(200,16,46,.03)}
-.presupuesto-opcion-badge{position:absolute;top:-10px;right:12px;background:var(--red);color:#fff;font-size:11px;font-weight:900;padding:3px 10px;border-radius:20px}
-.presupuesto-opcion-title{font-weight:900;font-size:14px;margin-bottom:8px;color:var(--text)}
-.presupuesto-opcion-platos{font-size:13px;color:var(--text-soft);line-height:1.8;margin-bottom:8px}
-.presupuesto-opcion-total{font-size:15px;font-weight:900;color:var(--red)}
-.presupuesto-loading{text-align:center;padding:30px;color:var(--text-soft);font-size:14px}
+#modal-pres-box{background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:500px;padding:20px 16px 32px;max-height:92vh;overflow-y:auto}
+.pres-titulo{font-family:'Playfair Display',serif;font-size:18px;font-weight:900;text-align:center;margin-bottom:4px}
+.pres-sub{font-size:12px;color:var(--text-soft);text-align:center;margin-bottom:16px}
+.pres-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
+.pres-btn-amt{background:#f5f0eb;border:2px solid transparent;border-radius:50px;padding:10px 18px;font-size:15px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;color:var(--text);transition:all .2s}
+.pres-btn-amt.active,.pres-btn-amt:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.pres-menus{display:grid;grid-template-columns:1fr 1.08fr 1fr;gap:8px;margin-top:4px}
+@media(max-width:380px){.pres-menus{grid-template-columns:1fr}}
+.pres-menu{border:1.5px solid var(--border);border-radius:16px;padding:12px;position:relative;display:flex;flex-direction:column}
+.pres-menu.rec{border-color:var(--red);background:rgba(200,16,46,.03);box-shadow:0 4px 16px rgba(200,16,46,.12)}
+.pres-badge{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--red);color:#fff;font-size:10px;font-weight:900;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.pres-menu-nombre{font-size:11px;font-weight:900;color:var(--text-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;text-align:center}
+.pres-plato-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:4px}
+.pres-plato-nombre{font-size:12px;font-weight:700;flex:1;min-width:0}
+.pres-plato-precio{font-size:11px;color:var(--text-soft);white-space:nowrap}
+.pres-cambiar-btn{background:none;border:1px solid var(--border);border-radius:50px;padding:2px 7px;font-size:10px;font-weight:700;cursor:pointer;color:var(--text-soft);white-space:nowrap;font-family:'Nunito',sans-serif;flex-shrink:0}
+.pres-cambiar-btn:active{background:#f5f0eb}
+.pres-total{font-size:14px;font-weight:900;color:var(--red);text-align:center;margin-top:auto;padding-top:8px;border-top:1px solid var(--border)}
+.pres-añadir-btn{width:100%;background:var(--red);color:#fff;border:none;border-radius:50px;padding:10px;font-size:12px;font-weight:900;cursor:pointer;margin-top:8px;font-family:'Nunito',sans-serif}
+.pres-loading{text-align:center;padding:24px;color:var(--text-soft);font-size:13px;grid-column:1/-1}
+.pres-alt-wrap{background:#f5f0eb;border-radius:12px;padding:10px;margin-top:4px;display:none;grid-column:1/-1}
+.pres-alt-wrap.show{display:block}
+.pres-alt-titulo{font-size:11px;font-weight:900;color:var(--text-soft);margin-bottom:8px}
+.pres-alt-platos{display:flex;flex-wrap:wrap;gap:6px}
+.pres-alt-pill{background:#fff;border:1.5px solid var(--border);border-radius:50px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif}
+.pres-alt-pill:active,.pres-alt-pill.sel{background:var(--red);color:#fff;border-color:var(--red)}
+.pres-upsell{background:#fff8e6;border:1.5px solid #ffe082;border-radius:14px;padding:12px 14px;margin-top:12px;display:none;grid-column:1/-1}
+.pres-upsell.show{display:block}
+.pres-upsell-titulo{font-size:12px;font-weight:900;margin-bottom:8px}
+.pres-upsell-items{display:flex;flex-wrap:wrap;gap:8px}
+.pres-upsell-pill{background:#fff;border:1.5px solid #ffe082;border-radius:50px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif}
 
 #alergenos-panel{position:fixed;bottom:64px;left:12px;z-index:59;background:#fff;border-radius:20px;padding:20px;box-shadow:0 8px 40px rgba(0,0,0,.18);width:300px;display:none}
 .alergen-pill{background:#f0e8e0;border:2px solid #e8ddd0;border-radius:50px;padding:5px 11px;font-size:12px;font-weight:700;color:var(--text-soft);cursor:pointer;transition:all .15s;user-select:none}
@@ -528,23 +544,32 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
   <div class="sugerencia-cards" id="sugerencia-cards"></div>
 </div>
 
-<!-- BARRA INFERIOR PRESUPUESTO -->
-<div id="barra-presupuesto">
-  <button id="barra-presupuesto-btn" onclick="abrirModalPresupuesto()">
-    🧑‍🍳 Que el chef te monte el menú
-  </button>
+<!-- BOTÓN FLOTANTE PRESUPUESTO -->
+<div id="btn-menu-presupuesto" onclick="abrirModalPresupuesto()">
+  🍽️ <span>Tu menú por precio</span>
 </div>
 
 <!-- MODAL PRESUPUESTO -->
 <div id="modal-presupuesto" onclick="if(event.target===this)cerrarModalPresupuesto()">
-  <div id="modal-presupuesto-box">
-    <h2>🧑‍🍳 Tu menú a medida</h2>
-    <p>Dime tu presupuesto y te preparo tres opciones de menú</p>
-    <div class="presupuesto-input-wrap">
-      <input type="number" id="presupuesto-input" placeholder="Ej: 15" min="1" max="200">
-      <button onclick="calcularMenuPresupuesto()">Calcular →</button>
+  <div id="modal-pres-box">
+    <div class="pres-titulo">🧑‍🍳 Tu menú a medida</div>
+    <div class="pres-sub">¿Cuánto quieres gastar por persona?</div>
+    <div class="pres-btns">
+      <button class="pres-btn-amt" onclick="seleccionarPresupuesto(10,this)">10€</button>
+      <button class="pres-btn-amt" onclick="seleccionarPresupuesto(15,this)">15€</button>
+      <button class="pres-btn-amt" onclick="seleccionarPresupuesto(20,this)">20€</button>
+      <button class="pres-btn-amt" onclick="seleccionarPresupuesto(25,this)">25€</button>
+      <button class="pres-btn-amt" onclick="seleccionarPresupuesto(30,this)">30€</button>
     </div>
-    <div id="presupuesto-resultado"></div>
+    <div class="pres-menus" id="pres-menus-wrap"></div>
+    <div class="pres-alt-wrap" id="pres-alt-wrap">
+      <div class="pres-alt-titulo" id="pres-alt-titulo">Elige una alternativa:</div>
+      <div class="pres-alt-platos" id="pres-alt-platos"></div>
+    </div>
+    <div class="pres-upsell" id="pres-upsell">
+      <div class="pres-upsell-titulo">🔥 ¿Le añades algo más?</div>
+      <div class="pres-upsell-items" id="pres-upsell-items"></div>
+    </div>
   </div>
 </div>
 
@@ -1539,65 +1564,197 @@ function destGuardar(id) {
 
 // ══ ALÉRGENOS ══
 // ══ MODAL PRESUPUESTO ══
+var presMenusData = []; // [{nombre, tipo, precio, id}] x3 menus
+var presPresupuestoSeleccionado = 0;
+var presCambioActivo = null; // {menuIdx, platoIdx}
+
 function abrirModalPresupuesto() {
   document.getElementById('modal-presupuesto').classList.add('open');
-  document.getElementById('presupuesto-input').focus();
-  document.getElementById('presupuesto-resultado').innerHTML = '';
+  document.getElementById('pres-menus-wrap').innerHTML = '';
+  document.getElementById('pres-alt-wrap').classList.remove('show');
+  document.getElementById('pres-upsell').classList.remove('show');
+  presMenusData = [];
+  presPresupuestoSeleccionado = 0;
+  presCambioActivo = null;
+  // Quitar activo de botones
+  document.querySelectorAll('.pres-btn-amt').forEach(function(b){ b.classList.remove('active'); });
 }
 
 function cerrarModalPresupuesto() {
   document.getElementById('modal-presupuesto').classList.remove('open');
 }
 
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') cerrarModalPresupuesto();
-});
+async function seleccionarPresupuesto(amt, btn) {
+  presPresupuestoSeleccionado = amt;
+  document.querySelectorAll('.pres-btn-amt').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  document.getElementById('pres-alt-wrap').classList.remove('show');
+  document.getElementById('pres-upsell').classList.remove('show');
+  presCambioActivo = null;
+  await generarMenusPresupuesto(amt);
+}
 
-async function calcularMenuPresupuesto() {
-  var inputEl = document.getElementById('presupuesto-input');
-  var presupuesto = parseFloat(inputEl.value);
-  if (!presupuesto || presupuesto < 3) {
-    inputEl.style.borderColor = 'var(--red)';
-    setTimeout(function(){ inputEl.style.borderColor = ''; }, 1500);
-    return;
-  }
-
-  var resultEl = document.getElementById('presupuesto-resultado');
-  resultEl.innerHTML = '<div class="presupuesto-loading">🧑‍🍳 El chef está preparando tus opciones...</div>';
-
-  var cartaTexto = generarContextoCarta();
+async function generarMenusPresupuesto(amt) {
+  var wrap = document.getElementById('pres-menus-wrap');
+  wrap.innerHTML = '<div class="pres-loading">🧑‍🍳 Preparando tus opciones...</div>';
 
   try {
     var res = await fetch(EDGE_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
       body: JSON.stringify({
-        system: 'Eres el chef de Pizza Pronto. El cliente te da un presupuesto y debes proponer EXACTAMENTE 3 opciones de menú. Devuelve ÚNICAMENTE un JSON válido (sin markdown, sin texto adicional) con este formato exacto: {"opciones":[{"titulo":"Opción 1","platos":["Nombre plato - X,XX €","Nombre plato - X,XX €"],"total":"X,XX €","supera":false},{"titulo":"Opción 2","platos":["Nombre plato - X,XX €"],"total":"X,XX €","supera":true,"extra":"Añadir postre por solo X,XX € más"},{"titulo":"Opción 3","platos":["Nombre plato - X,XX €"],"total":"X,XX €","supera":false}]}. REGLAS: Opción 1: combinación que se acerque al presupuesto SIN superarlo. Opción 2: supera el presupuesto entre 2-5€ añadiendo algo especial (postre, entrante), marcar supera:true y explicar el extra en campo "extra". Opción 3: combinación diferente a la Opción 1 que tampoco supere el presupuesto. Usa SOLO platos que aparecen en la carta con sus precios exactos. Los nombres deben coincidir exactamente con la carta. ' + cartaTexto,
-        messages: [{ role: 'user', content: 'Mi presupuesto es ' + presupuesto.toFixed(2) + ' euros. Dame tres opciones de menú.' }]
+        system: 'Eres el chef de Pizza Pronto. Devuelve ÚNICAMENTE JSON válido sin markdown. Formato: {"menus":[{"nombre":"Menú económico","platos":[{"nombre":"...","categoria":"pizzas","precio":9.50},...],"total":13.90},{"nombre":"Menú recomendado","platos":[...],"total":16.50},{"nombre":"Menú premium","platos":[...],"total":19.00}]}. REGLAS ESTRICTAS: (1) Exactamente 3 menús en este orden: económico (total entre 70%-100% del presupuesto), recomendado (100%-125%), premium (120%-145%). (2) Cada menú debe tener 2-4 platos coherentes (un principal obligatorio, opcionalmente entrante/bebida/postre). (3) USA SOLO platos de la carta con su precio EXACTO. (4) El campo categoria debe ser exactamente: pizzas, pastas, entrantes, ensaladas, postres o bebidas. (5) Los tres menús deben ser diferentes entre sí. ' + generarContextoCarta(),
+        messages: [{ role: 'user', content: 'Presupuesto: ' + amt + ' euros. Dame los 3 menús.' }]
       })
     });
-
     var data = await res.json();
     var texto = (data.content && data.content[0] && data.content[0].text) || '';
     texto = texto.replace(/```json|```/g, '').trim();
     var parsed = JSON.parse(texto);
-    var opciones = parsed.opciones || [];
-
-    if (!opciones.length) throw new Error('Sin opciones');
-
-    resultEl.innerHTML = '<div class="presupuesto-opciones">' + opciones.map(function(op, i) {
-      var recomendada = op.supera === true;
-      return '<div class="presupuesto-opcion' + (recomendada ? ' recomendada' : '') + '">'
-        + (recomendada ? '<div class="presupuesto-opcion-badge">⭐ Recomendada</div>' : '')
-        + '<div class="presupuesto-opcion-title">' + (op.titulo || 'Opción ' + (i+1)) + '</div>'
-        + '<div class="presupuesto-opcion-platos">' + (op.platos || []).join('<br>') + '</div>'
-        + (op.extra ? '<div style="font-size:12px;color:var(--red);font-weight:700;margin-bottom:6px">💡 ' + op.extra + '</div>' : '')
-        + '<div class="presupuesto-opcion-total">Total: ' + op.total + '</div>'
-        + '</div>';
-    }).join('') + '</div>';
-
+    presMenusData = parsed.menus || [];
+    if (presMenusData.length !== 3) throw new Error('Menus incorrectos');
+    renderMenusPresupuesto();
   } catch(e) {
-    resultEl.innerHTML = '<div class="presupuesto-loading">Lo siento, no pude calcular las opciones. Inténtalo de nuevo.</div>';
+    wrap.innerHTML = '<div class="pres-loading">No pude generar opciones. Inténtalo de nuevo.</div>';
+  }
+}
+
+function renderMenusPresupuesto() {
+  var wrap = document.getElementById('pres-menus-wrap');
+  wrap.innerHTML = presMenusData.map(function(menu, mi) {
+    var esRec = mi === 1;
+    var platosHtml = menu.platos.map(function(p, pi) {
+      return '<div class="pres-plato-row">'
+        + '<span class="pres-plato-nombre">' + p.nombre + '</span>'
+        + '<span class="pres-plato-precio">' + p.precio.toFixed(2).replace('.',',') + '€</span>'
+        + '<button class="pres-cambiar-btn" onclick="mostrarAlternativas(' + mi + ',' + pi + ',this)">🔄</button>'
+        + '</div>';
+    }).join('');
+    var total = menu.platos.reduce(function(s,p){ return s+p.precio; }, 0);
+    menu.total = total;
+    return '<div class="pres-menu' + (esRec ? ' rec' : '') + '">'
+      + (esRec ? '<div class="pres-badge">⭐ Recomendado</div>' : '')
+      + '<div class="pres-menu-nombre">' + menu.nombre + '</div>'
+      + platosHtml
+      + '<div class="pres-total">' + total.toFixed(2).replace('.',',') + '€</div>'
+      + '<button class="pres-añadir-btn" onclick="añadirMenuCompleto(' + mi + ')">🛒 Añadir menú</button>'
+      + '</div>';
+  }).join('');
+}
+
+function mostrarAlternativas(menuIdx, platoIdx, btn) {
+  presCambioActivo = { menuIdx: menuIdx, platoIdx: platoIdx, btn: btn };
+  var plato = presMenusData[menuIdx].platos[platoIdx];
+  var cat = plato.categoria;
+  var precio = plato.precio;
+  // Buscar alternativas de la misma categoría con precio similar (±40%)
+  var alternativas = (MENU[cat] || []).filter(function(p) {
+    return p.name !== plato.nombre && Math.abs(p.price - precio) <= precio * 0.4;
+  }).slice(0, 6);
+
+  var altWrap = document.getElementById('pres-alt-wrap');
+  var altTitulo = document.getElementById('pres-alt-titulo');
+  var altPlatos = document.getElementById('pres-alt-platos');
+  altTitulo.textContent = 'Alternativas para "' + plato.nombre + '":';
+  if (!alternativas.length) {
+    altPlatos.innerHTML = '<span style="font-size:12px;color:var(--text-soft)">No hay alternativas disponibles en esta categoría.</span>';
+  } else {
+    altPlatos.innerHTML = alternativas.map(function(p) {
+      return '<div class="pres-alt-pill" onclick="elegirAlternativa(' + "'" + p.name.replace(/'/g,"\'") + "'" + ',' + p.price + ')">'
+        + p.name + ' (' + p.price.toFixed(2).replace('.',',') + '€)</div>';
+    }).join('');
+  }
+  altWrap.classList.add('show');
+  altWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function elegirAlternativa(nombre, precio) {
+  if (!presCambioActivo) return;
+  var mi = presCambioActivo.menuIdx;
+  var pi = presCambioActivo.platoIdx;
+  // Buscar categoría del nuevo plato
+  var cat = presMenusData[mi].platos[pi].categoria;
+  Object.keys(MENU).forEach(function(c) {
+    if ((MENU[c]||[]).some(function(p){ return p.name === nombre; })) cat = c;
+  });
+  presMenusData[mi].platos[pi] = { nombre: nombre, precio: precio, categoria: cat };
+  document.getElementById('pres-alt-wrap').classList.remove('show');
+  presCambioActivo = null;
+  renderMenusPresupuesto();
+}
+
+function añadirMenuCompleto(menuIdx) {
+  var menu = presMenusData[menuIdx];
+  if (!menu) return;
+  // Añadir cada plato a la lista de guardados
+  menu.platos.forEach(function(p) {
+    var item = null;
+    Object.values(MENU).forEach(function(arr) {
+      var found = arr.find(function(x){ return x.name === p.nombre; });
+      if (found) item = found;
+    });
+    if (item && !listaGuardados[item.id]) {
+      listaGuardados[item.id] = true;
+      actualizarBtnGuardar(item.id);
+    }
+  });
+  guardarListaGuardados();
+
+  // Registrar estadística
+  var totalFinal = menu.platos.reduce(function(s,p){ return s+p.precio; }, 0);
+  var pct = presPresupuestoSeleccionado > 0
+    ? Math.round((totalFinal - presPresupuestoSeleccionado) / presPresupuestoSeleccionado * 100)
+    : 0;
+  registrarInteres('__menu_presupuesto__', 'añadir', {
+    presupuesto: presPresupuestoSeleccionado,
+    total_final: parseFloat(totalFinal.toFixed(2)),
+    pct_variacion: pct,
+    tipo_menu: menuIdx === 0 ? 'economico' : menuIdx === 1 ? 'recomendado' : 'premium'
+  });
+
+  // Toast confirmación
+  var toastEl = document.getElementById('toast');
+  if (toastEl) {
+    toastEl.textContent = '✅ Menú añadido (' + totalFinal.toFixed(2).replace('.',',') + '€)';
+    toastEl.classList.add('show');
+    setTimeout(function(){ toastEl.classList.remove('show'); toastEl.textContent = ''; }, 3000);
+  }
+
+  // Mostrar upselling
+  mostrarUpsell(menu);
+}
+
+function mostrarUpsell(menu) {
+  // Sugerir platos que NO están en el menú actual, priorizando postres y bebidas
+  var enMenu = menu.platos.map(function(p){ return p.nombre; });
+  var sugerencias = [];
+  ['postres','bebidas','entrantes'].forEach(function(cat) {
+    (MENU[cat]||[]).forEach(function(p) {
+      if (!enMenu.includes(p.name) && sugerencias.length < 4) {
+        sugerencias.push(p);
+      }
+    });
+  });
+  if (!sugerencias.length) return;
+
+  var upsell = document.getElementById('pres-upsell');
+  var items = document.getElementById('pres-upsell-items');
+  items.innerHTML = sugerencias.map(function(p) {
+    var safeName = p.name.replace(/"/g,'&quot;');
+    return '<div class="pres-upsell-pill" onclick="guardarUpsell(&quot;' + p.id + '&quot;,&quot;' + safeName + '&quot;)">'
+      + p.name + ' +' + p.price.toFixed(2).replace('.',',') + '€</div>';
+  }).join('');
+  upsell.classList.add('show');
+}
+
+function guardarUpsell(id, nombre) {
+  var realId = id.replace(/&quot;/g,'"');
+  if (!listaGuardados[realId]) {
+    listaGuardados[realId] = true;
+    actualizarBtnGuardar(realId);
+    guardarListaGuardados();
+    var pill = event.currentTarget || event.target;
+    if (pill) { pill.style.background='var(--red)'; pill.style.color='#fff'; pill.style.borderColor='var(--red)'; }
   }
 }
 
