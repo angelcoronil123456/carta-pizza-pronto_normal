@@ -231,7 +231,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 #alergenos-btn{position:fixed;top:12px;right:12px;z-index:59;background:rgba(255,255,255,.85);border:1px solid #e8ddd0;border-radius:50px;padding:6px 12px 6px 10px;display:flex;align-items:center;gap:5px;cursor:pointer;font-size:16px;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,.1);user-select:none;backdrop-filter:blur(4px);font-family:'Nunito',sans-serif;font-weight:900;font-size:12px;color:var(--text)}
 /* BOTÓN FLOTANTE PRESUPUESTO */
 #btn-menu-presupuesto-wrap{position:sticky;top:103px;z-index:48;background:#fff;border-bottom:1px solid #f0e8e0;padding:6px 16px;display:flex;justify-content:flex-end}
-#btn-menu-presupuesto{background:var(--red);color:#fff;border:none;border-radius:50px;padding:7px 16px;display:flex;align-items:center;gap:6px;cursor:pointer;font-family:'Nunito',sans-serif;font-size:12px;font-weight:900;white-space:nowrap;box-shadow:0 2px 8px rgba(200,16,46,.25)}
+#btn-menu-presupuesto{background:#C05E1A;color:#fff;border:none;border-radius:50px;padding:7px 16px;display:flex;align-items:center;gap:6px;cursor:pointer;font-family:'Nunito',sans-serif;font-size:12px;font-weight:900;white-space:nowrap;box-shadow:0 2px 8px rgba(192,94,26,.3)}
 #btn-menu-presupuesto:active{transform:scale(.97)}
 
 /* MODAL PRESUPUESTO */
@@ -380,6 +380,12 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
     <button class="cat-btn" onclick="scrollToSection('bebidas')">🥤 Bebidas</button>
   </div>
 
+<!-- BOTÓN PRESUPUESTO STICKY -->
+<div id="btn-menu-presupuesto-wrap">
+  <div id="btn-menu-presupuesto" onclick="abrirModalPresupuesto()">
+    🧑‍🍳 El chef elige por ti
+  </div>
+</div>
 
   <div id="sec-destacados" style="scroll-margin-top:110px">
   <div id="destacados-wrap" style="padding:20px 16px 0;display:none">
@@ -543,13 +549,6 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
     <button class="sugerencia-close" onclick="cerrarSugerencia()">×</button>
   </div>
   <div class="sugerencia-cards" id="sugerencia-cards"></div>
-</div>
-
-<!-- BOTÓN PRESUPUESTO STICKY -->
-<div id="btn-menu-presupuesto-wrap">
-  <div id="btn-menu-presupuesto" onclick="abrirModalPresupuesto()">
-    🧑‍🍳 El chef elige por ti
-  </div>
 </div>
 
 <!-- MODAL PRESUPUESTO -->
