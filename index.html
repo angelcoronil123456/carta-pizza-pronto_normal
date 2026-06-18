@@ -1605,47 +1605,110 @@ async function seleccionarPresupuesto(amt, btn) {
   await generarMenusPresupuesto(amt);
 }
 
+function calcularMenuLocal(amt) {
+  // Obtener platos por categoría ordenados por precio
+  var categoriasPrincipal = ['pizzas','pastas','ensaladas','entrantes'];
+  var principales = [];
+  categoriasPrincipal.forEach(function(cat) {
+    (MENU[cat]||[]).forEach(function(p) {
+      principales.push({ nombre: p.name, categoria: cat, precio: p.price, id: p.id });
+    });
+  });
+  var bebidas = (MENU['bebidas']||[]).map(function(p){
+    return { nombre: p.name, categoria: 'bebidas', precio: p.price, id: p.id };
+  });
+  var postres = (MENU['postres']||[]).map(function(p){
+    return { nombre: p.name, categoria: 'postres', precio: p.price, id: p.id };
+  });
+  var entrantes = (MENU['entrantes']||[]).map(function(p){
+    return { nombre: p.name, categoria: 'entrantes', precio: p.price, id: p.id };
+  });
+
+  // Ordenar por precio
+  principales.sort(function(a,b){ return a.precio - b.precio; });
+  bebidas.sort(function(a,b){ return a.precio - b.precio; });
+  postres.sort(function(a,b){ return a.precio - b.precio; });
+  entrantes.sort(function(a,b){ return a.precio - b.precio; });
+
+  // Rangos
+  var econMin = amt * 0.90, econMax = amt * 1.00;
+  var recMin  = amt * 1.10, recMax  = amt * 1.22;
+  var premMin = amt * 1.22, premMax = amt * 1.38;
+
+  // Función para encontrar la mejor combinación dentro de un rango
+  function elegirCombo(estructura, min, max, excluirNombres) {
+    excluirNombres = excluirNombres || [];
+    var pLista = principales.filter(function(p){ return !excluirNombres.includes(p.nombre); });
+    var bLista = bebidas.filter(function(p){ return !excluirNombres.includes(p.nombre); });
+    var posLista = postres.filter(function(p){ return !excluirNombres.includes(p.nombre); });
+    var entLista = entrantes.filter(function(p){ return !excluirNombres.includes(p.nombre); });
+
+    var mejorCombo = null;
+    var mejorDiff = Infinity;
+
+    for (var pi = 0; pi < pLista.length; pi++) {
+      for (var bi = 0; bi < bLista.length; bi++) {
+        var base = pLista[pi].precio + bLista[bi].precio;
+        if (estructura === 'pb') {
+          var total = base;
+          if (total >= min && total <= max) {
+            var diff = Math.abs(total - (min + max) / 2);
+            if (diff < mejorDiff) { mejorDiff = diff; mejorCombo = [pLista[pi], bLista[bi]]; }
+          }
+        } else if (estructura === 'pbd') {
+          for (var di = 0; di < posLista.length; di++) {
+            var total = base + posLista[di].precio;
+            if (total >= min && total <= max) {
+              var diff = Math.abs(total - (min + max) / 2);
+              if (diff < mejorDiff) { mejorDiff = diff; mejorCombo = [pLista[pi], bLista[bi], posLista[di]]; }
+            }
+          }
+        } else if (estructura === 'epbd') {
+          for (var di = 0; di < posLista.length; di++) {
+            for (var ei = 0; ei < entLista.length; ei++) {
+              var total = base + posLista[di].precio + entLista[ei].precio;
+              if (total >= min && total <= max) {
+                var diff = Math.abs(total - (min + max) / 2);
+                if (diff < mejorDiff) { mejorDiff = diff; mejorCombo = [entLista[ei], pLista[pi], bLista[bi], posLista[di]]; }
+              }
+            }
+          }
+        }
+      }
+    }
+    return mejorCombo;
+  }
+
+  // Generar los 3 menús
+  var econPlatos = elegirCombo('pb', econMin, econMax, []);
+  var recPlatos  = elegirCombo('pbd', recMin, recMax, econPlatos ? econPlatos.map(function(p){return p.nombre;}) : []);
+  var premPlatos = elegirCombo('epbd', premMin, premMax, []);
+
+  // Fallback: si no encuentra combinación exacta, relajar rangos
+  if (!econPlatos) econPlatos = elegirCombo('pb', econMin * 0.85, econMax * 1.10, []);
+  if (!recPlatos)  recPlatos  = elegirCombo('pbd', recMin * 0.90, recMax * 1.15, []);
+  if (!premPlatos) premPlatos = elegirCombo('epbd', premMin * 0.90, premMax * 1.15, []);
+
+  return [
+    { nombre: 'Menú económico', platos: econPlatos || [] },
+    { nombre: 'Menú recomendado', platos: recPlatos || [] },
+    { nombre: 'Menú premium', platos: premPlatos || [] }
+  ];
+}
+
 async function generarMenusPresupuesto(amt) {
   var wrap = document.getElementById('pres-menus-wrap');
   wrap.innerHTML = '<div class="pres-loading">🧑‍🍳 Preparando tus opciones...</div>';
 
-  // Rangos de precio por tipo de menú
-  var econMin = amt * 0.90;
-  var econMax = amt * 1.00;
-  var recMin  = amt * 1.10;
-  var recMax  = amt * 1.20;
-  var premMin = amt * 1.20;
-  var premMax = amt * 1.35;
-
-  var systemPrompt = 'Eres un experto en marketing gastronómico de Pizza Pronto. Tu objetivo es generar 3 menús que maximicen el ticket medio del restaurante de forma natural y agradable. Devuelve ÚNICAMENTE JSON válido sin markdown ni texto adicional.'
-    + ' FORMATO EXACTO: {"menus":[{"nombre":"Menú económico","platos":[{"nombre":"...","categoria":"pizzas","precio":9.50}]},{"nombre":"Menú recomendado","platos":[...]},{"nombre":"Menú premium","platos":[...]}]}'
-    + ' REGLAS ESTRICTAS:'
-    + ' (1) Exactamente 3 menús en este orden: económico, recomendado (con estrella), premium.'
-    + ' (2) ESTRUCTURA OBLIGATORIA: todos los menús deben tener exactamente 1 bebida + 1 principal como mínimo. NUNCA dos principales, NUNCA dos bebidas.'
-    + ' (3) ESTRUCTURA PREFERENTE: Económico = Principal + Bebida (total entre ' + econMin.toFixed(2) + '€ y ' + econMax.toFixed(2) + '€). Recomendado = Principal + Bebida + Postre (total entre ' + recMin.toFixed(2) + '€ y ' + recMax.toFixed(2) + '€). Premium = Entrante + Principal + Bebida + Postre (total entre ' + premMin.toFixed(2) + '€ y ' + premMax.toFixed(2) + '€).'
-    + ' (4) El MENÚ RECOMENDADO es el más importante: debe ofrecer la mejor relación calidad-precio percibida y ser visualmente el más atractivo. El premium existe para que el recomendado parezca la opción inteligente (anclaje de precios).'
-    + ' (5) USA SOLO platos que aparezcan EXACTAMENTE en la carta con su precio exacto. El campo categoria debe ser: pizzas, pastas, entrantes, ensaladas, postres o bebidas.'
-    + ' (6) Los 3 menús deben ser diferentes entre sí. Varía los platos principales entre menús.'
-    + ' ' + generarContextoCarta();
-
   try {
-    var res = await fetch(EDGE_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
-      body: JSON.stringify({
-        system: systemPrompt,
-        messages: [{ role: 'user', content: 'El cliente ha seleccionado un presupuesto de ' + amt + '€. Genera los 3 menús siguiendo exactamente las reglas de estructura y precios.' }]
-      })
-    });
-    var data = await res.json();
-    var texto = (data.content && data.content[0] && data.content[0].text) || '';
-    texto = texto.replace(/```json|```/g, '').trim();
-    var parsed = JSON.parse(texto);
-    presMenusData = parsed.menus || [];
-    if (presMenusData.length !== 3) throw new Error('Menus incorrectos');
+    // Calcular menús localmente con precios exactos — sin IA para el cálculo de precios
+    presMenusData = calcularMenuLocal(amt);
+    if (!presMenusData[0].platos.length && !presMenusData[1].platos.length) {
+      throw new Error('Sin combinaciones');
+    }
     renderMenusPresupuesto();
   } catch(e) {
-    wrap.innerHTML = '<div class="pres-loading">No pude generar opciones. Inténtalo de nuevo.</div>';
+    wrap.innerHTML = '<div class="pres-loading">No encontré combinaciones para ese presupuesto. Prueba con otro importe.</div>';
   }
 }
 
