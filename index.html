@@ -1736,8 +1736,12 @@ function elegirMejorCandidato(estructura, datos, min, max, nombresUsados, maxDes
 
   puntuados.sort(function(a, b) { return b.score - a.score; });
 
-  // Top 2 para maximizar precisión de precio, con algo de variedad
-  var topN = puntuados.slice(0, Math.min(2, puntuados.length));
+  // Tomar todos los candidatos cuya puntuación esté cerca de la mejor (dentro de 5 puntos)
+  // así variamos entre todos los que son igual de buenos en vez de solo el top 2
+  var mejorScore = puntuados[0].score;
+  var candidatosBuenos = puntuados.filter(function(p) { return mejorScore - p.score <= 5; });
+  // Limitar a un máximo razonable para no perder calidad si hay muchísimos empatados
+  var topN = candidatosBuenos.slice(0, Math.min(8, candidatosBuenos.length));
   var elegido = topN[Math.floor(Math.random() * topN.length)];
 
   return elegido;
