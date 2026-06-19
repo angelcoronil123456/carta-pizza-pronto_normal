@@ -1693,27 +1693,29 @@ function puntuarCandidato(platos, min, max, nombresUsados) {
 
   var score = 0;
 
-  // Cercanía al precio objetivo (criterio dominante)
+  // CERCANÍA AL PRECIO: 50% del peso total, criterio dominante y muy exigente
   if (total >= min && total <= max) {
     var distNormalizada = Math.abs(total - centro) / (rango / 2);
-    score += 100 - distNormalizada * 15; // 85-100 puntos si está dentro de rango (más exigente)
+    score += 100 - distNormalizada * 10; // 90-100 puntos si está dentro de rango
   } else {
+    // Fuera de rango: penalización MUY fuerte, casi descarta el candidato
     var distFuera = total < min ? (min - total) : (total - max);
-    score += 30 - distFuera * 12; // penalización más fuerte por salirse del rango
+    score -= distFuera * 40; // cada euro de más/menos resta 40 puntos
   }
 
-  // Penalizar productos ya usados en otro menú (variedad)
+  // Variedad: penalizar productos ya usados en otro menú
   var nombresPlatos = platos.map(function(p){ return p.nombre; });
   var repetidos = nombresPlatos.filter(function(n){ return nombresUsados.includes(n); }).length;
-  score -= repetidos * 25;
+  score -= repetidos * 20;
 
   // Pequeño bonus aleatorio para variar resultados entre llamadas
-  score += Math.random() * 2;
+  score += Math.random() * 1.5;
 
   return { platos: platos, total: total, score: score };
 }
 
-function elegirMejorCandidato(estructura, datos, min, max, nombresUsados) {
+function elegirMejorCandidato(estructura, datos, min, max, nombresUsados, maxDesviacion) {
+  maxDesviacion = maxDesviacion === undefined ? null : maxDesviacion; // € máximos fuera de rango permitidos
   var candidatos = generarCandidatos(estructura, datos);
   if (!candidatos.length) return null;
 
@@ -1721,34 +1723,78 @@ function elegirMejorCandidato(estructura, datos, min, max, nombresUsados) {
     return puntuarCandidato(c, min, max, nombresUsados);
   });
 
+  // Si se especifica una desviación máxima, descartar candidatos que se salgan demasiado
+  if (maxDesviacion !== null) {
+    puntuados = puntuados.filter(function(p) {
+      if (p.total >= min && p.total <= max) return true;
+      var dist = p.total < min ? (min - p.total) : (p.total - max);
+      return dist <= maxDesviacion;
+    });
+  }
+
+  if (!puntuados.length) return null;
+
   puntuados.sort(function(a, b) { return b.score - a.score; });
 
-  // Evaluamos hasta 50 candidatos (ya están todos puntuados); elegimos entre el top 3
-  // para maximizar precisión de precio manteniendo algo de variedad
-  var topN = puntuados.slice(0, Math.min(3, puntuados.length));
+  // Top 2 para maximizar precisión de precio, con algo de variedad
+  var topN = puntuados.slice(0, Math.min(2, puntuados.length));
   var elegido = topN[Math.floor(Math.random() * topN.length)];
 
   return elegido;
 }
 
+// Rangos fijos exactos definidos por presupuesto. Para valores intermedios, interpolamos.
+var RANGOS_PRESUPUESTO = {
+  10: { econ: [9, 11],  rec: [11, 13], prem: [13, 15] },
+  15: { econ: [14, 16], rec: [16, 19], prem: [19, 22] },
+  20: { econ: [19, 21], rec: [22, 25], prem: [25, 28] },
+  25: { econ: [24, 26], rec: [27, 30], prem: [30, 33] },
+  30: { econ: [28, 30], rec: [31, 35], prem: [35, 38] }
+};
+
+function obtenerRangos(amt) {
+  if (RANGOS_PRESUPUESTO[amt]) return RANGOS_PRESUPUESTO[amt];
+  // Interpolación lineal entre los presupuestos fijos más cercanos para valores no estándar
+  var claves = Object.keys(RANGOS_PRESUPUESTO).map(Number).sort(function(a,b){return a-b;});
+  var inferior = claves[0], superior = claves[claves.length-1];
+  for (var i = 0; i < claves.length - 1; i++) {
+    if (amt >= claves[i] && amt <= claves[i+1]) { inferior = claves[i]; superior = claves[i+1]; break; }
+  }
+  if (amt <= claves[0]) { inferior = superior = claves[0]; }
+  if (amt >= claves[claves.length-1]) { inferior = superior = claves[claves.length-1]; }
+  var t = superior === inferior ? 0 : (amt - inferior) / (superior - inferior);
+  function interp(a, b) { return a + (b - a) * t; }
+  var ri = RANGOS_PRESUPUESTO[inferior], rs = RANGOS_PRESUPUESTO[superior];
+  return {
+    econ: [interp(ri.econ[0], rs.econ[0]), interp(ri.econ[1], rs.econ[1])],
+    rec:  [interp(ri.rec[0],  rs.rec[0]),  interp(ri.rec[1],  rs.rec[1])],
+    prem: [interp(ri.prem[0], rs.prem[0]), interp(ri.prem[1], rs.prem[1])]
+  };
+}
+
 function calcularMenuLocal(amt) {
   var datos = obtenerPlatosPorRol();
-
-  var econMin = amt * 0.93, econMax = amt * 1.00;
-  var recMin  = amt * 1.10, recMax  = amt * 1.20;
-  var premMin = amt * 1.20, premMax = amt * 1.35;
+  var r = obtenerRangos(amt);
 
   var nombresUsados = [];
 
-  var econ = elegirMejorCandidato('pb', datos, econMin, econMax, nombresUsados);
+  // Intento estricto (desviación 0 = debe estar dentro del rango exacto)
+  var econ = elegirMejorCandidato('pb', datos, r.econ[0], r.econ[1], nombresUsados, 0);
+  // Si no hay nada exacto, relajar progresivamente (máx 1€, luego 2€, luego 3€ fuera de rango)
+  if (!econ) econ = elegirMejorCandidato('pb', datos, r.econ[0], r.econ[1], nombresUsados, 1.5);
+  if (!econ) econ = elegirMejorCandidato('pb', datos, r.econ[0], r.econ[1], nombresUsados, 3);
   if (econ) nombresUsados = nombresUsados.concat(econ.platos.map(function(p){return p.nombre;}));
 
-  var rec = elegirMejorCandidato('pbd', datos, recMin, recMax, nombresUsados);
-  if (!rec) rec = elegirMejorCandidato('pb', datos, recMin, recMax, nombresUsados); // fallback sin postre si no hay postres
+  var rec = elegirMejorCandidato('pbd', datos, r.rec[0], r.rec[1], nombresUsados, 0);
+  if (!rec) rec = elegirMejorCandidato('pbd', datos, r.rec[0], r.rec[1], nombresUsados, 1.5);
+  if (!rec) rec = elegirMejorCandidato('pb', datos, r.rec[0], r.rec[1], nombresUsados, 1.5); // sin postre si no hay
+  if (!rec) rec = elegirMejorCandidato('pbd', datos, r.rec[0], r.rec[1], nombresUsados, 3);
   if (rec) nombresUsados = nombresUsados.concat(rec.platos.map(function(p){return p.nombre;}));
 
-  var prem = elegirMejorCandidato('epbd', datos, premMin, premMax, nombresUsados);
-  if (!prem) prem = elegirMejorCandidato('pbd', datos, premMin, premMax, nombresUsados); // fallback sin entrante
+  var prem = elegirMejorCandidato('epbd', datos, r.prem[0], r.prem[1], nombresUsados, 0);
+  if (!prem) prem = elegirMejorCandidato('epbd', datos, r.prem[0], r.prem[1], nombresUsados, 1.5);
+  if (!prem) prem = elegirMejorCandidato('pbd', datos, r.prem[0], r.prem[1], nombresUsados, 1.5); // sin entrante
+  if (!prem) prem = elegirMejorCandidato('epbd', datos, r.prem[0], r.prem[1], nombresUsados, 3);
 
   return [
     { nombre: 'Menú económico', platos: econ ? econ.platos : [] },
