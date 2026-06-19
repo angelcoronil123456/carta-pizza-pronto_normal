@@ -1599,12 +1599,10 @@ var presCambioActivo = null; // {menuIdx, platoIdx}
 function abrirModalPresupuesto() {
   document.getElementById('modal-presupuesto').classList.add('open');
   document.getElementById('pres-menus-wrap').innerHTML = '';
-  document.getElementById('pres-alt-wrap').classList.remove('show');
   document.getElementById('pres-upsell').classList.remove('show');
   presMenusData = [];
   presPresupuestoSeleccionado = 0;
   presCambioActivo = null;
-  // Quitar activo de botones
   document.querySelectorAll('.pres-btn-amt').forEach(function(b){ b.classList.remove('active'); });
 }
 
@@ -1616,8 +1614,8 @@ async function seleccionarPresupuesto(amt, btn) {
   presPresupuestoSeleccionado = amt;
   document.querySelectorAll('.pres-btn-amt').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
-  document.getElementById('pres-alt-wrap').classList.remove('show');
-  document.getElementById('pres-upsell').classList.remove('show');
+  var upsellEl = document.getElementById('pres-upsell');
+  if (upsellEl) upsellEl.classList.remove('show');
   presCambioActivo = null;
   await generarMenusPresupuesto(amt);
 }
