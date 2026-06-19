@@ -1605,94 +1605,138 @@ async function seleccionarPresupuesto(amt, btn) {
   await generarMenusPresupuesto(amt);
 }
 
-function calcularMenuLocal(amt) {
-  // Obtener platos por categoría ordenados por precio
-  var categoriasPrincipal = ['pizzas','pastas','ensaladas','entrantes'];
+// Categorías que NO deben usarse como "principal" pero sí pueden filtrarse de bebidas/entrantes si son caras
+var PALABRAS_PROHIBIDAS = ['vino','botella','reserva','crianza','rioja','ribera','champan','champán','cava brut nature','magnum'];
+
+function esProductoProhibido(nombre, categoria, precio) {
+  var nombreLower = nombre.toLowerCase();
+  // Excluir vinos/botellas caras de la categoría bebidas
+  if (categoria === 'bebidas') {
+    var esVino = PALABRAS_PROHIBIDAS.some(function(palabra){ return nombreLower.indexOf(palabra) !== -1; });
+    if (esVino) return true;
+    // Bebidas individuales no deberían superar ~6€ para entrar en un menú normal
+    if (precio > 6.5) return true;
+  }
+  return false;
+}
+
+function obtenerPlatosPorRol() {
   var principales = [];
-  categoriasPrincipal.forEach(function(cat) {
+  ['pizzas','pastas','ensaladas'].forEach(function(cat) {
     (MENU[cat]||[]).forEach(function(p) {
-      principales.push({ nombre: p.name, categoria: cat, precio: p.price, id: p.id });
+      principales.push({ nombre: p.name, categoria: cat, precio: p.price });
     });
   });
-  var bebidas = (MENU['bebidas']||[]).map(function(p){
-    return { nombre: p.name, categoria: 'bebidas', precio: p.price, id: p.id };
-  });
-  var postres = (MENU['postres']||[]).map(function(p){
-    return { nombre: p.name, categoria: 'postres', precio: p.price, id: p.id };
-  });
-  var entrantes = (MENU['entrantes']||[]).map(function(p){
-    return { nombre: p.name, categoria: 'entrantes', precio: p.price, id: p.id };
-  });
+  var bebidas = (MENU['bebidas']||[]).filter(function(p) {
+    return !esProductoProhibido(p.name, 'bebidas', p.price);
+  }).map(function(p){ return { nombre: p.name, categoria: 'bebidas', precio: p.price }; });
+  var postres = (MENU['postres']||[]).map(function(p){ return { nombre: p.name, categoria: 'postres', precio: p.price }; });
+  var entrantes = (MENU['entrantes']||[]).map(function(p){ return { nombre: p.name, categoria: 'entrantes', precio: p.price }; });
+  return { principales: principales, bebidas: bebidas, postres: postres, entrantes: entrantes };
+}
 
-  // Ordenar por precio
-  principales.sort(function(a,b){ return a.precio - b.precio; });
-  bebidas.sort(function(a,b){ return a.precio - b.precio; });
-  postres.sort(function(a,b){ return a.precio - b.precio; });
-  entrantes.sort(function(a,b){ return a.precio - b.precio; });
+// Genera TODAS las combinaciones posibles para una estructura dada
+function generarCandidatos(estructura, datos) {
+  var candidatos = [];
+  var p = datos.principales, b = datos.bebidas, po = datos.postres, e = datos.entrantes;
 
-  // Rangos
-  var econMin = amt * 0.90, econMax = amt * 1.00;
-  var recMin  = amt * 1.10, recMax  = amt * 1.22;
-  var premMin = amt * 1.22, premMax = amt * 1.38;
-
-  // Función para encontrar la mejor combinación dentro de un rango
-  function elegirCombo(estructura, min, max, excluirNombres) {
-    excluirNombres = excluirNombres || [];
-    var pLista = principales.filter(function(p){ return !excluirNombres.includes(p.nombre); });
-    var bLista = bebidas.filter(function(p){ return !excluirNombres.includes(p.nombre); });
-    var posLista = postres.filter(function(p){ return !excluirNombres.includes(p.nombre); });
-    var entLista = entrantes.filter(function(p){ return !excluirNombres.includes(p.nombre); });
-
-    var mejorCombo = null;
-    var mejorDiff = Infinity;
-
-    for (var pi = 0; pi < pLista.length; pi++) {
-      for (var bi = 0; bi < bLista.length; bi++) {
-        var base = pLista[pi].precio + bLista[bi].precio;
-        if (estructura === 'pb') {
-          var total = base;
-          if (total >= min && total <= max) {
-            var diff = Math.abs(total - (min + max) / 2);
-            if (diff < mejorDiff) { mejorDiff = diff; mejorCombo = [pLista[pi], bLista[bi]]; }
-          }
-        } else if (estructura === 'pbd') {
-          for (var di = 0; di < posLista.length; di++) {
-            var total = base + posLista[di].precio;
-            if (total >= min && total <= max) {
-              var diff = Math.abs(total - (min + max) / 2);
-              if (diff < mejorDiff) { mejorDiff = diff; mejorCombo = [pLista[pi], bLista[bi], posLista[di]]; }
-            }
-          }
-        } else if (estructura === 'epbd') {
-          for (var di = 0; di < posLista.length; di++) {
-            for (var ei = 0; ei < entLista.length; ei++) {
-              var total = base + posLista[di].precio + entLista[ei].precio;
-              if (total >= min && total <= max) {
-                var diff = Math.abs(total - (min + max) / 2);
-                if (diff < mejorDiff) { mejorDiff = diff; mejorCombo = [entLista[ei], pLista[pi], bLista[bi], posLista[di]]; }
-              }
-            }
+  if (estructura === 'pb') {
+    for (var i = 0; i < p.length; i++) {
+      for (var j = 0; j < b.length; j++) {
+        candidatos.push([p[i], b[j]]);
+      }
+    }
+  } else if (estructura === 'pbd') {
+    for (var i = 0; i < p.length; i++) {
+      for (var j = 0; j < b.length; j++) {
+        for (var k = 0; k < po.length; k++) {
+          candidatos.push([p[i], b[j], po[k]]);
+        }
+      }
+    }
+  } else if (estructura === 'epbd') {
+    for (var i = 0; i < p.length; i++) {
+      for (var j = 0; j < b.length; j++) {
+        for (var k = 0; k < po.length; k++) {
+          for (var l = 0; l < e.length; l++) {
+            candidatos.push([e[l], p[i], b[j], po[k]]);
           }
         }
       }
     }
-    return mejorCombo;
+  }
+  return candidatos;
+}
+
+// Puntúa un candidato: cercanía al rango objetivo + bonus de variedad (penaliza nombres ya usados)
+function puntuarCandidato(platos, min, max, nombresUsados) {
+  var total = platos.reduce(function(s,p){ return s + p.precio; }, 0);
+  var centro = (min + max) / 2;
+  var rango = (max - min) || 1;
+
+  var score = 0;
+
+  // Cercanía al precio objetivo (lo más importante)
+  if (total >= min && total <= max) {
+    var distNormalizada = Math.abs(total - centro) / (rango / 2);
+    score += 100 - distNormalizada * 30; // 70-100 puntos si está dentro de rango
+  } else {
+    // Fuera de rango: penalización fuerte proporcional a la distancia
+    var distFuera = total < min ? (min - total) : (total - max);
+    score += 40 - distFuera * 8;
   }
 
-  // Generar los 3 menús
-  var econPlatos = elegirCombo('pb', econMin, econMax, []);
-  var recPlatos  = elegirCombo('pbd', recMin, recMax, econPlatos ? econPlatos.map(function(p){return p.nombre;}) : []);
-  var premPlatos = elegirCombo('epbd', premMin, premMax, []);
+  // Penalizar productos ya usados en otro menú (variedad)
+  var nombresPlatos = platos.map(function(p){ return p.nombre; });
+  var repetidos = nombresPlatos.filter(function(n){ return nombresUsados.includes(n); }).length;
+  score -= repetidos * 25;
 
-  // Fallback: si no encuentra combinación exacta, relajar rangos
-  if (!econPlatos) econPlatos = elegirCombo('pb', econMin * 0.85, econMax * 1.10, []);
-  if (!recPlatos)  recPlatos  = elegirCombo('pbd', recMin * 0.90, recMax * 1.15, []);
-  if (!premPlatos) premPlatos = elegirCombo('epbd', premMin * 0.90, premMax * 1.15, []);
+  // Pequeño bonus aleatorio para variar resultados entre llamadas (sin romper el orden de calidad)
+  score += Math.random() * 3;
+
+  return { platos: platos, total: total, score: score };
+}
+
+function elegirMejorCandidato(estructura, datos, min, max, nombresUsados) {
+  var candidatos = generarCandidatos(estructura, datos);
+  if (!candidatos.length) return null;
+
+  var puntuados = candidatos.map(function(c) {
+    return puntuarCandidato(c, min, max, nombresUsados);
+  });
+
+  puntuados.sort(function(a, b) { return b.score - a.score; });
+
+  // Tomar uno entre los mejores 5 (variedad sin perder calidad)
+  var topN = puntuados.slice(0, Math.min(5, puntuados.length));
+  var elegido = topN[Math.floor(Math.random() * topN.length)];
+
+  return elegido;
+}
+
+function calcularMenuLocal(amt) {
+  var datos = obtenerPlatosPorRol();
+
+  var econMin = amt * 0.93, econMax = amt * 1.00;
+  var recMin  = amt * 1.10, recMax  = amt * 1.20;
+  var premMin = amt * 1.20, premMax = amt * 1.35;
+
+  var nombresUsados = [];
+
+  var econ = elegirMejorCandidato('pb', datos, econMin, econMax, nombresUsados);
+  if (econ) nombresUsados = nombresUsados.concat(econ.platos.map(function(p){return p.nombre;}));
+
+  var rec = elegirMejorCandidato('pbd', datos, recMin, recMax, nombresUsados);
+  if (!rec) rec = elegirMejorCandidato('pb', datos, recMin, recMax, nombresUsados); // fallback sin postre si no hay postres
+  if (rec) nombresUsados = nombresUsados.concat(rec.platos.map(function(p){return p.nombre;}));
+
+  var prem = elegirMejorCandidato('epbd', datos, premMin, premMax, nombresUsados);
+  if (!prem) prem = elegirMejorCandidato('pbd', datos, premMin, premMax, nombresUsados); // fallback sin entrante
 
   return [
-    { nombre: 'Menú económico', platos: econPlatos || [] },
-    { nombre: 'Menú recomendado', platos: recPlatos || [] },
-    { nombre: 'Menú premium', platos: premPlatos || [] }
+    { nombre: 'Menú económico', platos: econ ? econ.platos : [] },
+    { nombre: 'Menú recomendado', platos: rec ? rec.platos : [] },
+    { nombre: 'Menú premium', platos: prem ? prem.platos : [] }
   ];
 }
 
@@ -1700,77 +1744,13 @@ async function generarMenusPresupuesto(amt) {
   var wrap = document.getElementById('pres-menus-wrap');
   wrap.innerHTML = '<div class="pres-loading">🧑‍🍳 Preparando tus opciones...</div>';
 
-  // Rangos estrictos
-  var econMin = amt * 0.90, econMax = amt * 1.00;
-  var recMin  = amt * 1.10, recMax  = amt * 1.22;
-  var premMin = amt * 1.22, premMax = amt * 1.38;
-
-  // Filtrar platos por categoría y precio máximo
-  function platosDeCat(cats, maxPrecio) {
-    var result = [];
-    (Array.isArray(cats) ? cats : [cats]).forEach(function(cat) {
-      (MENU[cat]||[]).forEach(function(p) {
-        if (p.price <= maxPrecio) result.push({ nombre: p.name, categoria: cat, precio: p.price });
-      });
-    });
-    return result;
-  }
-
-  // Construir carta filtrada por rango para cada menú
-  var cartaEcon = {
-    principales: platosDeCat(['pizzas','pastas','ensaladas'], econMax - 1),
-    bebidas: platosDeCat('bebidas', econMax * 0.4)
-  };
-  var cartaRec = {
-    principales: platosDeCat(['pizzas','pastas','ensaladas'], recMax - 2),
-    bebidas: platosDeCat('bebidas', recMax * 0.3),
-    postres: platosDeCat('postres', recMax * 0.3)
-  };
-  var cartaPrem = {
-    entrantes: platosDeCat('entrantes', premMax * 0.25),
-    principales: platosDeCat(['pizzas','pastas','ensaladas'], premMax - 3),
-    bebidas: platosDeCat('bebidas', premMax * 0.25),
-    postres: platosDeCat('postres', premMax * 0.25)
-  };
-
-  function formatCarta(obj) {
-    return Object.entries(obj).map(function(e) {
-      return e[0].toUpperCase() + ' disponibles:\n' + e[1].map(function(p){
-        return '- ' + p.nombre + ' (' + p.precio.toFixed(2) + '\u20ac)';
-      }).join('\n');
-    }).join('\n\n');
-  }
-
-  var systemPrompt = 'Eres el chef de Pizza Pronto, experto en marketing gastronómico. Genera 3 menús DIFERENTES usando SOLO los platos listados para cada menú. Devuelve ÚNICAMENTE JSON válido sin markdown.'
-    + ' FORMATO: {"menus":[{"nombre":"Menú económico","platos":[{"nombre":"...","categoria":"...","precio":0.00}]},{"nombre":"Menú recomendado","platos":[...]},{"nombre":"Menú premium","platos":[...]}]}'
-    + ' REGLAS: (1) Económico = 1 principal + 1 bebida, total entre ' + econMin.toFixed(2) + '€ y ' + econMax.toFixed(2) + '€.'
-    + ' (2) Recomendado = 1 principal + 1 bebida + 1 postre, total entre ' + recMin.toFixed(2) + '€ y ' + recMax.toFixed(2) + '€.'
-    + ' (3) Premium = 1 entrante + 1 principal + 1 bebida + 1 postre, total entre ' + premMin.toFixed(2) + '€ y ' + premMax.toFixed(2) + '€.'
-    + ' (4) Los 3 principales deben ser DIFERENTES entre sí. (5) USA SOLO platos de las listas y respeta sus precios EXACTOS. (6) Varía las opciones cada vez para dar diversidad.';
-
-  var userMsg = 'Presupuesto: ' + amt + '\u20ac\n\n'
-    + 'PLATOS PARA MENU ECONOMICO:\n' + formatCarta(cartaEcon)
-    + '\n\nPLATOS PARA MENU RECOMENDADO:\n' + formatCarta(cartaRec)
-    + '\n\nPLATOS PARA MENU PREMIUM:\n' + formatCarta(cartaPrem);
-
   try {
-    var res = await fetch(EDGE_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
-      body: JSON.stringify({
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userMsg }]
-      })
-    });
-    var data = await res.json();
-    var texto = (data.content && data.content[0] && data.content[0].text) || '';
-    texto = texto.replace(/```json|```/g, '').trim();
-    var parsed = JSON.parse(texto);
-    presMenusData = parsed.menus || [];
-    if (presMenusData.length !== 3) throw new Error('Menus incorrectos');
+    presMenusData = calcularMenuLocal(amt);
+    var algunoValido = presMenusData.some(function(m){ return m.platos.length > 0; });
+    if (!algunoValido) throw new Error('Sin combinaciones posibles');
     renderMenusPresupuesto();
   } catch(e) {
-    wrap.innerHTML = '<div class="pres-loading">No pude generar opciones. Inténtalo de nuevo.</div>';
+    wrap.innerHTML = '<div class="pres-loading">No encontré combinaciones para ese presupuesto. Prueba con otro importe.</div>';
   }
 }
 
