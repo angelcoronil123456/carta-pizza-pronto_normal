@@ -1595,6 +1595,38 @@ function destGuardar(id) {
 var presMenusData = []; // [{nombre, tipo, precio, id}] x3 menus
 var presPresupuestoSeleccionado = 0;
 var presCambioActivo = null; // {menuIdx, platoIdx}
+var popularidadCache = null; // { 'Nombre plato': scoreNormalizado(0-1) }
+var frecuenciaAparicion = {}; // { 'Nombre plato': vecesUsadoEnEstaSesion }
+
+async function cargarPopularidad() {
+  if (popularidadCache) return popularidadCache;
+  try {
+    var hace30 = new Date();
+    hace30.setDate(hace30.getDate() - 30);
+    var r = await sb.from('carta_clics')
+      .select('plato_nombre, tipo')
+      .eq('restaurante_id', RESTAURANTE_ID)
+      .in('tipo', ['ver_detalle', 'añadir'])
+      .gte('fecha', hace30.toISOString());
+
+    var conteo = {};
+    (r.data || []).forEach(function(c) {
+      if (!c.plato_nombre) return;
+      var peso = c.tipo === 'añadir' ? 4 : 1; // guardados pesan más, igual que en el panel admin
+      conteo[c.plato_nombre] = (conteo[c.plato_nombre] || 0) + peso;
+    });
+
+    var max = Math.max.apply(null, Object.values(conteo).concat([1]));
+    var normalizado = {};
+    Object.keys(conteo).forEach(function(nombre) {
+      normalizado[nombre] = conteo[nombre] / max; // 0 a 1
+    });
+    popularidadCache = normalizado;
+  } catch(e) {
+    popularidadCache = {};
+  }
+  return popularidadCache;
+}
 
 function abrirModalPresupuesto() {
   document.getElementById('modal-presupuesto').classList.add('open');
@@ -1693,22 +1725,35 @@ function puntuarCandidato(platos, min, max, nombresUsados) {
 
   var score = 0;
 
-  // CERCANÍA AL PRECIO: 50% del peso total, criterio dominante y muy exigente
+  // CERCANÍA AL PRECIO (peso dominante, ~50%)
   if (total >= min && total <= max) {
     var distNormalizada = Math.abs(total - centro) / (rango / 2);
     score += 100 - distNormalizada * 10; // 90-100 puntos si está dentro de rango
   } else {
-    // Fuera de rango: penalización MUY fuerte, casi descarta el candidato
     var distFuera = total < min ? (min - total) : (total - max);
-    score -= distFuera * 40; // cada euro de más/menos resta 40 puntos
+    score -= distFuera * 40;
   }
 
-  // Variedad: penalizar productos ya usados en otro menú
+  // POPULARIDAD (~15%): platos más vendidos/guardados puntúan más
+  var pop = popularidadCache || {};
+  var popularidadMedia = platos.reduce(function(s, p) {
+    return s + (pop[p.nombre] || 0);
+  }, 0) / platos.length;
+  score += popularidadMedia * 15; // hasta +15 puntos si todos son muy populares
+
+  // FRECUENCIA DE APARICIÓN EN ESTA SESIÓN: penalizar platos ya recomendados muchas veces
+  var penalizFrecuencia = platos.reduce(function(s, p) {
+    var veces = frecuenciaAparicion[p.nombre] || 0;
+    return s + veces;
+  }, 0);
+  score -= penalizFrecuencia * 4;
+
+  // VARIEDAD entre los 3 menús de esta generación
   var nombresPlatos = platos.map(function(p){ return p.nombre; });
   var repetidos = nombresPlatos.filter(function(n){ return nombresUsados.includes(n); }).length;
   score -= repetidos * 20;
 
-  // Pequeño bonus aleatorio para variar resultados entre llamadas
+  // Pequeño bonus aleatorio para diversidad controlada
   score += Math.random() * 1.5;
 
   return { platos: platos, total: total, score: score };
@@ -1800,11 +1845,20 @@ function calcularMenuLocal(amt) {
   if (!prem) prem = elegirMejorCandidato('pbd', datos, r.prem[0], r.prem[1], nombresUsados, 1.5); // sin entrante
   if (!prem) prem = elegirMejorCandidato('epbd', datos, r.prem[0], r.prem[1], nombresUsados, 3);
 
-  return [
+  var resultado = [
     { nombre: 'Menú económico', platos: econ ? econ.platos : [] },
     { nombre: 'Menú recomendado', platos: rec ? rec.platos : [] },
     { nombre: 'Menú premium', platos: prem ? prem.platos : [] }
   ];
+
+  // Registrar frecuencia de aparición para penalizar repetición en próximas generaciones de esta sesión
+  resultado.forEach(function(menu) {
+    menu.platos.forEach(function(p) {
+      frecuenciaAparicion[p.nombre] = (frecuenciaAparicion[p.nombre] || 0) + 1;
+    });
+  });
+
+  return resultado;
 }
 
 async function generarMenusPresupuesto(amt) {
@@ -1812,6 +1866,7 @@ async function generarMenusPresupuesto(amt) {
   wrap.innerHTML = '<div class="pres-loading">🧑‍🍳 Preparando tus opciones...</div>';
 
   try {
+    await cargarPopularidad();
     presMenusData = calcularMenuLocal(amt);
     var algunoValido = presMenusData.some(function(m){ return m.platos.length > 0; });
     if (!algunoValido) throw new Error('Sin combinaciones posibles');
