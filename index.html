@@ -261,12 +261,22 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 .pres-plato-precio{font-size:12px;font-weight:800;color:var(--red)}
 .pres-cambiar-btn{background:#f5f0eb;border:none;border-radius:50px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;color:var(--text);font-family:'Nunito',sans-serif;margin-top:4px;display:inline-block}
 .pres-loading{text-align:center;padding:40px;color:var(--text-soft);font-size:14px}
-.pres-alt-wrap{background:#f5f0eb;border-radius:14px;padding:12px 16px;margin:0 16px 12px;display:none}
-.pres-alt-wrap.show{display:block}
-.pres-alt-titulo{font-size:11px;font-weight:900;color:var(--text-soft);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
-.pres-alt-platos{display:flex;flex-wrap:wrap;gap:6px}
-.pres-alt-pill{background:#fff;border:1.5px solid var(--border);border-radius:50px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif}
-.pres-alt-pill:active{background:var(--red);color:#fff;border-color:var(--red)}
+/* MODAL CAMBIAR PRODUCTO */
+#modal-cambiar{position:fixed;inset:0;z-index:950;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center}
+#modal-cambiar.open{display:flex}
+#modal-cambiar-box{background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:500px;max-height:85vh;display:flex;flex-direction:column}
+.cambiar-header{padding:16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.cambiar-titulo{font-family:'Playfair Display',serif;font-size:16px;font-weight:900}
+.cambiar-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-soft);line-height:1;padding:0}
+.cambiar-lista{overflow-y:auto;padding:8px 16px 24px}
+.cambiar-card{display:flex;gap:12px;align-items:center;padding:12px;border:1.5px solid var(--border);border-radius:16px;margin-top:10px;cursor:pointer}
+.cambiar-card:active{background:#f5f0eb}
+.cambiar-card-img{width:64px;height:64px;border-radius:12px;object-fit:cover;flex-shrink:0;background:#f5f0eb}
+.cambiar-card-info{flex:1;min-width:0}
+.cambiar-card-nombre{font-size:13px;font-weight:900;margin-bottom:2px}
+.cambiar-card-desc{font-size:11px;color:var(--text-soft);line-height:1.3;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cambiar-card-precio{font-size:13px;font-weight:900;color:var(--red)}
+.cambiar-empty{text-align:center;padding:30px;color:var(--text-soft);font-size:13px}
 .pres-upsell{background:#fff8e6;border:1.5px solid #ffe082;border-radius:16px;padding:14px 16px;margin:0 0 16px;display:none}
 .pres-upsell.show{display:block}
 .pres-upsell-titulo{font-size:13px;font-weight:900;margin-bottom:10px}
@@ -572,15 +582,22 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
     </div>
     <div class="pres-scroll" id="pres-scroll">
       <div id="pres-menus-wrap"></div>
-      <div class="pres-alt-wrap" id="pres-alt-wrap">
-        <div class="pres-alt-titulo" id="pres-alt-titulo">Elige una alternativa:</div>
-        <div class="pres-alt-platos" id="pres-alt-platos"></div>
-      </div>
       <div class="pres-upsell" id="pres-upsell">
         <div class="pres-upsell-titulo">🔥 ¿Le añades algo más?</div>
         <div class="pres-upsell-items" id="pres-upsell-items"></div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- MODAL CAMBIAR PRODUCTO -->
+<div id="modal-cambiar" onclick="if(event.target===this)cerrarModalCambiar()">
+  <div id="modal-cambiar-box">
+    <div class="cambiar-header">
+      <div class="cambiar-titulo" id="cambiar-titulo">Elige una alternativa</div>
+      <button class="cambiar-close" onclick="cerrarModalCambiar()">×</button>
+    </div>
+    <div class="cambiar-lista" id="cambiar-lista"></div>
   </div>
 </div>
 
@@ -1607,15 +1624,17 @@ async function seleccionarPresupuesto(amt, btn) {
 
 // Categorías que NO deben usarse como "principal" pero sí pueden filtrarse de bebidas/entrantes si son caras
 var PALABRAS_PROHIBIDAS = ['vino','botella','reserva','crianza','rioja','ribera','champan','champán','cava brut nature','magnum'];
+var BEBIDAS_NO_PRINCIPALES = ['cafe','café','cortado','espresso','expreso','infusion','infusión','te','té','manzanilla','poleo','tila','capuchino','capuccino','carajillo'];
 
 function esProductoProhibido(nombre, categoria, precio) {
   var nombreLower = nombre.toLowerCase();
-  // Excluir vinos/botellas caras de la categoría bebidas
   if (categoria === 'bebidas') {
     var esVino = PALABRAS_PROHIBIDAS.some(function(palabra){ return nombreLower.indexOf(palabra) !== -1; });
     if (esVino) return true;
-    // Bebidas individuales no deberían superar ~6€ para entrar en un menú normal
     if (precio > 6.5) return true;
+    // Café, infusiones, etc. no son bebida principal de una comida
+    var esPostComida = BEBIDAS_NO_PRINCIPALES.some(function(palabra){ return nombreLower.indexOf(palabra) !== -1; });
+    if (esPostComida) return true;
   }
   return false;
 }
@@ -1676,14 +1695,13 @@ function puntuarCandidato(platos, min, max, nombresUsados) {
 
   var score = 0;
 
-  // Cercanía al precio objetivo (lo más importante)
+  // Cercanía al precio objetivo (criterio dominante)
   if (total >= min && total <= max) {
     var distNormalizada = Math.abs(total - centro) / (rango / 2);
-    score += 100 - distNormalizada * 30; // 70-100 puntos si está dentro de rango
+    score += 100 - distNormalizada * 15; // 85-100 puntos si está dentro de rango (más exigente)
   } else {
-    // Fuera de rango: penalización fuerte proporcional a la distancia
     var distFuera = total < min ? (min - total) : (total - max);
-    score += 40 - distFuera * 8;
+    score += 30 - distFuera * 12; // penalización más fuerte por salirse del rango
   }
 
   // Penalizar productos ya usados en otro menú (variedad)
@@ -1691,8 +1709,8 @@ function puntuarCandidato(platos, min, max, nombresUsados) {
   var repetidos = nombresPlatos.filter(function(n){ return nombresUsados.includes(n); }).length;
   score -= repetidos * 25;
 
-  // Pequeño bonus aleatorio para variar resultados entre llamadas (sin romper el orden de calidad)
-  score += Math.random() * 3;
+  // Pequeño bonus aleatorio para variar resultados entre llamadas
+  score += Math.random() * 2;
 
   return { platos: platos, total: total, score: score };
 }
@@ -1707,8 +1725,9 @@ function elegirMejorCandidato(estructura, datos, min, max, nombresUsados) {
 
   puntuados.sort(function(a, b) { return b.score - a.score; });
 
-  // Tomar uno entre los mejores 5 (variedad sin perder calidad)
-  var topN = puntuados.slice(0, Math.min(5, puntuados.length));
+  // Evaluamos hasta 50 candidatos (ya están todos puntuados); elegimos entre el top 3
+  // para maximizar precisión de precio manteniendo algo de variedad
+  var topN = puntuados.slice(0, Math.min(3, puntuados.length));
   var elegido = topN[Math.floor(Math.random() * topN.length)];
 
   return elegido;
@@ -1793,45 +1812,55 @@ function renderMenusPresupuesto() {
 }
 
 function mostrarAlternativas(menuIdx, platoIdx, btn) {
-  presCambioActivo = { menuIdx: menuIdx, platoIdx: platoIdx, btn: btn };
+  presCambioActivo = { menuIdx: menuIdx, platoIdx: platoIdx };
   var plato = presMenusData[menuIdx].platos[platoIdx];
   var cat = plato.categoria;
   var precio = plato.precio;
-  // Buscar alternativas de la misma categoría con precio similar (±40%)
+
+  // Alternativas de la misma categoría con precio similar (±40%), excluyendo el actual
   var alternativas = (MENU[cat] || []).filter(function(p) {
     return p.name !== plato.nombre && Math.abs(p.price - precio) <= precio * 0.4;
-  }).slice(0, 6);
+  });
 
-  var altWrap = document.getElementById('pres-alt-wrap');
-  var altTitulo = document.getElementById('pres-alt-titulo');
-  var altPlatos = document.getElementById('pres-alt-platos');
-  altTitulo.textContent = 'Alternativas para "' + plato.nombre + '":';
+  document.getElementById('cambiar-titulo').textContent = 'Cambiar: ' + plato.nombre;
+  var lista = document.getElementById('cambiar-lista');
+
   if (!alternativas.length) {
-    altPlatos.innerHTML = '<span style="font-size:12px;color:var(--text-soft)">No hay alternativas disponibles en esta categoría.</span>';
+    lista.innerHTML = '<div class="cambiar-empty">No hay alternativas similares disponibles en esta categoría.</div>';
   } else {
-    altPlatos.innerHTML = alternativas.map(function(p) {
-      return '<div class="pres-alt-pill" onclick="elegirAlternativa(' + "'" + p.name.replace(/'/g,"\'") + "'" + ',' + p.price + ')">'
-        + p.name + ' (' + p.price.toFixed(2).replace('.',',') + '€)</div>';
+    lista.innerHTML = alternativas.map(function(p) {
+      var safeName = p.name.replace(/'/g,"\\'");
+      var imgSrc = p.img || '';
+      var desc = p.desc || '';
+      return '<div class="cambiar-card" onclick="elegirAlternativa(\'' + safeName + '\',' + p.price + ')">'
+        + (imgSrc ? '<img class="cambiar-card-img" src="' + imgSrc + '" alt="' + p.name + '" onerror="this.style.display=\'none\'">' : '<div class="cambiar-card-img"></div>')
+        + '<div class="cambiar-card-info">'
+        + '<div class="cambiar-card-nombre">' + p.name + '</div>'
+        + (desc ? '<div class="cambiar-card-desc">' + desc + '</div>' : '')
+        + '<div class="cambiar-card-precio">' + p.price.toFixed(2).replace('.',',') + '€</div>'
+        + '</div></div>';
     }).join('');
   }
-  altWrap.classList.add('show');
-  altWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  document.getElementById('modal-cambiar').classList.add('open');
+}
+
+function cerrarModalCambiar() {
+  document.getElementById('modal-cambiar').classList.remove('open');
+  presCambioActivo = null;
 }
 
 function elegirAlternativa(nombre, precio) {
   if (!presCambioActivo) return;
   var mi = presCambioActivo.menuIdx;
   var pi = presCambioActivo.platoIdx;
-  // Buscar categoría del nuevo plato
   var cat = presMenusData[mi].platos[pi].categoria;
   Object.keys(MENU).forEach(function(c) {
     if ((MENU[c]||[]).some(function(p){ return p.name === nombre; })) cat = c;
   });
   presMenusData[mi].platos[pi] = { nombre: nombre, precio: precio, categoria: cat };
-  document.getElementById('pres-alt-wrap').classList.remove('show');
-  presCambioActivo = null;
+  cerrarModalCambiar();
   renderMenusPresupuesto();
-  // Scroll suave al menú que se acaba de cambiar
   var card = document.querySelectorAll('.pres-menu-card')[mi];
   if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
