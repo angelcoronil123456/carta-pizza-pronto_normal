@@ -817,8 +817,8 @@ function analizarPedidoYRecomendar() {
     });
     var pop = popularidadProductos || {};
     candidatosGenerales.sort(function(a,b) {
-      var sa = (pop[a.name]||0) - (contadorMostrado[a.name]||0)*0.1;
-      var sb = (pop[b.name]||0) - (contadorMostrado[b.name]||0)*0.1;
+      var sa = (pop[a.name]||0) - (contadorMostrado[a.name]||0)*0.1 + Math.random()*0.4;
+      var sb = (pop[b.name]||0) - (contadorMostrado[b.name]||0)*0.1 + Math.random()*0.4;
       return sb - sa;
     });
     while (resultado.length < 3 && candidatosGenerales.length) {
@@ -1700,12 +1700,14 @@ function elegirMejorDeCategoria(categoria, excluirNombres) {
   var pop = popularidadProductos || {};
   var puntuados = lista.map(function(p) {
     var score = (pop[p.name] || 0) * 10;
-    score -= (contadorMostrado[p.name] || 0) * 2; // evitar saturación: baja prioridad si se mostró mucho
+    score -= (contadorMostrado[p.name] || 0) * 1.5; // evitar saturación: baja prioridad si se mostró mucho
+    score += Math.random() * 4; // variedad: introduce algo de azar controlado entre todos los platos
     return { item: p, score: score };
   });
   puntuados.sort(function(a,b){ return b.score - a.score; });
-  // Entre los 2 mejores, elegir con algo de rotación
-  var top = puntuados.slice(0, Math.min(2, puntuados.length));
+  // Elegir entre un grupo más amplio (hasta 5, o todos si hay menos) para dar variedad real
+  // manteniendo cierta inclinación hacia lo popular gracias a la puntuación
+  var top = puntuados.slice(0, Math.min(5, puntuados.length));
   var elegido = top[Math.floor(Math.random() * top.length)];
   return elegido.item;
 }
