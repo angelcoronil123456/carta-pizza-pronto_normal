@@ -1769,19 +1769,26 @@ async function cargarStatsProductos() {
 // Compatibilidad gastronómica: qué tan bien encaja recomendar `categoriaCandidata`
 // cuando el cliente está viendo `categoriaVista`
 function compatibilidadGastronomica(categoriaVista, categoriaCandidata) {
-  var prioridades = {
-    pizzas: ['postres','bebidas','entrantes'],
-    pastas: ['postres','bebidas','entrantes'],
-    ensaladas: ['postres','bebidas','entrantes'],
-    postres: ['bebidas'],
-    bebidas: ['pizzas','pastas','ensaladas','entrantes','postres'],
-    entrantes: ['pizzas','pastas','ensaladas','bebidas','postres']
-  };
-  var lista = prioridades[categoriaVista] || [];
-  var idx = lista.indexOf(categoriaCandidata);
-  if (idx === -1) return 0.3; // compatibilidad neutra/baja si no está en la lista de prioridad
-  // Primera posición = compatibilidad máxima, decae con la posición
-  return 1 - (idx / Math.max(lista.length, 1)) * 0.6;
+  // Penalización fuerte (no total) si la categoría candidata es la MISMA que se está viendo,
+  // sea cual sea su nombre (incluye categorías nuevas como hamburguesas, carnes, etc.)
+  if (categoriaCandidata === categoriaVista) return 0.08;
+
+  // Categorías "complemento" típicas: entrantes, bebidas, postres, cafés
+  var COMPLEMENTOS = ['entrantes','bebidas','postres','cafes','cafés','complementos'];
+  // Categorías "principal/plato fuerte": pizzas, pastas, ensaladas, hamburguesas, carnes, pescados...
+  var PRINCIPALES_TIPICOS = ['pizzas','pastas','ensaladas','hamburguesas','carnes','pescados','platos principales','principales'];
+
+  var vistaEsComplemento = COMPLEMENTOS.indexOf(categoriaVista) !== -1;
+  var candidataEsComplemento = COMPLEMENTOS.indexOf(categoriaCandidata) !== -1;
+  var candidataEsPrincipal = PRINCIPALES_TIPICOS.indexOf(categoriaCandidata) !== -1;
+
+  if (vistaEsComplemento) {
+    // Viendo un complemento (bebida, postre, entrante) → priorizar platos principales
+    return candidataEsPrincipal ? 1 : (candidataEsComplemento ? 0.6 : 0.5);
+  } else {
+    // Viendo un plato principal/fuerte → priorizar complementos (entrante, bebida, postre)
+    return candidataEsComplemento ? 1 : (candidataEsPrincipal ? 0.4 : 0.5);
+  }
 }
 
 function categoriaDe(nombrePlato) {
@@ -1860,28 +1867,19 @@ async function renderCombinaConWrap(itemPrincipal) {
   var catVista = categoriaDe(itemPrincipal.name);
   var excluir = [itemPrincipal.name];
   var sugerencias = [];
-  var categoriasPrincipal = ['pizzas', 'pastas', 'ensaladas'];
 
-  // Slot 1: un plato principal (si lo que se ve YA es un principal, puede repetir esa categoría;
-  // si no, prueba las 3 categorías de principal)
-  var categoriasParaPrincipal = categoriasPrincipal.includes(catVista) ? categoriasPrincipal : categoriasPrincipal;
-  var principal = elegirCandidato(categoriasParaPrincipal, excluir, catVista, sugerencias);
-  if (principal) { sugerencias.push(principal); excluir.push(principal.name); }
+  // Usar TODAS las categorías reales de la carta (dinámico, no hardcodeado a 6 nombres fijos),
+  // dejando que compatibilidadGastronomica penalice la categoría vista de forma proporcional,
+  // no que la excluya por completo en un "slot fijo".
+  var todasCategorias = Object.keys(MENU).filter(function(c){ return (MENU[c]||[]).length > 0; });
 
-  // Slot 2: entrante (si no se está viendo ya un entrante)
-  if (catVista !== 'entrantes') {
-    var ent = elegirCandidato('entrantes', excluir, catVista, sugerencias);
-    if (ent) { sugerencias.push(ent); excluir.push(ent.name); }
-  }
-  // Slot 3: bebida
-  if (catVista !== 'bebidas') {
-    var beb = elegirCandidato('bebidas', excluir, catVista, sugerencias);
-    if (beb) { sugerencias.push(beb); excluir.push(beb.name); }
-  }
-  // Slot 4: postre
-  if (catVista !== 'postres') {
-    var pos = elegirCandidato('postres', excluir, catVista, sugerencias);
-    if (pos) { sugerencias.push(pos); excluir.push(pos.name); }
+  // Rellenar hasta 4 recomendaciones, dejando que el sistema de scoring elija libremente
+  // entre todas las categorías cada vez (compatibilidad gastronómica ya prioriza complementos)
+  for (var i = 0; i < 4; i++) {
+    var candidato = elegirCandidato(todasCategorias, excluir, catVista, sugerencias);
+    if (!candidato) break;
+    sugerencias.push(candidato);
+    excluir.push(candidato.name);
   }
 
   if (!sugerencias.length) { wrap.classList.remove('show'); return; }
