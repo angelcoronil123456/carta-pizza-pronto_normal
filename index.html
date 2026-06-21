@@ -624,6 +624,26 @@ var EDGE_URL = 'https://onrymhwvjbvkygsawaiv.supabase.co/functions/v1/chat-ia';
 var REGISTRAR_EVENTO_URL = EDGE_URL.replace('chat-ia', 'registrar-evento');
 var RESTAURANTE_ID = 'pizzapronto-normal';
 var GOOGLE_REVIEW_URL = 'https://maps.app.goo.gl/ZcxjTXKSpg4ov8dL7';
+
+// ══ TRACKING DE RECOMENDACIONES (Impacto de las recomendaciones) ══
+async function registrarEventoRecom(tipoEvento, producto, contexto, platoPrincipalNombre) {
+  try {
+    await fetch(REGISTRAR_EVENTO_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
+      body: JSON.stringify({
+        accion: 'recom',
+        restaurante_id: RESTAURANTE_ID,
+        tipo_evento: tipoEvento, // 'mostrada' | 'añadida'
+        producto_id: producto.id,
+        producto_nombre: producto.name,
+        producto_precio: producto.price,
+        contexto: contexto, // 'zona1_ficha' | 'zona2_final'
+        plato_principal_nombre: platoPrincipalNombre || null
+      })
+    });
+  } catch(e) {}
+}
 var BADGE_LABELS = { bestseller:'⭐ Popular', new:'✨ Nuevo', hot:'🔥 Top' };
 var QUICK_QUESTIONS_POR_CATEGORIA = {
   pizzas: ['¿Qué ingredientes lleva?','¿Qué tan picante es?','¿De qué tamaño es?','¿Para cuántas personas es?'],
@@ -829,7 +849,10 @@ async function abrirRecomFinal() {
     return;
   }
 
-  recomFinalActivas.forEach(function(p) { contadorMostrado[p.name] = (contadorMostrado[p.name] || 0) + 1; });
+  recomFinalActivas.forEach(function(p) {
+    contadorMostrado[p.name] = (contadorMostrado[p.name] || 0) + 1;
+    registrarEventoRecom('mostrada', p, 'zona2_final', null);
+  });
 
   var tituloRotativo = elegirEncabezadoRecom();
   var body = document.getElementById('recom-final-body');
@@ -851,11 +874,17 @@ async function abrirRecomFinal() {
 }
 
 function añadirDesdeRecomFinal(id) {
+  var seEstabaGuardado = !!listaGuardados[id];
   toggleGuardar(id);
   var btn = document.getElementById('recom-final-btn-' + id);
-  if (!btn) return;
-  if (listaGuardados[id]) { btn.classList.add('added'); btn.textContent = '✓ Añadido'; }
-  else { btn.classList.remove('added'); btn.textContent = '🛒 Añadir'; }
+  if (btn) {
+    if (listaGuardados[id]) { btn.classList.add('added'); btn.textContent = '✓ Añadido'; }
+    else { btn.classList.remove('added'); btn.textContent = '🛒 Añadir'; }
+  }
+  if (!seEstabaGuardado && listaGuardados[id]) {
+    var item = findItem(id);
+    if (item) registrarEventoRecom('añadida', item, 'zona2_final', null);
+  }
 }
 
 function cerrarRecomFinal() {
@@ -1711,7 +1740,10 @@ async function renderCombinaConWrap(itemPrincipal) {
 
   if (!sugerencias.length) { wrap.classList.remove('show'); return; }
 
-  sugerencias.forEach(function(p) { contadorMostrado[p.name] = (contadorMostrado[p.name] || 0) + 1; });
+  sugerencias.forEach(function(p) {
+    contadorMostrado[p.name] = (contadorMostrado[p.name] || 0) + 1;
+    registrarEventoRecom('mostrada', p, 'zona1_ficha', itemPrincipal.name);
+  });
 
   cardsEl.innerHTML = sugerencias.map(function(p) {
     var guardado = !!listaGuardados[p.id];
@@ -1722,7 +1754,7 @@ async function renderCombinaConWrap(itemPrincipal) {
       + '<div class="combina-card-nombre">' + p.name + '</div>'
       + (desc ? '<div class="combina-card-desc">' + desc + '</div>' : '')
       + '<div class="combina-card-precio">' + p.price.toFixed(2).replace('.',',') + '€</div>'
-      + '<button class="combina-card-btn' + (guardado?' added':'') + '" id="combina-btn-' + p.id + '" onclick="event.stopPropagation();toggleGuardar(&quot;' + p.id + '&quot;);actualizarBtnCombina(&quot;' + p.id + '&quot;)">' + (guardado?'\u2713 A\u00f1adido':'\ud83d\uded2 A\u00f1adir') + '</button>'
+      + '<button class="combina-card-btn' + (guardado?' added':'') + '" id="combina-btn-' + p.id + '" onclick="event.stopPropagation();toggleGuardarDesdeCombina(&quot;' + p.id + '&quot;)">' + (guardado?'\u2713 A\u00f1adido':'\ud83d\uded2 A\u00f1adir') + '</button>'
       + '</div></div>';
   }).join('');
 
@@ -1734,6 +1766,16 @@ function actualizarBtnCombina(id) {
   if (!btn) return;
   if (listaGuardados[id]) { btn.classList.add('added'); btn.textContent = '✓ Añadido'; }
   else { btn.classList.remove('added'); btn.textContent = '🛒 Añadir'; }
+}
+
+function toggleGuardarDesdeCombina(id) {
+  var seEstabaGuardado = !!listaGuardados[id];
+  toggleGuardar(id);
+  actualizarBtnCombina(id);
+  if (!seEstabaGuardado && listaGuardados[id]) {
+    var item = findItem(id);
+    if (item) registrarEventoRecom('añadida', item, 'zona1_ficha', null);
+  }
 }
 
 function closePlatoModal(e) {
