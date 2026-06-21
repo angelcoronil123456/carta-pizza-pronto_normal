@@ -229,59 +229,6 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 
 /* ALÉRGENOS */
 #alergenos-btn{position:fixed;top:12px;right:12px;z-index:59;background:rgba(255,255,255,.85);border:1px solid #e8ddd0;border-radius:50px;padding:6px 12px 6px 10px;display:flex;align-items:center;gap:5px;cursor:pointer;font-size:16px;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,.1);user-select:none;backdrop-filter:blur(4px);font-family:'Nunito',sans-serif;font-weight:900;font-size:12px;color:var(--text)}
-/* BOTÓN FLOTANTE PRESUPUESTO */
-#btn-menu-presupuesto{position:fixed;top:112px;right:8px;z-index:57;background:#059669;color:#fff;border:none;border-radius:50px;padding:8px 16px;display:flex;align-items:center;gap:6px;cursor:pointer;font-family:'Nunito',sans-serif;font-size:12px;font-weight:900;white-space:nowrap;box-shadow:0 4px 12px rgba(5,150,105,.3)}
-#btn-menu-presupuesto:active{transform:scale(.97)}
-
-/* MODAL PRESUPUESTO */
-#modal-presupuesto{position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.5);display:none;align-items:flex-end;justify-content:center}
-#modal-presupuesto.open{display:flex}
-#modal-pres-box{background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:500px;height:78vh;display:flex;flex-direction:column}
-.pres-header{padding:16px 16px 0;flex-shrink:0}
-.pres-titulo{font-family:'Playfair Display',serif;font-size:18px;font-weight:900;text-align:center;margin-bottom:4px}
-.pres-sub{font-size:12px;color:var(--text-soft);text-align:center;margin-bottom:12px}
-.pres-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:12px;padding:0 4px}
-.pres-btn-amt{background:#f5f0eb;border:2px solid transparent;border-radius:50px;padding:9px 16px;font-size:15px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;color:var(--text);transition:all .2s}
-.pres-btn-amt.active,.pres-btn-amt:hover{background:var(--red);color:#fff;border-color:var(--red)}
-.pres-scroll{flex:1;overflow-y:auto;padding:0 16px 24px}
-.pres-menu-card{border:1.5px solid var(--border);border-radius:20px;margin-bottom:20px;overflow:hidden;position:relative}
-.pres-menu-card.rec{border-color:var(--red);box-shadow:0 4px 20px rgba(200,16,46,.15)}
-.pres-badge{position:absolute;top:12px;right:12px;background:var(--red);color:#fff;font-size:10px;font-weight:900;padding:4px 10px;border-radius:20px}
-.pres-card-header{padding:14px 16px 10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
-.pres-menu-nombre{font-family:'Playfair Display',serif;font-size:15px;font-weight:900}
-.pres-total{font-size:16px;font-weight:900;color:var(--red)}
-.pres-añadir-btn{background:var(--red);color:#fff;border:none;border-radius:50px;padding:8px 16px;font-size:12px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap}
-.pres-platos-list{padding:12px 16px}
-.pres-plato-item{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #f5f0eb}
-.pres-plato-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
-.pres-plato-img{width:72px;height:72px;border-radius:12px;object-fit:cover;flex-shrink:0;background:#f5f0eb}
-.pres-plato-info{flex:1;min-width:0}
-.pres-plato-nombre{font-size:13px;font-weight:900;margin-bottom:2px}
-.pres-plato-desc{font-size:11px;color:var(--text-soft);line-height:1.4;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.pres-plato-precio{font-size:12px;font-weight:800;color:var(--red)}
-.pres-cambiar-btn{background:#f5f0eb;border:none;border-radius:50px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;color:var(--text);font-family:'Nunito',sans-serif;margin-top:4px;display:inline-block}
-.pres-loading{text-align:center;padding:40px;color:var(--text-soft);font-size:14px}
-/* MODAL CAMBIAR PRODUCTO */
-#modal-cambiar{position:fixed;inset:0;z-index:950;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center}
-#modal-cambiar.open{display:flex}
-#modal-cambiar-box{background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:500px;max-height:85vh;display:flex;flex-direction:column}
-.cambiar-header{padding:16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
-.cambiar-titulo{font-family:'Playfair Display',serif;font-size:16px;font-weight:900}
-.cambiar-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-soft);line-height:1;padding:0}
-.cambiar-lista{overflow-y:auto;padding:8px 16px 24px}
-.cambiar-card{display:flex;gap:12px;align-items:center;padding:12px;border:1.5px solid var(--border);border-radius:16px;margin-top:10px;cursor:pointer}
-.cambiar-card:active{background:#f5f0eb}
-.cambiar-card-img{width:64px;height:64px;border-radius:12px;object-fit:cover;flex-shrink:0;background:#f5f0eb}
-.cambiar-card-info{flex:1;min-width:0}
-.cambiar-card-nombre{font-size:13px;font-weight:900;margin-bottom:2px}
-.cambiar-card-desc{font-size:11px;color:var(--text-soft);line-height:1.3;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.cambiar-card-precio{font-size:13px;font-weight:900;color:var(--red)}
-.cambiar-empty{text-align:center;padding:30px;color:var(--text-soft);font-size:13px}
-.pres-upsell{background:#fff8e6;border:1.5px solid #ffe082;border-radius:16px;padding:14px 16px;margin:0 0 16px;display:none}
-.pres-upsell.show{display:block}
-.pres-upsell-titulo{font-size:13px;font-weight:900;margin-bottom:10px}
-.pres-upsell-items{display:flex;flex-wrap:wrap;gap:8px}
-.pres-upsell-pill{background:#fff;border:1.5px solid #ffe082;border-radius:50px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif}
 
 #alergenos-panel{position:fixed;bottom:64px;left:12px;z-index:59;background:#fff;border-radius:20px;padding:20px;box-shadow:0 8px 40px rgba(0,0,0,.18);width:300px;display:none}
 .alergen-pill{background:#f0e8e0;border:2px solid #e8ddd0;border-radius:50px;padding:5px 11px;font-size:12px;font-weight:700;color:var(--text-soft);cursor:pointer;transition:all .15s;user-select:none}
@@ -345,6 +292,33 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 .plato-modal-ask-grande{width:100%;padding:14px;border-radius:50px;border:none;background:rgba(200,16,46,.08);border:1.5px solid rgba(200,16,46,.2);color:var(--red);font-size:15px;font-weight:900;cursor:pointer;transition:all .2s;margin-top:14px}
 .plato-modal-guardar-pequeno{display:block;width:100%;text-align:center;margin-top:10px;font-size:13px;font-weight:800;color:var(--text-soft);background:none;border:1.5px solid #e0d5ca;border-radius:50px;cursor:pointer;padding:8px}
 .plato-modal-guardar-pequeno.guardado{background:var(--red);border-color:var(--red);color:#fff}
+/* RECOMENDACIONES ZONA 1 (dentro del modal de plato) */
+.combina-wrap{margin:14px 0;display:none}
+.combina-wrap.show{display:block}
+.combina-titulo{font-size:12px;font-weight:900;color:var(--text-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.combina-cards{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.combina-cards::-webkit-scrollbar{display:none}
+.combina-card{flex-shrink:0;width:108px;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;background:#fff}
+.combina-card-img{width:100%;height:72px;object-fit:cover;background:#f5f0eb}
+.combina-card-body{padding:8px}
+.combina-card-nombre{font-size:11px;font-weight:800;line-height:1.25;margin-bottom:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:28px}
+.combina-card-precio{font-size:11px;font-weight:900;color:var(--red);margin-bottom:5px}
+.combina-card-btn{width:100%;background:#f5f0eb;border:none;border-radius:50px;padding:5px;font-size:10px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif}
+.combina-card-btn.added{background:var(--red);color:#fff}
+.combina-add-all{width:100%;background:none;border:1.5px solid var(--border);border-radius:50px;padding:8px;font-size:11px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;color:var(--text);margin-top:8px}
+
+/* RECOMENDACIÓN ZONA 2 (tras añadir) */
+#toast-recom{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);width:calc(100% - 32px);max-width:380px;background:#fff;border-radius:18px;box-shadow:0 8px 30px rgba(0,0,0,.18);z-index:980;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+#toast-recom.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+.toast-recom-head{display:flex;align-items:center;gap:6px;padding:10px 14px 0;font-size:12px;font-weight:800;color:var(--green)}
+.toast-recom-body{display:flex;align-items:center;gap:10px;padding:10px 14px 12px}
+.toast-recom-img{width:48px;height:48px;border-radius:10px;object-fit:cover;flex-shrink:0;background:#f5f0eb}
+.toast-recom-info{flex:1;min-width:0}
+.toast-recom-nombre{font-size:12px;font-weight:800;line-height:1.25;margin-bottom:2px}
+.toast-recom-precio{font-size:12px;font-weight:900;color:var(--red)}
+.toast-recom-btns{display:flex;gap:6px;flex-shrink:0}
+.toast-recom-btn-add{background:var(--red);color:#fff;border:none;border-radius:50px;padding:7px 12px;font-size:11px;font-weight:900;cursor:pointer;white-space:nowrap}
+.toast-recom-btn-no{background:none;border:none;color:var(--text-soft);font-size:11px;font-weight:700;cursor:pointer;padding:7px 4px}
 
 /* TOAST */
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--dark);color:#fff;padding:10px 20px;border-radius:50px;font-size:13px;font-weight:700;white-space:nowrap;z-index:999;opacity:0;transition:all .3s;pointer-events:none;max-width:90vw;text-align:center}
@@ -393,11 +367,6 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
     <button class="cat-btn" onclick="scrollToSection('postres')">🍮 Postres</button>
     <button class="cat-btn" onclick="scrollToSection('bebidas')">🥤 Bebidas</button>
   </div>
-
-<!-- BOTÓN FLOTANTE PRESUPUESTO -->
-<div id="btn-menu-presupuesto" onclick="abrirModalPresupuesto()">
-  🧑‍🍳 El chef elige por ti
-</div>
 
   <div id="sec-destacados" style="scroll-margin-top:110px">
   <div id="destacados-wrap" style="padding:20px 16px 0;display:none">
@@ -563,44 +532,6 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
   <div class="sugerencia-cards" id="sugerencia-cards"></div>
 </div>
 
-<!-- MODAL PRESUPUESTO -->
-<div id="modal-presupuesto" onclick="if(event.target===this)cerrarModalPresupuesto()">
-  <div id="modal-pres-box">
-    <div class="pres-header">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <div class="pres-titulo">🧑‍🍳 El chef elige por ti</div>
-        <button onclick="cerrarModalPresupuesto()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-soft);line-height:1;padding:0">×</button>
-      </div>
-      <div class="pres-sub">¿Cuánto quieres gastar por persona?</div>
-      <div class="pres-btns">
-        <button class="pres-btn-amt" onclick="seleccionarPresupuesto(10,this)">10€</button>
-        <button class="pres-btn-amt" onclick="seleccionarPresupuesto(15,this)">15€</button>
-        <button class="pres-btn-amt" onclick="seleccionarPresupuesto(20,this)">20€</button>
-        <button class="pres-btn-amt" onclick="seleccionarPresupuesto(25,this)">25€</button>
-        <button class="pres-btn-amt" onclick="seleccionarPresupuesto(30,this)">30€</button>
-      </div>
-    </div>
-    <div class="pres-scroll" id="pres-scroll">
-      <div id="pres-menus-wrap"></div>
-      <div class="pres-upsell" id="pres-upsell">
-        <div class="pres-upsell-titulo">🔥 ¿Le añades algo más?</div>
-        <div class="pres-upsell-items" id="pres-upsell-items"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL CAMBIAR PRODUCTO -->
-<div id="modal-cambiar" onclick="if(event.target===this)cerrarModalCambiar()">
-  <div id="modal-cambiar-box">
-    <div class="cambiar-header">
-      <div class="cambiar-titulo" id="cambiar-titulo">Elige una alternativa</div>
-      <button class="cambiar-close" onclick="cerrarModalCambiar()">×</button>
-    </div>
-    <div class="cambiar-lista" id="cambiar-lista"></div>
-  </div>
-</div>
-
 <!-- ALÉRGENOS -->
 <div id="alergenos-btn" onclick="toggleAlergenos()" title="Filtro de alérgenos">
   <span style="font-size:16px">⚠️</span><span>Alérgenos</span>
@@ -645,6 +576,11 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
       <div class="plato-modal-name" id="plato-modal-name"></div>
       <div class="plato-modal-desc" id="plato-modal-desc"></div>
       <div id="plato-modal-allergens" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px"></div>
+      <div class="combina-wrap" id="combina-wrap">
+        <div class="combina-titulo">Suele combinarse con</div>
+        <div class="combina-cards" id="combina-cards"></div>
+        <button class="combina-add-all" id="combina-add-all" onclick="añadirTodasCombina()">🛒 Añadir recomendaciones</button>
+      </div>
       <div class="plato-modal-footer" style="margin-top:0">
         <div class="plato-modal-price" id="plato-modal-price"></div>
       </div>
@@ -655,6 +591,21 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div id="toast-recom">
+  <div class="toast-recom-head">✅ Producto añadido correctamente</div>
+  <div class="toast-recom-body">
+    <img class="toast-recom-img" id="toast-recom-img" src="" alt="">
+    <div class="toast-recom-info">
+      <div class="toast-recom-nombre" id="toast-recom-nombre"></div>
+      <div class="toast-recom-precio" id="toast-recom-precio"></div>
+    </div>
+    <div class="toast-recom-btns">
+      <button class="toast-recom-btn-add" id="toast-recom-btn-add" onclick="añadirRecomZona2()">🛒 Añadir</button>
+      <button class="toast-recom-btn-no" onclick="cerrarToastRecom()">No, gracias</button>
+    </div>
+  </div>
+</div>
 <div class="toast-valoracion" id="toast-valoracion">
   <div class="toast-valoracion-text">¿Te está gustando la experiencia? <a href="https://maps.app.goo.gl/ZXtj1fRr9zwk7mgA8" target="_blank" class="toast-valoracion-link">Cuéntanosla ⭐</a></div>
   <button class="toast-valoracion-close" onclick="document.getElementById('toast-valoracion').classList.remove('show')">×</button>
@@ -772,6 +723,7 @@ async function registrarInteres(platoId, tipo) {
 function toggleGuardar(id) {
   var item = findItem(id);
   if (!item) return;
+  var seEstaAñadiendo = !listaGuardados[id];
   if (listaGuardados[id]) {
     delete listaGuardados[id];
   } else {
@@ -798,6 +750,70 @@ function toggleGuardar(id) {
       setTimeout(function(){ tv.classList.remove('show'); }, 15000);
     }, 1000);
   }
+  if (seEstaAñadiendo && !suprimirRecomZona2) {
+    setTimeout(function(){ mostrarRecomZona2(item); }, 600);
+  }
+}
+
+// ══ RECOMENDACIÓN ZONA 2 (tras añadir un producto) ══
+var recomZona2Activa = null; // { item, categoriaExcluida }
+var toastRecomTimer = null;
+var suprimirRecomZona2 = false;
+
+async function mostrarRecomZona2(itemAñadido) {
+  await cargarPopularidadProductos();
+
+  var catAñadida = '';
+  Object.keys(MENU).forEach(function(c) {
+    if ((MENU[c]||[]).some(function(p){ return p.id === itemAñadido.id; })) catAñadida = c;
+  });
+
+  // Buscar el mejor producto de CUALQUIER otra categoría (nunca la misma)
+  var categoriasDisponibles = Object.keys(MENU).filter(function(c) {
+    return c !== catAñadida && (MENU[c]||[]).length > 0;
+  });
+  if (!categoriasDisponibles.length) return;
+
+  var mejorCandidato = null;
+  var mejorScore = -Infinity;
+  categoriasDisponibles.forEach(function(cat) {
+    var candidato = elegirMejorDeCategoria(cat, [itemAñadido.name].concat(Object.values(listaGuardados).map(function(g){return g.name;})));
+    if (candidato) {
+      var pop = popularidadProductos || {};
+      var score = (pop[candidato.name] || 0) * 10 - (contadorMostrado[candidato.name] || 0) * 2;
+      if (score > mejorScore) { mejorScore = score; mejorCandidato = candidato; }
+    }
+  });
+
+  if (!mejorCandidato || listaGuardados[mejorCandidato.id]) return;
+
+  contadorMostrado[mejorCandidato.name] = (contadorMostrado[mejorCandidato.name] || 0) + 1;
+  recomZona2Activa = mejorCandidato;
+
+  document.getElementById('toast-recom-img').src = mejorCandidato.img;
+  document.getElementById('toast-recom-nombre').textContent = mejorCandidato.name;
+  document.getElementById('toast-recom-precio').textContent = mejorCandidato.price.toFixed(2).replace('.',',') + '€';
+
+  var toast = document.getElementById('toast-recom');
+  toast.classList.add('show');
+  if (toastRecomTimer) clearTimeout(toastRecomTimer);
+  toastRecomTimer = setTimeout(cerrarToastRecom, 8000);
+}
+
+function añadirRecomZona2() {
+  if (!recomZona2Activa) return;
+  suprimirRecomZona2 = true;
+  toggleGuardar(recomZona2Activa.id);
+  suprimirRecomZona2 = false;
+  var nombreAñadido = recomZona2Activa.name;
+  cerrarToastRecom();
+  showToast('🛒 ' + nombreAñadido + ' añadido');
+}
+
+function cerrarToastRecom() {
+  document.getElementById('toast-recom').classList.remove('show');
+  if (toastRecomTimer) { clearTimeout(toastRecomTimer); toastRecomTimer = null; }
+  recomZona2Activa = null;
 }
 
 function actualizarBtnGuardar(id) {
@@ -1553,6 +1569,7 @@ function abrirPlatoModal(id) {
   else { btn.className='plato-modal-guardar-pequeno'; btn.innerHTML='🔖 Guardar para pedir'; }
   document.getElementById('plato-modal').classList.add('open');
   registrarInteres(id, 'ver_detalle');
+  renderCombinaConWrap(item);
 }
 function abrirPreguntaDesdeModal() {
   if (!platoModalId) return;
@@ -1560,6 +1577,120 @@ function abrirPreguntaDesdeModal() {
   if (!item) return;
   document.getElementById('plato-modal').classList.remove('open');
   showAsk(item.name);
+}
+
+// ══ RECOMENDACIONES — popularidad real (clics+guardados, últimos 30 días) ══
+var popularidadProductos = null; // { 'Nombre plato': scoreNormalizado(0-1) }
+var contadorMostrado = {}; // { 'Nombre plato': vecesMostradoEstaSesion } para evitar saturación
+
+async function cargarPopularidadProductos() {
+  if (popularidadProductos) return popularidadProductos;
+  try {
+    var hace30 = new Date();
+    hace30.setDate(hace30.getDate() - 30);
+    var r = await sb.from('carta_clics')
+      .select('plato_nombre, tipo')
+      .eq('restaurante_id', RESTAURANTE_ID)
+      .in('tipo', ['ver_detalle', 'añadir'])
+      .gte('fecha', hace30.toISOString());
+    var conteo = {};
+    (r.data || []).forEach(function(c) {
+      if (!c.plato_nombre) return;
+      var peso = c.tipo === 'añadir' ? 4 : 1;
+      conteo[c.plato_nombre] = (conteo[c.plato_nombre] || 0) + peso;
+    });
+    var max = Math.max.apply(null, Object.values(conteo).concat([1]));
+    var normalizado = {};
+    Object.keys(conteo).forEach(function(nombre) { normalizado[nombre] = conteo[nombre] / max; });
+    popularidadProductos = normalizado;
+  } catch(e) {
+    popularidadProductos = {};
+  }
+  return popularidadProductos;
+}
+
+// Elige el mejor producto de una categoría: popularidad real, con rotación si se ha mostrado mucho
+function elegirMejorDeCategoria(categoria, excluirNombres) {
+  var lista = (MENU[categoria] || []).filter(function(p) {
+    return !excluirNombres.includes(p.name);
+  });
+  if (!lista.length) return null;
+  var pop = popularidadProductos || {};
+  var puntuados = lista.map(function(p) {
+    var score = (pop[p.name] || 0) * 10;
+    score -= (contadorMostrado[p.name] || 0) * 2; // evitar saturación: baja prioridad si se mostró mucho
+    return { item: p, score: score };
+  });
+  puntuados.sort(function(a,b){ return b.score - a.score; });
+  // Entre los 2 mejores, elegir con algo de rotación
+  var top = puntuados.slice(0, Math.min(2, puntuados.length));
+  var elegido = top[Math.floor(Math.random() * top.length)];
+  return elegido.item;
+}
+
+async function renderCombinaConWrap(itemPrincipal) {
+  await cargarPopularidadProductos();
+  var wrap = document.getElementById('combina-wrap');
+  var cardsEl = document.getElementById('combina-cards');
+
+  var catPrincipal = itemPrincipal.categoria || '';
+  Object.keys(MENU).forEach(function(c) {
+    if ((MENU[c]||[]).some(function(p){ return p.id === itemPrincipal.id; })) catPrincipal = c;
+  });
+
+  var excluir = [itemPrincipal.name];
+  var sugerencias = [];
+
+  // Entrante (si el plato principal no es ya un entrante)
+  if (catPrincipal !== 'entrantes') {
+    var ent = elegirMejorDeCategoria('entrantes', excluir);
+    if (ent) { sugerencias.push(ent); excluir.push(ent.name); }
+  }
+  // Bebida
+  if (catPrincipal !== 'bebidas') {
+    var beb = elegirMejorDeCategoria('bebidas', excluir);
+    if (beb) { sugerencias.push(beb); excluir.push(beb.name); }
+  }
+  // Postre
+  if (catPrincipal !== 'postres') {
+    var pos = elegirMejorDeCategoria('postres', excluir);
+    if (pos) { sugerencias.push(pos); excluir.push(pos.name); }
+  }
+
+  if (!sugerencias.length) { wrap.classList.remove('show'); return; }
+
+  sugerencias.forEach(function(p) { contadorMostrado[p.name] = (contadorMostrado[p.name] || 0) + 1; });
+
+  cardsEl.innerHTML = sugerencias.map(function(p) {
+    var guardado = !!listaGuardados[p.id];
+    return '<div class="combina-card">'
+      + '<img class="combina-card-img" src="' + p.img + '" alt="' + p.name + '" onerror="this.style.display=&quot;none&quot;">'
+      + '<div class="combina-card-body">'
+      + '<div class="combina-card-nombre">' + p.name + '</div>'
+      + '<div class="combina-card-precio">' + p.price.toFixed(2).replace('.',',') + '€</div>'
+      + '<button class="combina-card-btn' + (guardado?' added':'') + '" id="combina-btn-' + p.id + '" onclick="toggleGuardar(&quot;' + p.id + '&quot;);actualizarBtnCombina(&quot;' + p.id + '&quot;)">' + (guardado?'\u2713 A\u00f1adido':'\ud83d\uded2 A\u00f1adir') + '</button>'
+      + '</div></div>';
+  }).join('');
+
+  wrap.classList.add('show');
+}
+
+function actualizarBtnCombina(id) {
+  var btn = document.getElementById('combina-btn-' + id);
+  if (!btn) return;
+  if (listaGuardados[id]) { btn.classList.add('added'); btn.textContent = '✓ Añadido'; }
+  else { btn.classList.remove('added'); btn.textContent = '🛒 Añadir'; }
+}
+
+function añadirTodasCombina() {
+  var cards = document.querySelectorAll('#combina-cards .combina-card-btn');
+  suprimirRecomZona2 = true;
+  cards.forEach(function(btn) {
+    var id = btn.id.replace('combina-btn-', '');
+    if (!listaGuardados[id]) { toggleGuardar(id); actualizarBtnCombina(id); }
+  });
+  suprimirRecomZona2 = false;
+  showToast('🛒 Recomendaciones añadidas');
 }
 
 function closePlatoModal(e) {
@@ -1591,484 +1722,6 @@ function destGuardar(id) {
 }
 
 // ══ ALÉRGENOS ══
-// ══ MODAL PRESUPUESTO ══
-var presMenusData = []; // [{nombre, tipo, precio, id}] x3 menus
-var presPresupuestoSeleccionado = 0;
-var presCambioActivo = null; // {menuIdx, platoIdx}
-var popularidadCache = null; // { 'Nombre plato': scoreNormalizado(0-1) }
-var frecuenciaAparicion = {}; // { 'Nombre plato': vecesUsadoEnEstaSesion }
-
-async function cargarPopularidad() {
-  if (popularidadCache) return popularidadCache;
-  try {
-    var hace30 = new Date();
-    hace30.setDate(hace30.getDate() - 30);
-    var r = await sb.from('carta_clics')
-      .select('plato_nombre, tipo')
-      .eq('restaurante_id', RESTAURANTE_ID)
-      .in('tipo', ['ver_detalle', 'añadir'])
-      .gte('fecha', hace30.toISOString());
-
-    var conteo = {};
-    (r.data || []).forEach(function(c) {
-      if (!c.plato_nombre) return;
-      var peso = c.tipo === 'añadir' ? 4 : 1; // guardados pesan más, igual que en el panel admin
-      conteo[c.plato_nombre] = (conteo[c.plato_nombre] || 0) + peso;
-    });
-
-    var max = Math.max.apply(null, Object.values(conteo).concat([1]));
-    var normalizado = {};
-    Object.keys(conteo).forEach(function(nombre) {
-      normalizado[nombre] = conteo[nombre] / max; // 0 a 1
-    });
-    popularidadCache = normalizado;
-  } catch(e) {
-    popularidadCache = {};
-  }
-  return popularidadCache;
-}
-
-function abrirModalPresupuesto() {
-  document.getElementById('modal-presupuesto').classList.add('open');
-  document.getElementById('pres-menus-wrap').innerHTML = '';
-  document.getElementById('pres-upsell').classList.remove('show');
-  presMenusData = [];
-  presPresupuestoSeleccionado = 0;
-  presCambioActivo = null;
-  document.querySelectorAll('.pres-btn-amt').forEach(function(b){ b.classList.remove('active'); });
-}
-
-function cerrarModalPresupuesto() {
-  document.getElementById('modal-presupuesto').classList.remove('open');
-}
-
-async function seleccionarPresupuesto(amt, btn) {
-  presPresupuestoSeleccionado = amt;
-  document.querySelectorAll('.pres-btn-amt').forEach(function(b){ b.classList.remove('active'); });
-  btn.classList.add('active');
-  var upsellEl = document.getElementById('pres-upsell');
-  if (upsellEl) upsellEl.classList.remove('show');
-  presCambioActivo = null;
-  await generarMenusPresupuesto(amt);
-}
-
-// Categorías que NO deben usarse como "principal" pero sí pueden filtrarse de bebidas/entrantes si son caras
-var PALABRAS_PROHIBIDAS = ['vino','botella','reserva','crianza','rioja','ribera','champan','champán','cava brut nature','magnum'];
-var BEBIDAS_NO_PRINCIPALES = ['cafe','café','cortado','espresso','expreso','infusion','infusión','te','té','manzanilla','poleo','tila','capuchino','capuccino','carajillo'];
-
-function esProductoProhibido(nombre, categoria, precio) {
-  var nombreLower = nombre.toLowerCase();
-  if (categoria === 'bebidas') {
-    var esVino = PALABRAS_PROHIBIDAS.some(function(palabra){ return nombreLower.indexOf(palabra) !== -1; });
-    if (esVino) return true;
-    if (precio > 6.5) return true;
-    // Café, infusiones, etc. no son bebida principal de una comida
-    var esPostComida = BEBIDAS_NO_PRINCIPALES.some(function(palabra){ return nombreLower.indexOf(palabra) !== -1; });
-    if (esPostComida) return true;
-  }
-  return false;
-}
-
-function obtenerPlatosPorRol() {
-  var principales = [];
-  ['pizzas','pastas','ensaladas'].forEach(function(cat) {
-    (MENU[cat]||[]).forEach(function(p) {
-      principales.push({ nombre: p.name, categoria: cat, precio: p.price });
-    });
-  });
-  var bebidas = (MENU['bebidas']||[]).filter(function(p) {
-    return !esProductoProhibido(p.name, 'bebidas', p.price);
-  }).map(function(p){ return { nombre: p.name, categoria: 'bebidas', precio: p.price }; });
-  var postres = (MENU['postres']||[]).map(function(p){ return { nombre: p.name, categoria: 'postres', precio: p.price }; });
-  var entrantes = (MENU['entrantes']||[]).map(function(p){ return { nombre: p.name, categoria: 'entrantes', precio: p.price }; });
-  return { principales: principales, bebidas: bebidas, postres: postres, entrantes: entrantes };
-}
-
-// Genera TODAS las combinaciones posibles para una estructura dada
-function generarCandidatos(estructura, datos) {
-  var candidatos = [];
-  var p = datos.principales, b = datos.bebidas, po = datos.postres, e = datos.entrantes;
-
-  if (estructura === 'pb') {
-    for (var i = 0; i < p.length; i++) {
-      for (var j = 0; j < b.length; j++) {
-        candidatos.push([p[i], b[j]]);
-      }
-    }
-  } else if (estructura === 'pbd') {
-    for (var i = 0; i < p.length; i++) {
-      for (var j = 0; j < b.length; j++) {
-        for (var k = 0; k < po.length; k++) {
-          candidatos.push([p[i], b[j], po[k]]);
-        }
-      }
-    }
-  } else if (estructura === 'epbd') {
-    for (var i = 0; i < p.length; i++) {
-      for (var j = 0; j < b.length; j++) {
-        for (var k = 0; k < po.length; k++) {
-          for (var l = 0; l < e.length; l++) {
-            candidatos.push([e[l], p[i], b[j], po[k]]);
-          }
-        }
-      }
-    }
-  }
-  return candidatos;
-}
-
-// Puntúa un candidato: cercanía al rango objetivo + bonus de variedad (penaliza nombres ya usados)
-function puntuarCandidato(platos, min, max, nombresUsados) {
-  var total = platos.reduce(function(s,p){ return s + p.precio; }, 0);
-  var centro = (min + max) / 2;
-  var rango = (max - min) || 1;
-
-  var score = 0;
-
-  // CERCANÍA AL PRECIO (peso dominante, ~50%)
-  if (total >= min && total <= max) {
-    var distNormalizada = Math.abs(total - centro) / (rango / 2);
-    score += 100 - distNormalizada * 10; // 90-100 puntos si está dentro de rango
-  } else {
-    var distFuera = total < min ? (min - total) : (total - max);
-    score -= distFuera * 40;
-  }
-
-  // POPULARIDAD (~15%): platos más vendidos/guardados puntúan más
-  var pop = popularidadCache || {};
-  var popularidadMedia = platos.reduce(function(s, p) {
-    return s + (pop[p.nombre] || 0);
-  }, 0) / platos.length;
-  score += popularidadMedia * 15; // hasta +15 puntos si todos son muy populares
-
-  // FRECUENCIA DE APARICIÓN EN ESTA SESIÓN: penalizar platos ya recomendados muchas veces
-  var penalizFrecuencia = platos.reduce(function(s, p) {
-    var veces = frecuenciaAparicion[p.nombre] || 0;
-    return s + veces;
-  }, 0);
-  score -= penalizFrecuencia * 4;
-
-  // VARIEDAD entre los 3 menús de esta generación
-  var nombresPlatos = platos.map(function(p){ return p.nombre; });
-  var repetidos = nombresPlatos.filter(function(n){ return nombresUsados.includes(n); }).length;
-  score -= repetidos * 20;
-
-  // Pequeño bonus aleatorio para diversidad controlada
-  score += Math.random() * 1.5;
-
-  return { platos: platos, total: total, score: score };
-}
-
-function elegirMejorCandidato(estructura, datos, min, max, nombresUsados, maxDesviacion) {
-  maxDesviacion = maxDesviacion === undefined ? null : maxDesviacion; // € máximos fuera de rango permitidos
-  var candidatos = generarCandidatos(estructura, datos);
-  if (!candidatos.length) return null;
-
-  var puntuados = candidatos.map(function(c) {
-    return puntuarCandidato(c, min, max, nombresUsados);
-  });
-
-  // Si se especifica una desviación máxima, descartar candidatos que se salgan demasiado
-  if (maxDesviacion !== null) {
-    puntuados = puntuados.filter(function(p) {
-      if (p.total >= min && p.total <= max) return true;
-      var dist = p.total < min ? (min - p.total) : (p.total - max);
-      return dist <= maxDesviacion;
-    });
-  }
-
-  if (!puntuados.length) return null;
-
-  puntuados.sort(function(a, b) { return b.score - a.score; });
-
-  // Tomar todos los candidatos cuya puntuación esté cerca de la mejor (dentro de 5 puntos)
-  // así variamos entre todos los que son igual de buenos en vez de solo el top 2
-  var mejorScore = puntuados[0].score;
-  var candidatosBuenos = puntuados.filter(function(p) { return mejorScore - p.score <= 5; });
-  // Limitar a un máximo razonable para no perder calidad si hay muchísimos empatados
-  var topN = candidatosBuenos.slice(0, Math.min(8, candidatosBuenos.length));
-  var elegido = topN[Math.floor(Math.random() * topN.length)];
-
-  return elegido;
-}
-
-// Rangos fijos exactos definidos por presupuesto. Para valores intermedios, interpolamos.
-var RANGOS_PRESUPUESTO = {
-  10: { econ: [9, 11],  rec: [11, 13], prem: [13, 15] },
-  15: { econ: [14, 16], rec: [16, 19], prem: [19, 22] },
-  20: { econ: [19, 21], rec: [22, 25], prem: [25, 28] },
-  25: { econ: [24, 26], rec: [27, 30], prem: [30, 33] },
-  30: { econ: [28, 30], rec: [31, 35], prem: [35, 38] }
-};
-
-function obtenerRangos(amt) {
-  if (RANGOS_PRESUPUESTO[amt]) return RANGOS_PRESUPUESTO[amt];
-  // Interpolación lineal entre los presupuestos fijos más cercanos para valores no estándar
-  var claves = Object.keys(RANGOS_PRESUPUESTO).map(Number).sort(function(a,b){return a-b;});
-  var inferior = claves[0], superior = claves[claves.length-1];
-  for (var i = 0; i < claves.length - 1; i++) {
-    if (amt >= claves[i] && amt <= claves[i+1]) { inferior = claves[i]; superior = claves[i+1]; break; }
-  }
-  if (amt <= claves[0]) { inferior = superior = claves[0]; }
-  if (amt >= claves[claves.length-1]) { inferior = superior = claves[claves.length-1]; }
-  var t = superior === inferior ? 0 : (amt - inferior) / (superior - inferior);
-  function interp(a, b) { return a + (b - a) * t; }
-  var ri = RANGOS_PRESUPUESTO[inferior], rs = RANGOS_PRESUPUESTO[superior];
-  return {
-    econ: [interp(ri.econ[0], rs.econ[0]), interp(ri.econ[1], rs.econ[1])],
-    rec:  [interp(ri.rec[0],  rs.rec[0]),  interp(ri.rec[1],  rs.rec[1])],
-    prem: [interp(ri.prem[0], rs.prem[0]), interp(ri.prem[1], rs.prem[1])]
-  };
-}
-
-function calcularMenuLocal(amt) {
-  var datos = obtenerPlatosPorRol();
-  var r = obtenerRangos(amt);
-
-  var nombresUsados = [];
-
-  // Intento estricto (desviación 0 = debe estar dentro del rango exacto)
-  var econ = elegirMejorCandidato('pb', datos, r.econ[0], r.econ[1], nombresUsados, 0);
-  // Si no hay nada exacto, relajar progresivamente (máx 1€, luego 2€, luego 3€ fuera de rango)
-  if (!econ) econ = elegirMejorCandidato('pb', datos, r.econ[0], r.econ[1], nombresUsados, 1.5);
-  if (!econ) econ = elegirMejorCandidato('pb', datos, r.econ[0], r.econ[1], nombresUsados, 3);
-  if (econ) nombresUsados = nombresUsados.concat(econ.platos.map(function(p){return p.nombre;}));
-
-  var rec = elegirMejorCandidato('pbd', datos, r.rec[0], r.rec[1], nombresUsados, 0);
-  if (!rec) rec = elegirMejorCandidato('pbd', datos, r.rec[0], r.rec[1], nombresUsados, 1.5);
-  if (!rec) rec = elegirMejorCandidato('pb', datos, r.rec[0], r.rec[1], nombresUsados, 1.5); // sin postre si no hay
-  if (!rec) rec = elegirMejorCandidato('pbd', datos, r.rec[0], r.rec[1], nombresUsados, 3);
-  if (rec) nombresUsados = nombresUsados.concat(rec.platos.map(function(p){return p.nombre;}));
-
-  var prem = elegirMejorCandidato('epbd', datos, r.prem[0], r.prem[1], nombresUsados, 0);
-  if (!prem) prem = elegirMejorCandidato('epbd', datos, r.prem[0], r.prem[1], nombresUsados, 1.5);
-  if (!prem) prem = elegirMejorCandidato('pbd', datos, r.prem[0], r.prem[1], nombresUsados, 1.5); // sin entrante
-  if (!prem) prem = elegirMejorCandidato('epbd', datos, r.prem[0], r.prem[1], nombresUsados, 3);
-
-  var resultado = [
-    { nombre: 'Menú económico', platos: econ ? econ.platos : [] },
-    { nombre: 'Menú recomendado', platos: rec ? rec.platos : [] },
-    { nombre: 'Menú premium', platos: prem ? prem.platos : [] }
-  ];
-
-  // Registrar frecuencia de aparición para penalizar repetición en próximas generaciones de esta sesión
-  resultado.forEach(function(menu) {
-    menu.platos.forEach(function(p) {
-      frecuenciaAparicion[p.nombre] = (frecuenciaAparicion[p.nombre] || 0) + 1;
-    });
-  });
-
-  return resultado;
-}
-
-async function generarMenusPresupuesto(amt) {
-  var wrap = document.getElementById('pres-menus-wrap');
-  wrap.innerHTML = '<div class="pres-loading">🧑‍🍳 Preparando tus opciones...</div>';
-
-  try {
-    await cargarPopularidad();
-    presMenusData = calcularMenuLocal(amt);
-    var algunoValido = presMenusData.some(function(m){ return m.platos.length > 0; });
-    if (!algunoValido) throw new Error('Sin combinaciones posibles');
-    renderMenusPresupuesto();
-  } catch(e) {
-    wrap.innerHTML = '<div class="pres-loading">No encontré combinaciones para ese presupuesto. Prueba con otro importe.</div>';
-  }
-}
-
-function renderMenusPresupuesto() {
-  var wrap = document.getElementById('pres-menus-wrap');
-  wrap.innerHTML = presMenusData.map(function(menu, mi) {
-    var esRec = mi === 1;
-    var total = menu.platos.reduce(function(s,p){ return s+p.precio; }, 0);
-    menu.total = total;
-    var platosHtml = menu.platos.map(function(p, pi) {
-      // Buscar item real en MENU para foto y descripción
-      var item = null;
-      Object.values(MENU).forEach(function(arr) {
-        var f = arr.find(function(x){ return x.name === p.nombre; });
-        if (f) item = f;
-      });
-      var imgSrc = (item && item.img) ? item.img : '';
-      var desc = (item && item.desc) ? item.desc : '';
-      return '<div class="pres-plato-item">'
-        + (imgSrc ? '<img class="pres-plato-img" src="' + imgSrc + '" alt="' + p.nombre + '" onerror="this.style.display=\'none\'">' : '<div class="pres-plato-img"></div>')
-        + '<div class="pres-plato-info">'
-        + '<div class="pres-plato-nombre">' + p.nombre + '</div>'
-        + (desc ? '<div class="pres-plato-desc">' + desc + '</div>' : '')
-        + '<div class="pres-plato-precio">' + p.precio.toFixed(2).replace('.',',') + '€</div>'
-        + '<button class="pres-cambiar-btn" onclick="mostrarAlternativas(' + mi + ',' + pi + ',this)">🔄 Cambiar</button>'
-        + '</div></div>';
-    }).join('');
-
-    return '<div class="pres-menu-card' + (esRec ? ' rec' : '') + '">'
-      + (esRec ? '<div class="pres-badge">⭐ Recomendado</div>' : '')
-      + '<div class="pres-card-header">'
-      + '<div class="pres-menu-nombre">' + menu.nombre + '</div>'
-      + '<div style="display:flex;align-items:center;gap:10px">'
-      + '<div class="pres-total" id="pres-total-' + mi + '">' + total.toFixed(2).replace('.',',') + '€</div>'
-      + '<button class="pres-añadir-btn" onclick="añadirMenuCompleto(' + mi + ')">🛒 Añadir</button>'
-      + '</div></div>'
-      + '<div class="pres-platos-list">' + platosHtml + '</div>'
-      + '</div>';
-  }).join('');
-}
-
-function mostrarAlternativas(menuIdx, platoIdx, btn) {
-  presCambioActivo = { menuIdx: menuIdx, platoIdx: platoIdx };
-  var plato = presMenusData[menuIdx].platos[platoIdx];
-  var cat = plato.categoria;
-  var precio = plato.precio;
-
-  // Alternativas de la misma categoría con precio similar (±40%), excluyendo el actual
-  var alternativas = (MENU[cat] || []).filter(function(p) {
-    return p.name !== plato.nombre && Math.abs(p.price - precio) <= precio * 0.4;
-  });
-
-  document.getElementById('cambiar-titulo').textContent = 'Cambiar: ' + plato.nombre;
-  var lista = document.getElementById('cambiar-lista');
-
-  if (!alternativas.length) {
-    lista.innerHTML = '<div class="cambiar-empty">No hay alternativas similares disponibles en esta categoría.</div>';
-  } else {
-    lista.innerHTML = alternativas.map(function(p) {
-      var safeName = p.name.replace(/'/g,"\\'");
-      var imgSrc = p.img || '';
-      var desc = p.desc || '';
-      return '<div class="cambiar-card" onclick="elegirAlternativa(\'' + safeName + '\',' + p.price + ')">'
-        + (imgSrc ? '<img class="cambiar-card-img" src="' + imgSrc + '" alt="' + p.name + '" onerror="this.style.display=\'none\'">' : '<div class="cambiar-card-img"></div>')
-        + '<div class="cambiar-card-info">'
-        + '<div class="cambiar-card-nombre">' + p.name + '</div>'
-        + (desc ? '<div class="cambiar-card-desc">' + desc + '</div>' : '')
-        + '<div class="cambiar-card-precio">' + p.price.toFixed(2).replace('.',',') + '€</div>'
-        + '</div></div>';
-    }).join('');
-  }
-
-  document.getElementById('modal-cambiar').classList.add('open');
-}
-
-function cerrarModalCambiar() {
-  document.getElementById('modal-cambiar').classList.remove('open');
-  presCambioActivo = null;
-}
-
-function elegirAlternativa(nombre, precio) {
-  if (!presCambioActivo) return;
-  var mi = presCambioActivo.menuIdx;
-  var pi = presCambioActivo.platoIdx;
-  var cat = presMenusData[mi].platos[pi].categoria;
-  Object.keys(MENU).forEach(function(c) {
-    if ((MENU[c]||[]).some(function(p){ return p.name === nombre; })) cat = c;
-  });
-  presMenusData[mi].platos[pi] = { nombre: nombre, precio: precio, categoria: cat };
-  cerrarModalCambiar();
-  renderMenusPresupuesto();
-  var card = document.querySelectorAll('.pres-menu-card')[mi];
-  if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-function añadirMenuCompleto(menuIdx) {
-  var menu = presMenusData[menuIdx];
-  if (!menu) return;
-  // Añadir cada plato a la lista de guardados
-  menu.platos.forEach(function(p) {
-    var item = null;
-    Object.values(MENU).forEach(function(arr) {
-      var found = arr.find(function(x){ return x.name === p.nombre; });
-      if (found) item = found;
-    });
-    if (item && !listaGuardados[item.id]) {
-      listaGuardados[item.id] = true;
-      actualizarBtnGuardar(item.id);
-    }
-  });
-  guardarListaGuardados();
-
-  // Registrar estadística
-  var totalFinal = menu.platos.reduce(function(s,p){ return s+p.precio; }, 0);
-  var pct = presPresupuestoSeleccionado > 0
-    ? Math.round((totalFinal - presPresupuestoSeleccionado) / presPresupuestoSeleccionado * 100)
-    : 0;
-  registrarInteres('__menu_presupuesto__', 'añadir', {
-    presupuesto: presPresupuestoSeleccionado,
-    total_final: parseFloat(totalFinal.toFixed(2)),
-    pct_variacion: pct,
-    tipo_menu: menuIdx === 0 ? 'economico' : menuIdx === 1 ? 'recomendado' : 'premium'
-  });
-
-  // Toast confirmación
-  var toastEl = document.getElementById('toast');
-  if (toastEl) {
-    toastEl.textContent = '✅ Menú añadido (' + totalFinal.toFixed(2).replace('.',',') + '€)';
-    toastEl.classList.add('show');
-    setTimeout(function(){ toastEl.classList.remove('show'); toastEl.textContent = ''; }, 3000);
-  }
-
-  // Mostrar upselling
-  mostrarUpsell(menu);
-}
-
-function mostrarUpsell(menu) {
-  var enMenu = menu.platos.map(function(p){ return p.nombre; });
-  var tienePostre = menu.platos.some(function(p){ return p.categoria === 'postres'; });
-  var tieneBebida = menu.platos.some(function(p){ return p.categoria === 'bebidas'; });
-
-  var sugerencias = [];
-
-  // Prioridad 1: postre si no tiene
-  if (!tienePostre) {
-    (MENU['postres']||[]).slice(0,2).forEach(function(p) {
-      if (!enMenu.includes(p.name)) sugerencias.push({ item: p, label: '🍮 Añade un postre' });
-    });
-  }
-
-  // Prioridad 2: bebida premium si solo tiene agua o no tiene
-  if (tieneBebida) {
-    var bebidaActual = menu.platos.find(function(p){ return p.categoria === 'bebidas'; });
-    (MENU['bebidas']||[]).forEach(function(p) {
-      if (!enMenu.includes(p.name) && p.price > (bebidaActual ? bebidaActual.precio : 0) && sugerencias.length < 4) {
-        sugerencias.push({ item: p, label: '🥤 Mejora tu bebida' });
-      }
-    });
-  }
-
-  // Prioridad 3: entrantes si no tiene
-  var tieneEntrante = menu.platos.some(function(p){ return p.categoria === 'entrantes'; });
-  if (!tieneEntrante) {
-    (MENU['entrantes']||[]).slice(0,2).forEach(function(p) {
-      if (!enMenu.includes(p.name) && sugerencias.length < 4) {
-        sugerencias.push({ item: p, label: '🥗 Empieza con algo' });
-      }
-    });
-  }
-
-  if (!sugerencias.length) return;
-
-  var upsell = document.getElementById('pres-upsell');
-  var titulo = upsell.querySelector('.pres-upsell-titulo');
-  if (titulo) titulo.textContent = '✨ Completa tu comida con...';
-
-  var items = document.getElementById('pres-upsell-items');
-  items.innerHTML = sugerencias.map(function(s) {
-    var safeName = s.item.name.replace(/"/g,'&quot;');
-    return '<div class="pres-upsell-pill" onclick="guardarUpsell(&quot;' + s.item.id + '&quot;,&quot;' + safeName + '&quot;)">'
-      + s.label + ': ' + s.item.name + ' <strong>+' + s.item.price.toFixed(2).replace('.',',') + '€</strong></div>';
-  }).join('');
-  upsell.classList.add('show');
-}
-
-function guardarUpsell(id, nombre) {
-  var realId = id.replace(/&quot;/g,'"');
-  if (!listaGuardados[realId]) {
-    listaGuardados[realId] = true;
-    actualizarBtnGuardar(realId);
-    guardarListaGuardados();
-    var pill = event.currentTarget || event.target;
-    if (pill) { pill.style.background='var(--red)'; pill.style.color='#fff'; pill.style.borderColor='var(--red)'; }
-  }
-}
-
 function toggleAlergenos() {
   var panel = document.getElementById('alergenos-panel');
   panelAlergenosAbierto = !panelAlergenosAbierto;
