@@ -812,7 +812,7 @@ function analizarPedidoYRecomendar() {
     var candidatosGenerales = [];
     todasCategorias.forEach(function(cat) {
       (MENU[cat]||[]).forEach(function(p) {
-        if (!excluir.includes(p.name)) candidatosGenerales.push(p);
+        if (!excluir.includes(p.name) && !listaGuardados[p.id]) candidatosGenerales.push(p);
       });
     });
     var pop = popularidadProductos || {};
@@ -1693,7 +1693,8 @@ async function cargarPopularidadProductos() {
 // Elige el mejor producto de una categoría: popularidad real, con rotación si se ha mostrado mucho
 function elegirMejorDeCategoria(categoria, excluirNombres) {
   var lista = (MENU[categoria] || []).filter(function(p) {
-    return !excluirNombres.includes(p.name);
+    // Nunca recomendar algo que el cliente ya tiene guardado, ni lo que se pide excluir explícitamente
+    return !excluirNombres.includes(p.name) && !listaGuardados[p.id];
   });
   if (!lista.length) return null;
   var pop = popularidadProductos || {};
