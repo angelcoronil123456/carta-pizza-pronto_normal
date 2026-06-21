@@ -281,35 +281,37 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 /* MODAL DETALLE PLATO */
 .plato-modal{position:fixed;inset:0;z-index:850;display:none;flex-direction:column;background:rgba(0,0,0,.6);backdrop-filter:blur(4px)}
 .plato-modal.open{display:flex}
-.plato-modal-inner{margin-top:auto;background:#fff;border-radius:28px 28px 0 0;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -8px 40px rgba(0,0,0,.25)}
-.plato-modal-img{width:100%;height:220px;object-fit:cover;flex-shrink:0}
-.plato-modal-body{padding:20px 20px 24px;overflow-y:auto;flex:1}
-.plato-modal-name{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:var(--text);margin-bottom:6px}
-.plato-modal-desc{font-size:14px;color:var(--text-soft);line-height:1.6;margin-bottom:12px}
-.plato-modal-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
-.plato-modal-price{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--red)}
-.plato-modal-close{position:absolute;top:16px;right:16px;background:rgba(0,0,0,.4);border:none;border-radius:50%;width:36px;height:36px;color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1}
-.plato-modal-ask-grande{width:100%;padding:14px;border-radius:50px;border:none;background:rgba(200,16,46,.08);border:1.5px solid rgba(200,16,46,.2);color:var(--red);font-size:15px;font-weight:900;cursor:pointer;transition:all .2s;margin-top:14px}
-.plato-modal-guardar-pequeno{display:block;width:100%;text-align:center;margin-top:10px;font-size:13px;font-weight:800;color:var(--text-soft);background:none;border:1.5px solid #e0d5ca;border-radius:50px;cursor:pointer;padding:8px}
+.plato-modal-inner{margin-top:auto;background:#fff;border-radius:28px 28px 0 0;max-height:94vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -8px 40px rgba(0,0,0,.25)}
+.plato-modal-img{width:100%;height:130px;object-fit:cover;flex-shrink:0}
+.plato-modal-body{padding:12px 18px 16px;overflow-y:auto;flex:1}
+.plato-modal-name{font-family:'Playfair Display',serif;font-size:17px;font-weight:900;color:var(--text);margin-bottom:2px}
+.plato-modal-desc{font-size:12px;color:var(--text-soft);line-height:1.35;margin-bottom:6px}
+.plato-modal-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+.plato-modal-price{font-family:'Playfair Display',serif;font-size:21px;font-weight:900;color:var(--red)}
+.plato-modal-close{position:absolute;top:16px;right:16px;background:rgba(0,0,0,.75);border:none;border-radius:50%;width:36px;height:36px;color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1}
+.plato-modal-ask-grande{width:100%;padding:11px;border-radius:50px;border:none;background:rgba(200,16,46,.08);border:1.5px solid rgba(200,16,46,.2);color:var(--red);font-size:13px;font-weight:900;cursor:pointer;transition:all .2s;margin-top:8px}
+.plato-modal-guardar-pequeno{display:block;width:100%;text-align:center;margin-top:6px;font-size:12px;font-weight:800;color:var(--text-soft);background:none;border:1.5px solid #e0d5ca;border-radius:50px;cursor:pointer;padding:7px}
 .plato-modal-guardar-pequeno.guardado{background:var(--red);border-color:var(--red);color:#fff}
 /* RECOMENDACIONES ZONA 1 (dentro del modal de plato) */
-.combina-wrap{margin:14px 0;display:none}
+.combina-wrap{margin:8px 0 0;display:none}
 .combina-wrap.show{display:block}
-.combina-titulo{font-size:12px;font-weight:900;color:var(--text-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.combina-titulo{font-size:11px;font-weight:900;color:var(--text-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
 .combina-cards{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
 .combina-cards::-webkit-scrollbar{display:none}
-.combina-card{flex-shrink:0;width:108px;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;background:#fff}
+.combina-card{flex-shrink:0;width:108px;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;background:#fff;cursor:pointer}
 .combina-card-img{width:100%;height:72px;object-fit:cover;background:#f5f0eb}
 .combina-card-body{padding:8px}
+.combina-card-desc{font-size:9.5px;color:var(--text-soft);line-height:1.25;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .combina-card-nombre{font-size:11px;font-weight:800;line-height:1.25;margin-bottom:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:28px}
 .combina-card-precio{font-size:11px;font-weight:900;color:var(--red);margin-bottom:5px}
 .combina-card-btn{width:100%;background:#f5f0eb;border:none;border-radius:50px;padding:5px;font-size:10px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif}
 .combina-card-btn.added{background:var(--red);color:#fff}
-.recom-final-sub{font-size:13px;color:var(--text-soft);text-align:center;margin-bottom:20px}
+.recom-final-sub{font-family:'Playfair Display',serif;font-size:17px;font-weight:900;color:var(--text);text-align:center;margin-bottom:16px}
 .recom-final-card{display:flex;gap:14px;align-items:center;border:1.5px solid var(--border);border-radius:18px;padding:14px;margin-bottom:14px}
 .recom-final-img{width:80px;height:80px;border-radius:14px;object-fit:cover;flex-shrink:0;background:#f5f0eb}
 .recom-final-info{flex:1;min-width:0}
 .recom-final-nombre{font-size:15px;font-weight:900;margin-bottom:3px}
+.recom-final-desc{font-size:11.5px;color:var(--text-soft);line-height:1.35;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .recom-final-precio{font-size:14px;font-weight:900;color:var(--red);margin-bottom:8px}
 .recom-final-btn{background:var(--red);color:#fff;border:none;border-radius:50px;padding:8px 18px;font-size:12px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif}
 .recom-final-btn.added{background:#2e7d32}
@@ -518,11 +520,11 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 <div class="lista-screen" id="recom-final-screen">
   <div class="lista-header">
     <button class="lista-back" onclick="cerrarRecomFinal()">←</button>
-    <div class="lista-title" id="recom-final-titulo">🍴 Recomendación de la casa</div>
+    <div class="lista-title">Antes de continuar, esto puede interesarte</div>
   </div>
-  <div class="lista-body" id="recom-final-body" style="padding:20px 16px"></div>
+  <div class="lista-body" id="recom-final-body" style="padding:18px 16px"></div>
   <div class="lista-footer">
-    <button class="btn-limpiar-lista" onclick="irAListaFinal()">Saltar →</button>
+    <button class="btn-limpiar-lista" onclick="irAListaFinal()">Continuar →</button>
   </div>
 </div>
 
@@ -829,16 +831,19 @@ async function abrirRecomFinal() {
 
   recomFinalActivas.forEach(function(p) { contadorMostrado[p.name] = (contadorMostrado[p.name] || 0) + 1; });
 
-  document.getElementById('recom-final-titulo').textContent = elegirEncabezadoRecom();
+  var tituloRotativo = elegirEncabezadoRecom();
   var body = document.getElementById('recom-final-body');
-  body.innerHTML = '<div class="recom-final-sub">Antes de continuar, esto puede interesarte</div>'
+  body.innerHTML = '<div class="recom-final-sub">' + tituloRotativo + '</div>'
     + recomFinalActivas.map(function(p) {
+      var guardado = !!listaGuardados[p.id];
+      var desc = p.desc ? p.desc : '';
       return '<div class="recom-final-card">'
-        + '<img class="recom-final-img" src="' + p.img + '" alt="' + p.name + '" onerror="this.style.display=&quot;none&quot;">'
+        + '<img class="recom-final-img" src="' + p.img + '" alt="' + p.name + '" onerror="this.style.display=&quot;none&quot;" onclick="abrirPlatoModal(&quot;' + p.id + '&quot;)" style="cursor:pointer">'
         + '<div class="recom-final-info">'
         + '<div class="recom-final-nombre">' + p.name + '</div>'
+        + (desc ? '<div class="recom-final-desc">' + desc + '</div>' : '')
         + '<div class="recom-final-precio">' + p.price.toFixed(2).replace('.',',') + '€</div>'
-        + '<button class="recom-final-btn" id="recom-final-btn-' + p.id + '" onclick="añadirDesdeRecomFinal(&quot;' + p.id + '&quot;)">🛒 Añadir</button>'
+        + '<button class="recom-final-btn' + (guardado?' added':'') + '" id="recom-final-btn-' + p.id + '" onclick="añadirDesdeRecomFinal(&quot;' + p.id + '&quot;)">' + (guardado?'\u2713 A\u00f1adido':'\ud83d\uded2 A\u00f1adir') + '</button>'
         + '</div></div>';
     }).join('');
 
@@ -848,7 +853,9 @@ async function abrirRecomFinal() {
 function añadirDesdeRecomFinal(id) {
   toggleGuardar(id);
   var btn = document.getElementById('recom-final-btn-' + id);
-  if (btn) { btn.classList.add('added'); btn.textContent = '✓ Añadido'; }
+  if (!btn) return;
+  if (listaGuardados[id]) { btn.classList.add('added'); btn.textContent = '✓ Añadido'; }
+  else { btn.classList.remove('added'); btn.textContent = '🛒 Añadir'; }
 }
 
 function cerrarRecomFinal() {
@@ -1708,12 +1715,14 @@ async function renderCombinaConWrap(itemPrincipal) {
 
   cardsEl.innerHTML = sugerencias.map(function(p) {
     var guardado = !!listaGuardados[p.id];
-    return '<div class="combina-card">'
+    var desc = p.desc ? p.desc : '';
+    return '<div class="combina-card" onclick="abrirPlatoModal(&quot;' + p.id + '&quot;)">'
       + '<img class="combina-card-img" src="' + p.img + '" alt="' + p.name + '" onerror="this.style.display=&quot;none&quot;">'
       + '<div class="combina-card-body">'
       + '<div class="combina-card-nombre">' + p.name + '</div>'
+      + (desc ? '<div class="combina-card-desc">' + desc + '</div>' : '')
       + '<div class="combina-card-precio">' + p.price.toFixed(2).replace('.',',') + '€</div>'
-      + '<button class="combina-card-btn' + (guardado?' added':'') + '" id="combina-btn-' + p.id + '" onclick="toggleGuardar(&quot;' + p.id + '&quot;);actualizarBtnCombina(&quot;' + p.id + '&quot;)">' + (guardado?'\u2713 A\u00f1adido':'\ud83d\uded2 A\u00f1adir') + '</button>'
+      + '<button class="combina-card-btn' + (guardado?' added':'') + '" id="combina-btn-' + p.id + '" onclick="event.stopPropagation();toggleGuardar(&quot;' + p.id + '&quot;);actualizarBtnCombina(&quot;' + p.id + '&quot;)">' + (guardado?'\u2713 A\u00f1adido':'\ud83d\uded2 A\u00f1adir') + '</button>'
       + '</div></div>';
   }).join('');
 
