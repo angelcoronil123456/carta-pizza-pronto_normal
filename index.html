@@ -1651,17 +1651,15 @@ var scrollYGuardado = 0;
   var arrastrando = false;
   var gestoValido = false; // solo se activa si el cuerpo ya estaba arriba del todo al empezar
   var UMBRAL_CIERRE = 110; // px que hay que arrastrar para que se cierre
-
-  function elementoEsInteractivo(el) {
-    return !!(el.closest && el.closest('button, a, input, textarea, select, .combina-card'));
-  }
+  var UMBRAL_MOVIMIENTO = 8; // px mínimos para considerarlo "arrastre" y no un toque normal
+  var seMovioLoSuficiente = false;
 
   function onStart(e) {
-    if (elementoEsInteractivo(e.target)) { gestoValido = false; return; }
     var touch = e.touches ? e.touches[0] : e;
     startY = touch.clientY;
     currentY = startY;
     arrastrando = true;
+    seMovioLoSuficiente = false;
     // Solo permitimos que el gesto cierre el modal si el contenido interno está arriba del todo
     // (si el usuario está leyendo más abajo, el primer swipe debe hacer scroll normal, no cerrar)
     gestoValido = !body || body.scrollTop <= 0;
@@ -1674,16 +1672,21 @@ var scrollYGuardado = 0;
     currentY = touch.clientY;
     var delta = currentY - startY;
     if (delta < 0) { delta = 0; gestoValido = false; inner.style.transform = ''; return; } // se desliza hacia arriba: cancelar gesto, dejar scroll normal
-    if (e.cancelable) e.preventDefault(); // bloquear scroll/pull-to-refresh del navegador mientras se arrastra hacia abajo
+    if (delta > UMBRAL_MOVIMIENTO) seMovioLoSuficiente = true;
+    if (seMovioLoSuficiente && e.cancelable) e.preventDefault(); // bloquear scroll/pull-to-refresh y cancelar el clic del botón solo si es un arrastre real
     inner.style.transform = 'translateY(' + delta + 'px)';
   }
 
-  function onEnd() {
+  function onEnd(e) {
     if (!arrastrando) return;
     arrastrando = false;
     inner.classList.remove('dragging');
     if (!gestoValido) { inner.style.transform = ''; return; }
     var delta = currentY - startY;
+    if (seMovioLoSuficiente) {
+      // Fue un arrastre real: evitar que el botón debajo del dedo dispare su clic por accidente
+      if (e && e.cancelable) e.preventDefault();
+    }
     if (delta > UMBRAL_CIERRE) {
       inner.style.transform = 'translateY(100%)';
       setTimeout(function() {
@@ -1698,7 +1701,7 @@ var scrollYGuardado = 0;
 
   inner.addEventListener('touchstart', onStart, { passive: true });
   inner.addEventListener('touchmove', onMove, { passive: false });
-  inner.addEventListener('touchend', onEnd);
+  inner.addEventListener('touchend', onEnd, { passive: false });
   // Soporte también con ratón para pruebas en escritorio
   inner.addEventListener('mousedown', onStart);
   document.addEventListener('mousemove', onMove);
