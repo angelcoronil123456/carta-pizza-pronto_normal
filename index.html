@@ -1640,33 +1640,41 @@ var platoModalId = null;
 // ══ BLOQUEO DE SCROLL DE FONDO (modales tipo app nativa) ══
 var scrollYGuardado = 0;
 
-// ══ DESLIZAR PARA CERRAR (swipe down to dismiss) ══
+// ══ DESLIZAR PARA CERRAR (swipe down to dismiss) — funciona en cualquier parte del modal ══
 (function() {
   var inner = document.getElementById('plato-modal-inner');
-  var img = document.getElementById('plato-modal-img');
-  var handle = document.getElementById('plato-modal-handle');
+  var body = inner ? inner.querySelector('.plato-modal-body') : null;
   if (!inner) return;
 
   var startY = 0;
   var currentY = 0;
   var arrastrando = false;
+  var gestoValido = false; // solo se activa si el cuerpo ya estaba arriba del todo al empezar
   var UMBRAL_CIERRE = 110; // px que hay que arrastrar para que se cierre
 
+  function elementoEsInteractivo(el) {
+    return !!(el.closest && el.closest('button, a, input, textarea, select, .combina-card'));
+  }
+
   function onStart(e) {
+    if (elementoEsInteractivo(e.target)) { gestoValido = false; return; }
     var touch = e.touches ? e.touches[0] : e;
     startY = touch.clientY;
     currentY = startY;
     arrastrando = true;
-    inner.classList.add('dragging');
+    // Solo permitimos que el gesto cierre el modal si el contenido interno está arriba del todo
+    // (si el usuario está leyendo más abajo, el primer swipe debe hacer scroll normal, no cerrar)
+    gestoValido = !body || body.scrollTop <= 0;
+    if (gestoValido) inner.classList.add('dragging');
   }
 
   function onMove(e) {
-    if (!arrastrando) return;
+    if (!arrastrando || !gestoValido) return;
     var touch = e.touches ? e.touches[0] : e;
     currentY = touch.clientY;
     var delta = currentY - startY;
-    if (delta < 0) delta = 0; // solo permitir arrastrar hacia abajo
-    if (delta > 0 && e.cancelable) e.preventDefault(); // bloquear pull-to-refresh del navegador mientras se arrastra
+    if (delta < 0) { delta = 0; gestoValido = false; inner.style.transform = ''; return; } // se desliza hacia arriba: cancelar gesto, dejar scroll normal
+    if (e.cancelable) e.preventDefault(); // bloquear scroll/pull-to-refresh del navegador mientras se arrastra hacia abajo
     inner.style.transform = 'translateY(' + delta + 'px)';
   }
 
@@ -1674,9 +1682,9 @@ var scrollYGuardado = 0;
     if (!arrastrando) return;
     arrastrando = false;
     inner.classList.remove('dragging');
+    if (!gestoValido) { inner.style.transform = ''; return; }
     var delta = currentY - startY;
     if (delta > UMBRAL_CIERRE) {
-      // Cerrar el modal con la misma animación de deslizado
       inner.style.transform = 'translateY(100%)';
       setTimeout(function() {
         document.getElementById('plato-modal').classList.remove('open');
@@ -1684,19 +1692,15 @@ var scrollYGuardado = 0;
         inner.style.transform = '';
       }, 200);
     } else {
-      // No llegó al umbral: volver a su sitio
       inner.style.transform = '';
     }
   }
 
-  [img, handle].forEach(function(el) {
-    if (!el) return;
-    el.addEventListener('touchstart', onStart, { passive: true });
-    el.addEventListener('touchmove', onMove, { passive: false });
-    el.addEventListener('touchend', onEnd);
-    // Soporte también con ratón para pruebas en escritorio
-    el.addEventListener('mousedown', onStart);
-  });
+  inner.addEventListener('touchstart', onStart, { passive: true });
+  inner.addEventListener('touchmove', onMove, { passive: false });
+  inner.addEventListener('touchend', onEnd);
+  // Soporte también con ratón para pruebas en escritorio
+  inner.addEventListener('mousedown', onStart);
   document.addEventListener('mousemove', onMove);
   document.addEventListener('mouseup', onEnd);
 })();
