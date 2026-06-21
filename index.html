@@ -812,7 +812,7 @@ function analizarPedidoYRecomendar() {
     var candidatosGenerales = [];
     todasCategorias.forEach(function(cat) {
       (MENU[cat]||[]).forEach(function(p) {
-        if (!excluir.includes(p.name) && !listaGuardados[p.id]) candidatosGenerales.push(p);
+        if (!excluir.includes(p.name) && !listaGuardados[p.id] && esRecomendable(p)) candidatosGenerales.push(p);
       });
     });
     var pop = popularidadProductos || {};
@@ -1691,10 +1691,20 @@ async function cargarPopularidadProductos() {
 }
 
 // Elige el mejor producto de una categoría: popularidad real, con rotación si se ha mostrado mucho
+var PALABRAS_NO_RECOMENDABLES = ['vino','botella','reserva','crianza','rioja','ribera','champan','champán','cava brut nature','magnum'];
+
+function esRecomendable(p) {
+  var nombreLower = p.name.toLowerCase();
+  var esVinoOBotella = PALABRAS_NO_RECOMENDABLES.some(function(palabra){ return nombreLower.indexOf(palabra) !== -1; });
+  if (esVinoOBotella) return false;
+  // Bebidas individuales muy caras tampoco son un buen "complemento" rápido
+  return true;
+}
+
 function elegirMejorDeCategoria(categoria, excluirNombres) {
   var lista = (MENU[categoria] || []).filter(function(p) {
-    // Nunca recomendar algo que el cliente ya tiene guardado, ni lo que se pide excluir explícitamente
-    return !excluirNombres.includes(p.name) && !listaGuardados[p.id];
+    // Nunca recomendar algo que el cliente ya tiene guardado, lo que se pide excluir, o productos no aptos (vinos, botellas)
+    return !excluirNombres.includes(p.name) && !listaGuardados[p.id] && esRecomendable(p);
   });
   if (!lista.length) return null;
   var pop = popularidadProductos || {};
