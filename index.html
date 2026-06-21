@@ -628,6 +628,9 @@ var GOOGLE_REVIEW_URL = 'https://maps.app.goo.gl/ZcxjTXKSpg4ov8dL7';
 // ══ TRACKING DE RECOMENDACIONES (Impacto de las recomendaciones) ══
 async function registrarEventoRecom(tipoEvento, producto, contexto, platoPrincipalNombre) {
   try {
+    // Categorías derivadas automáticamente — solo para almacenar histórico, no afecta a la lógica de recomendación
+    var catRecomendado = (typeof categoriaDe === 'function') ? categoriaDe(producto.name) : null;
+    var catVisualizado = (platoPrincipalNombre && typeof categoriaDe === 'function') ? categoriaDe(platoPrincipalNombre) : null;
     await fetch(REGISTRAR_EVENTO_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
@@ -639,7 +642,9 @@ async function registrarEventoRecom(tipoEvento, producto, contexto, platoPrincip
         producto_nombre: producto.name,
         producto_precio: producto.price,
         contexto: contexto, // 'zona1_ficha' | 'zona2_final'
-        plato_principal_nombre: platoPrincipalNombre || null
+        plato_principal_nombre: platoPrincipalNombre || null,
+        categoria_producto_recomendado: catRecomendado || null,
+        categoria_producto_visualizado: catVisualizado || null
       })
     });
   } catch(e) {}
@@ -779,7 +784,6 @@ function toggleGuardar(id) {
 // ══ RECOMENDACIÓN ZONA 2 (tras añadir un producto) ══
 // ══ PANTALLA FINAL DE RECOMENDACIÓN (al pulsar el carrito) ══
 var recomFinalActivas = []; // [{item, ...}]
-var contadorMostrado = {}; // anti-saturación, compartido con Zona 1
 
 function analizarPedidoYRecomendar() {
   var nombresEnPedido = Object.values(listaGuardados).map(function(g){ return g.name; });
@@ -797,32 +801,23 @@ function analizarPedidoYRecomendar() {
 
   var resultado = [];
   var excluir = nombresEnPedido.slice();
+  // "categoriaVista" aquí no aplica a un solo plato (es el pedido completo), usamos 'bebidas' como
+  // referencia neutra ya que la compatibilidad gastronómica para un pedido ya armado prioriza variedad
+  var catReferencia = 'bebidas';
 
   if (faltantes.length) {
-    // Priorizar lo que falta, en este orden: bebida, postre, entrante
     faltantes.slice(0, 3).forEach(function(cat) {
-      var candidato = elegirMejorDeCategoria(cat, excluir);
+      var candidato = elegirCandidato(cat, excluir, catReferencia, resultado);
       if (candidato) { resultado.push(candidato); excluir.push(candidato.name); }
     });
   }
 
-  // Si el pedido ya está equilibrado o no se completaron 3, rellenar con lo más popular en general
+  // Si el pedido ya está equilibrado o no se completaron 3, rellenar con el sistema de scoring general
   if (resultado.length < 3) {
     var todasCategorias = Object.keys(MENU);
-    var candidatosGenerales = [];
-    todasCategorias.forEach(function(cat) {
-      (MENU[cat]||[]).forEach(function(p) {
-        if (!excluir.includes(p.name) && !listaGuardados[p.id] && esRecomendable(p)) candidatosGenerales.push(p);
-      });
-    });
-    var pop = popularidadProductos || {};
-    candidatosGenerales.sort(function(a,b) {
-      var sa = (pop[a.name]||0) - (contadorMostrado[a.name]||0)*0.1 + Math.random()*0.4;
-      var sb = (pop[b.name]||0) - (contadorMostrado[b.name]||0)*0.1 + Math.random()*0.4;
-      return sb - sa;
-    });
-    while (resultado.length < 3 && candidatosGenerales.length) {
-      var siguiente = candidatosGenerales.shift();
+    while (resultado.length < 3) {
+      var siguiente = elegirCandidato(todasCategorias, excluir, catReferencia, resultado);
+      if (!siguiente) break;
       resultado.push(siguiente);
       excluir.push(siguiente.name);
     }
@@ -832,15 +827,15 @@ function analizarPedidoYRecomendar() {
 }
 
 function elegirEncabezadoRecom() {
-  var pop = popularidadProductos || {};
-  var totalDatos = Object.keys(pop).length;
+  var stats = statsProductos || {};
+  var totalDatos = Object.keys(stats).filter(function(n){ return stats[n].mostradas > 0 || stats[n].popularidadCategoria > 0; }).length;
   var titulosConDatos = ['🔥 Lo más pedido esta semana', '⭐ Favorito de los clientes', '🏆 Lo más popular del restaurante', '👥 Los clientes también suelen añadir'];
   if (totalDatos < 3) return '🍴 Recomendación de la casa';
   return titulosConDatos[Math.floor(Math.random() * titulosConDatos.length)];
 }
 
 async function abrirRecomFinal() {
-  await cargarPopularidadProductos();
+  await cargarStatsProductos();
   recomFinalActivas = analizarPedidoYRecomendar();
 
   if (!recomFinalActivas.length) {
@@ -850,7 +845,7 @@ async function abrirRecomFinal() {
   }
 
   recomFinalActivas.forEach(function(p) {
-    contadorMostrado[p.name] = (contadorMostrado[p.name] || 0) + 1;
+    contadorMostradoSesion[p.name] = (contadorMostradoSesion[p.name] || 0) + 1;
     registrarEventoRecom('mostrada', p, 'zona2_final', null);
   });
 
@@ -1661,100 +1656,207 @@ function abrirPreguntaDesdeModal() {
 }
 
 // ══ RECOMENDACIONES — popularidad real (clics+guardados, últimos 30 días) ══
-var popularidadProductos = null; // { 'Nombre plato': scoreNormalizado(0-1) }
-var contadorMostrado = {}; // { 'Nombre plato': vecesMostradoEstaSesion } para evitar saturación
+// ════════════════════════════════════════════════════════════════════════
+// SISTEMA DE RECOMENDACIONES — Motor de puntuación (scoring) multifactor
+// Pesos: conversión histórica 40%, popularidad por categoría 25%,
+// compatibilidad gastronómica 20%, diversidad 10%, exploración 5%
+// ════════════════════════════════════════════════════════════════════════
 
-async function cargarPopularidadProductos() {
-  if (popularidadProductos) return popularidadProductos;
-  try {
-    var hace30 = new Date();
-    hace30.setDate(hace30.getDate() - 30);
-    var r = await sb.from('carta_clics')
-      .select('plato_nombre, tipo')
-      .eq('restaurante_id', RESTAURANTE_ID)
-      .in('tipo', ['ver_detalle', 'añadir'])
-      .gte('fecha', hace30.toISOString());
-    var conteo = {};
-    (r.data || []).forEach(function(c) {
-      if (!c.plato_nombre) return;
-      var peso = c.tipo === 'añadir' ? 4 : 1;
-      conteo[c.plato_nombre] = (conteo[c.plato_nombre] || 0) + peso;
-    });
-    var max = Math.max.apply(null, Object.values(conteo).concat([1]));
-    var normalizado = {};
-    Object.keys(conteo).forEach(function(nombre) { normalizado[nombre] = conteo[nombre] / max; });
-    popularidadProductos = normalizado;
-  } catch(e) {
-    popularidadProductos = {};
-  }
-  return popularidadProductos;
-}
-
-// Elige el mejor producto de una categoría: popularidad real, con rotación si se ha mostrado mucho
 var PALABRAS_NO_RECOMENDABLES = ['vino','botella','reserva','crianza','rioja','ribera','champan','champán','cava brut nature','magnum'];
 
 function esRecomendable(p) {
   var nombreLower = p.name.toLowerCase();
-  var esVinoOBotella = PALABRAS_NO_RECOMENDABLES.some(function(palabra){ return nombreLower.indexOf(palabra) !== -1; });
-  if (esVinoOBotella) return false;
-  // Bebidas individuales muy caras tampoco son un buen "complemento" rápido
-  return true;
+  return !PALABRAS_NO_RECOMENDABLES.some(function(palabra){ return nombreLower.indexOf(palabra) !== -1; });
 }
 
-function elegirMejorDeCategoria(categoria, excluirNombres) {
-  var lista = (MENU[categoria] || []).filter(function(p) {
-    // Nunca recomendar algo que el cliente ya tiene guardado, lo que se pide excluir, o productos no aptos (vinos, botellas)
-    return !excluirNombres.includes(p.name) && !listaGuardados[p.id] && esRecomendable(p);
+// Estadísticas reales por producto, cargadas una vez desde recom_eventos (conversión real)
+// y carta_clics (popularidad general como respaldo si aún no hay datos de recomendaciones)
+var statsProductos = null; // { 'Nombre': { mostradas, añadidas, conversion, popularidadCategoria } }
+var contadorMostradoSesion = {}; // saturación dentro de esta sesión del navegador
+
+async function cargarStatsProductos() {
+  if (statsProductos) return statsProductos;
+  statsProductos = {};
+  try {
+    var hace30 = new Date();
+    hace30.setDate(hace30.getDate() - 30);
+
+    // 1) Conversión histórica real desde recom_eventos (lo más fiable: mostrado→añadido)
+    var rRecom = await sb.from('recom_eventos')
+      .select('producto_nombre, tipo_evento')
+      .eq('restaurante_id', RESTAURANTE_ID)
+      .gte('fecha', hace30.toISOString());
+
+    (rRecom.data || []).forEach(function(e) {
+      var n = e.producto_nombre;
+      if (!statsProductos[n]) statsProductos[n] = { mostradas: 0, añadidas: 0 };
+      if (e.tipo_evento === 'mostrada') statsProductos[n].mostradas++;
+      else statsProductos[n].añadidas++;
+    });
+
+    // 2) Popularidad general (clics+guardados) como señal complementaria, agrupada por categoría
+    var rClics = await sb.from('carta_clics')
+      .select('plato_nombre, categoria, tipo')
+      .eq('restaurante_id', RESTAURANTE_ID)
+      .in('tipo', ['ver_detalle', 'añadir'])
+      .gte('fecha', hace30.toISOString());
+
+    var popPorCategoria = {}; // { categoria: { nombre: puntos } }
+    (rClics.data || []).forEach(function(c) {
+      if (!c.plato_nombre) return;
+      var cat = c.categoria || 'otros';
+      if (!popPorCategoria[cat]) popPorCategoria[cat] = {};
+      var peso = c.tipo === 'añadir' ? 4 : 1;
+      popPorCategoria[cat][c.plato_nombre] = (popPorCategoria[cat][c.plato_nombre] || 0) + peso;
+    });
+    // Normalizar dentro de cada categoría (0 a 1, comparando solo contra su propia categoría)
+    var popNormalizada = {};
+    Object.keys(popPorCategoria).forEach(function(cat) {
+      var valores = Object.values(popPorCategoria[cat]);
+      var max = Math.max.apply(null, valores.concat([1]));
+      Object.keys(popPorCategoria[cat]).forEach(function(nombre) {
+        popNormalizada[nombre] = popPorCategoria[cat][nombre] / max;
+      });
+    });
+
+    // Combinar todo en statsProductos
+    Object.keys(popNormalizada).forEach(function(n) {
+      if (!statsProductos[n]) statsProductos[n] = { mostradas: 0, añadidas: 0 };
+      statsProductos[n].popularidadCategoria = popNormalizada[n];
+    });
+    Object.keys(statsProductos).forEach(function(n) {
+      var s = statsProductos[n];
+      s.conversion = s.mostradas > 0 ? (s.añadidas / s.mostradas) : null; // null = sin datos suficientes
+      if (s.popularidadCategoria === undefined) s.popularidadCategoria = 0;
+    });
+  } catch(e) {
+    statsProductos = {};
+  }
+  return statsProductos;
+}
+
+// Compatibilidad gastronómica: qué tan bien encaja recomendar `categoriaCandidata`
+// cuando el cliente está viendo `categoriaVista`
+function compatibilidadGastronomica(categoriaVista, categoriaCandidata) {
+  var prioridades = {
+    pizzas: ['postres','bebidas','entrantes'],
+    pastas: ['postres','bebidas','entrantes'],
+    ensaladas: ['postres','bebidas','entrantes'],
+    postres: ['bebidas'],
+    bebidas: ['pizzas','pastas','ensaladas','entrantes','postres'],
+    entrantes: ['pizzas','pastas','ensaladas','bebidas','postres']
+  };
+  var lista = prioridades[categoriaVista] || [];
+  var idx = lista.indexOf(categoriaCandidata);
+  if (idx === -1) return 0.3; // compatibilidad neutra/baja si no está en la lista de prioridad
+  // Primera posición = compatibilidad máxima, decae con la posición
+  return 1 - (idx / Math.max(lista.length, 1)) * 0.6;
+}
+
+function categoriaDe(nombrePlato) {
+  var cat = '';
+  Object.keys(MENU).forEach(function(c) {
+    if ((MENU[c]||[]).some(function(p){ return p.name === nombrePlato; })) cat = c;
   });
-  if (!lista.length) return null;
-  var pop = popularidadProductos || {};
-  var puntuados = lista.map(function(p) {
-    var score = (pop[p.name] || 0) * 10;
-    score -= (contadorMostrado[p.name] || 0) * 1.5; // evitar saturación: baja prioridad si se mostró mucho
-    score += Math.random() * 4; // variedad: introduce algo de azar controlado entre todos los platos
-    return { item: p, score: score };
+  return cat;
+}
+
+// Calcula el score final de un candidato según el sistema de pesos definido
+function calcularScore(producto, categoriaCandidata, categoriaVista, yaElegidosEnEsteLote) {
+  var stats = (statsProductos && statsProductos[producto.name]) || {};
+
+  // 1) Conversión histórica (40%) — si no hay datos suficientes (menos de 3 mostradas), neutral 0.5
+  var conversionScore = 0.5;
+  if (stats.mostradas >= 3 && stats.conversion !== null && stats.conversion !== undefined) {
+    conversionScore = Math.min(stats.conversion * 2, 1); // 50% conversión = score máximo
+  }
+
+  // 2) Popularidad dentro de su categoría (25%)
+  var popularidadScore = stats.popularidadCategoria || 0;
+
+  // 3) Compatibilidad gastronómica (20%)
+  var compatScore = compatibilidadGastronomica(categoriaVista, categoriaCandidata);
+
+  // 4) Diversidad (10%) — penaliza si ya hay un producto muy similar (misma categoría) en este lote
+  var mismaCategoriaYaElegida = yaElegidosEnEsteLote.some(function(p){ return categoriaDe(p.name) === categoriaCandidata; });
+  var diversidadScore = mismaCategoriaYaElegida ? 0.2 : 1;
+
+  // 5) Exploración (5%) — componente aleatorio para dar oportunidad a toda la carta
+  var exploracionScore = Math.random();
+
+  // Penalización por saturación reciente en esta sesión (no es un "peso" fijo, es un multiplicador suave)
+  var saturacion = contadorMostradoSesion[producto.name] || 0;
+  var factorSaturacion = Math.max(1 - saturacion * 0.18, 0.25); // baja gradualmente, nunca llega a 0
+
+  var scoreBase = conversionScore * 0.40
+    + popularidadScore * 0.25
+    + compatScore * 0.20
+    + diversidadScore * 0.10
+    + exploracionScore * 0.05;
+
+  return scoreBase * factorSaturacion;
+}
+
+// Elige el mejor candidato de una o varias categorías para un slot de recomendación
+function elegirCandidato(categorias, excluirNombres, categoriaVista, yaElegidosEnEsteLote) {
+  var pool = [];
+  (Array.isArray(categorias) ? categorias : [categorias]).forEach(function(cat) {
+    (MENU[cat] || []).forEach(function(p) {
+      if (excluirNombres.includes(p.name)) return;
+      if (listaGuardados[p.id]) return; // nunca recomendar algo ya en el pedido
+      if (!esRecomendable(p)) return;
+      pool.push({ item: p, categoria: cat });
+    });
   });
-  puntuados.sort(function(a,b){ return b.score - a.score; });
-  // Elegir entre un grupo más amplio (hasta 5, o todos si hay menos) para dar variedad real
-  // manteniendo cierta inclinación hacia lo popular gracias a la puntuación
-  var top = puntuados.slice(0, Math.min(5, puntuados.length));
-  var elegido = top[Math.floor(Math.random() * top.length)];
-  return elegido.item;
+  if (!pool.length) return null;
+
+  var puntuados = pool.map(function(entry) {
+    return {
+      item: entry.item,
+      categoria: entry.categoria,
+      score: calcularScore(entry.item, entry.categoria, categoriaVista, yaElegidosEnEsteLote)
+    };
+  });
+  puntuados.sort(function(a, b) { return b.score - a.score; });
+  return puntuados[0].item;
 }
 
 async function renderCombinaConWrap(itemPrincipal) {
-  await cargarPopularidadProductos();
+  await cargarStatsProductos();
   var wrap = document.getElementById('combina-wrap');
   var cardsEl = document.getElementById('combina-cards');
 
-  var catPrincipal = itemPrincipal.categoria || '';
-  Object.keys(MENU).forEach(function(c) {
-    if ((MENU[c]||[]).some(function(p){ return p.id === itemPrincipal.id; })) catPrincipal = c;
-  });
-
+  var catVista = categoriaDe(itemPrincipal.name);
   var excluir = [itemPrincipal.name];
   var sugerencias = [];
+  var categoriasPrincipal = ['pizzas', 'pastas', 'ensaladas'];
 
-  // Entrante (si el plato principal no es ya un entrante)
-  if (catPrincipal !== 'entrantes') {
-    var ent = elegirMejorDeCategoria('entrantes', excluir);
+  // Slot 1: un plato principal (si lo que se ve YA es un principal, puede repetir esa categoría;
+  // si no, prueba las 3 categorías de principal)
+  var categoriasParaPrincipal = categoriasPrincipal.includes(catVista) ? categoriasPrincipal : categoriasPrincipal;
+  var principal = elegirCandidato(categoriasParaPrincipal, excluir, catVista, sugerencias);
+  if (principal) { sugerencias.push(principal); excluir.push(principal.name); }
+
+  // Slot 2: entrante (si no se está viendo ya un entrante)
+  if (catVista !== 'entrantes') {
+    var ent = elegirCandidato('entrantes', excluir, catVista, sugerencias);
     if (ent) { sugerencias.push(ent); excluir.push(ent.name); }
   }
-  // Bebida
-  if (catPrincipal !== 'bebidas') {
-    var beb = elegirMejorDeCategoria('bebidas', excluir);
+  // Slot 3: bebida
+  if (catVista !== 'bebidas') {
+    var beb = elegirCandidato('bebidas', excluir, catVista, sugerencias);
     if (beb) { sugerencias.push(beb); excluir.push(beb.name); }
   }
-  // Postre
-  if (catPrincipal !== 'postres') {
-    var pos = elegirMejorDeCategoria('postres', excluir);
+  // Slot 4: postre
+  if (catVista !== 'postres') {
+    var pos = elegirCandidato('postres', excluir, catVista, sugerencias);
     if (pos) { sugerencias.push(pos); excluir.push(pos.name); }
   }
 
   if (!sugerencias.length) { wrap.classList.remove('show'); return; }
 
   sugerencias.forEach(function(p) {
-    contadorMostrado[p.name] = (contadorMostrado[p.name] || 0) + 1;
+    contadorMostradoSesion[p.name] = (contadorMostradoSesion[p.name] || 0) + 1;
     registrarEventoRecom('mostrada', p, 'zona1_ficha', itemPrincipal.name);
   });
 
