@@ -15,7 +15,7 @@
   --cream:#fdf8f2;--gold:#c8982e;
   --radius:20px;--radius-sm:14px;
 }
-body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;overflow-x:hidden}
+body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;overflow-x:hidden;overscroll-behavior-y:none}
 
 /* LOADING */
 #loading-screen{position:fixed;inset:0;background:var(--dark);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999}
@@ -279,9 +279,9 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 .bottom-pad{height:100px}
 
 /* MODAL DETALLE PLATO */
-.plato-modal{position:fixed;inset:0;z-index:850;display:none;flex-direction:column;background:rgba(0,0,0,.6);backdrop-filter:blur(4px)}
+.plato-modal{position:fixed;inset:0;z-index:850;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);overscroll-behavior:contain}
 .plato-modal.open{display:flex}
-.plato-modal-inner{margin-top:3vh;background:#fff;border-radius:28px 28px 0 0;max-height:97vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -8px 40px rgba(0,0,0,.25)}
+.plato-modal-inner{background:#fff;border-radius:28px;width:100%;max-width:480px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -8px 40px rgba(0,0,0,.25);margin:0 12px}
 .plato-modal-img{width:100%;height:30vh;object-fit:cover;flex-shrink:0}
 .plato-modal-body{padding:10px 18px 14px;overflow-y:auto;flex:1}
 .plato-modal-name{font-family:'Playfair Display',serif;font-size:17px;font-weight:900;color:var(--text);margin-bottom:2px}
@@ -589,7 +589,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
   <div class="plato-modal-inner" id="plato-modal-inner">
     <div style="position:relative">
       <img class="plato-modal-img" id="plato-modal-img" src="" alt="">
-      <button class="plato-modal-close" onclick="document.getElementById('plato-modal').classList.remove('open')">×</button>
+      <button class="plato-modal-close" onclick="document.getElementById('plato-modal').classList.remove('open');desbloquearScrollBody()">×</button>
       <div id="plato-modal-badge" style="position:absolute;bottom:12px;left:16px"></div>
     </div>
     <div class="plato-modal-body">
@@ -1462,7 +1462,13 @@ function showAsk(name) {
   appendAIMsg('¡Hola! Estoy aquí para resolver tus dudas sobre <strong>' + name + '</strong>. ¿En qué te puedo ayudar?');
   document.getElementById('ask-modal').classList.add('open');
 }
-function closeAsk() { document.getElementById('ask-modal').classList.remove('open'); }
+function closeAsk() {
+  document.getElementById('ask-modal').classList.remove('open');
+  // Si la ficha del plato ya no está abierta (vino de ahí y se cerró antes), desbloquear el fondo
+  if (!document.getElementById('plato-modal').classList.contains('open')) {
+    desbloquearScrollBody();
+  }
+}
 function sendQuick(q) { document.getElementById('ask-input').value = q; sendAskMessage(); }
 
 function appendAIMsg(html) {
@@ -1628,6 +1634,27 @@ async function enviarMensajeAsistente() {
 
 // ══ MODAL DETALLE PLATO ══
 var platoModalId = null;
+// ══ BLOQUEO DE SCROLL DE FONDO (modales tipo app nativa) ══
+var scrollYGuardado = 0;
+
+function bloquearScrollBody() {
+  scrollYGuardado = window.scrollY || window.pageYOffset || 0;
+  document.body.style.position = 'fixed';
+  document.body.style.top = '-' + scrollYGuardado + 'px';
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+  document.body.style.width = '100%';
+}
+
+function desbloquearScrollBody() {
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.width = '';
+  window.scrollTo(0, scrollYGuardado);
+}
+
 function abrirPlatoModal(id) {
   var item = findItem(id);
   if (!item) return;
@@ -1644,6 +1671,7 @@ function abrirPlatoModal(id) {
   if (listaGuardados[id]) { btn.className='plato-modal-guardar-pequeno guardado'; btn.innerHTML='✓ Guardado'; }
   else { btn.className='plato-modal-guardar-pequeno'; btn.innerHTML='🔖 Guardar para pedir'; }
   document.getElementById('plato-modal').classList.add('open');
+  bloquearScrollBody();
   registrarInteres(id, 'ver_detalle');
   renderCombinaConWrap(item);
 }
@@ -1896,6 +1924,7 @@ function toggleGuardarDesdeCombina(id) {
 function closePlatoModal(e) {
   if (e && e.target !== document.getElementById('plato-modal')) return;
   document.getElementById('plato-modal').classList.remove('open');
+  desbloquearScrollBody();
 }
 function modalGuardar() {
   if (!platoModalId) return;
