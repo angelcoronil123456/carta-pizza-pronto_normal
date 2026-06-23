@@ -1069,13 +1069,17 @@ async function cargarRecomendadosDelDia() {
     var hace30 = new Date();
     hace30.setDate(hace30.getDate() - 30);
     var r = await sb.from('carta_clics')
-      .select('plato_id')
+      .select('plato_id, tipo')
       .eq('restaurante_id', RESTAURANTE_ID)
+      .in('tipo', ['ver_detalle', 'añadir'])
       .gte('fecha', hace30.toISOString());
 
     var ventas = {};
     if (r.data) {
-      r.data.forEach(function(c) { ventas[c.plato_id] = (ventas[c.plato_id]||0)+1; });
+      r.data.forEach(function(c) {
+        var peso = c.tipo === 'añadir' ? 4 : 1; // misma fórmula que el ranking del panel
+        ventas[c.plato_id] = (ventas[c.plato_id]||0) + peso;
+      });
     }
 
     var catLabels = {'pizzas':'🍕 Pizzas','pastas':'🍝 Pastas','entrantes':'🥗 Entrantes','ensaladas':'🥬 Ensaladas','postres':'🍮 Postres','bebidas':'🥤 Bebidas'};
@@ -1162,25 +1166,22 @@ async function cargarTopPedidos() {
       slots = ['pizzas','pastas','entrantes','ensaladas','postres'].map(function(c){ return {modo:'auto', categoria:c}; });
     }
 
-    // Semana ANTERIOR completa (lunes a domingo pasados)
-    var hoy = new Date();
-    var diaSemana = hoy.getDay();
-    var diasDesdelunes = diaSemana === 0 ? 6 : diaSemana - 1;
-    var lunesPasado = new Date(hoy);
-    lunesPasado.setDate(hoy.getDate() - diasDesdelunes - 7);
-    lunesPasado.setHours(0,0,0,0);
-    var domingoPassado = new Date(lunesPasado);
-    domingoPassado.setDate(lunesPasado.getDate() + 7);
-    domingoPassado.setHours(23,59,59,999);
+    // Usar la misma fórmula que el ranking del panel admin:
+    // puntuación = clics × 1 + guardados × 4 (últimos 30 días)
+    var hace30 = new Date();
+    hace30.setDate(hace30.getDate() - 30);
     var r = await sb.from('carta_clics')
-      .select('plato_id')
+      .select('plato_id, tipo')
       .eq('restaurante_id', RESTAURANTE_ID)
-      .gte('fecha', lunesPasado.toISOString())
-      .lte('fecha', domingoPassado.toISOString());
+      .in('tipo', ['ver_detalle', 'añadir'])
+      .gte('fecha', hace30.toISOString());
 
     var conteo = {};
     if (r.data) {
-      r.data.forEach(function(c) { conteo[c.plato_id] = (conteo[c.plato_id]||0)+1; });
+      r.data.forEach(function(c) {
+        var peso = c.tipo === 'añadir' ? 4 : 1; // igual que PESO_GUARDAR/PESO_CLIC del panel
+        conteo[c.plato_id] = (conteo[c.plato_id]||0) + peso;
+      });
     }
 
     var catLabels = {'pizzas':'🍕 Pizzas','pastas':'🍝 Pastas','entrantes':'🥗 Entrantes','ensaladas':'🥬 Ensaladas','postres':'🍮 Postres','bebidas':'🥤 Bebidas'};
