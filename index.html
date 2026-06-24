@@ -1702,8 +1702,14 @@ var scrollYGuardado = 0;
     if (delta > UMBRAL_CIERRE) {
       inner.style.transform = 'translateY(100%)';
       setTimeout(function() {
-        cerrarOVolverPlatoModal();
-        inner.style.transform = '';
+        if (platoModalOrigenId) {
+          inner.style.transform = '';
+          cerrarOVolverPlatoModal();
+        } else {
+          document.getElementById('plato-modal').classList.remove('open');
+          desbloquearScrollBody();
+          inner.style.transform = '';
+        }
       }, 200);
     } else {
       inner.style.transform = '';
@@ -1742,15 +1748,45 @@ function desbloquearScrollBody() {
 
 function cerrarOVolverPlatoModal() {
   if (platoModalOrigenId) {
-    // Volver al plato original desde el que se abrió la recomendación
+    // Volver al plato original SIN cerrar el modal — transición suave en el mismo contenedor
     var origen = platoModalOrigenId;
     platoModalOrigenId = null;
-    abrirPlatoModal(origen, null);
+    var inner = document.getElementById('plato-modal-inner');
+    // Fade out suave del contenido, luego carga el plato original
+    inner.style.opacity = '0';
+    inner.style.transition = 'opacity 0.15s ease';
+    setTimeout(function() {
+      abrirPlatoModalContenido(origen); // rellena el contenido sin tocar el modal ni el scroll
+      inner.style.opacity = '1';
+    }, 150);
   } else {
     // Cerrar completamente
     document.getElementById('plato-modal').classList.remove('open');
     desbloquearScrollBody();
   }
+}
+
+// Rellena el contenido del modal sin abrirlo ni cerrar (para transición fluida)
+function abrirPlatoModalContenido(id) {
+  var item = findItem(id);
+  if (!item) return;
+  platoModalId = id;
+  platoModalOrigenId = null;
+  document.getElementById('plato-modal-img').src = item.img;
+  document.getElementById('plato-modal-name').textContent = item.name;
+  document.getElementById('plato-modal-desc').textContent = item.desc && item.desc.length > 5 ? item.desc : 'Sin descripción disponible.';
+  document.getElementById('plato-modal-price').textContent = item.price.toFixed(2).replace('.',',') + ' €';
+  var badgeEl = document.getElementById('plato-modal-badge');
+  badgeEl.innerHTML = item.badge ? '<div style="background:' + (item.badge==='hot'?'#e65100':item.badge==='new'?'#1565c0':'var(--red)') + ';color:#fff;font-size:10px;font-weight:900;padding:4px 12px;border-radius:20px">' + (item.badge==='hot'?'🔥 Top':item.badge==='new'?'✨ Nuevo':'⭐ Popular') + '</div>' : '';
+  var alEl = document.getElementById('plato-modal-allergens');
+  alEl.innerHTML = (item.allergens||[]).map(function(a){ return '<span style="font-size:18px" title="'+allergenLabel(a)+'">'+a+'</span>'; }).join('');
+  var btn = document.getElementById('plato-modal-btn');
+  if (listaGuardados[id]) { btn.className='plato-modal-guardar-pequeno guardado'; btn.innerHTML='✓ Guardado'; }
+  else { btn.className='plato-modal-guardar-pequeno'; btn.innerHTML='🔖 Guardar para pedir'; }
+  // Scroll al inicio del modal
+  var body = document.querySelector('.plato-modal-body');
+  if (body) body.scrollTop = 0;
+  renderCombinaConWrap(item);
 }
 
 function abrirPlatoModal(id, origenId) {
@@ -2001,26 +2037,38 @@ async function renderCombinaConWrap(itemPrincipal) {
 
   wrap.classList.add('show');
 
-  // Carrusel infinito: duplicar tarjetas para scroll continuo real
+  // Auto-scroll igual que los carruseles principales
   var cardsEl2 = document.getElementById('combina-cards');
-  if (cardsEl2 && sugerencias.length >= 4) {
-    // Clonar todas las tarjetas y añadirlas al final para efecto infinito
-    var originales = Array.from(cardsEl2.children);
-    originales.forEach(function(card) {
-      var clon = card.cloneNode(true);
-      clon.setAttribute('aria-hidden', 'true');
-      cardsEl2.appendChild(clon);
-    });
-    // Cuando llega a la mitad (donde empiezan los clones), salta al inicio sin que se note
+  if (cardsEl2 && sugerencias.length >= 3) {
+    // Limpiar clones previos si los hay
+    Array.from(cardsEl2.children).forEach(function(c){ if(c.getAttribute('aria-hidden')) c.remove(); });
+    // Triplicar para scroll infinito sin saltos visibles
+    var hijos = Array.from(cardsEl2.children);
+    for (var rep = 0; rep < 2; rep++) {
+      hijos.forEach(function(h) {
+        var clon = h.cloneNode(true);
+        clon.setAttribute('aria-hidden', 'true');
+        cardsEl2.appendChild(clon);
+      });
+    }
+    var unidad = cardsEl2.scrollWidth / 3;
+    cardsEl2.style.scrollBehavior = 'auto';
+    cardsEl2.scrollLeft = unidad;
+    var pausadoCombina = false;
     cardsEl2.onscroll = null;
-    cardsEl2.onscroll = function() {
-      var mitad = cardsEl2.scrollWidth / 2;
-      if (cardsEl2.scrollLeft >= mitad - 5) {
-        cardsEl2.style.scrollBehavior = 'auto';
-        cardsEl2.scrollLeft = 0;
-        setTimeout(function(){ cardsEl2.style.scrollBehavior = 'smooth'; }, 30);
+    cardsEl2.addEventListener('touchstart', function(){ pausadoCombina = true; }, { passive: true });
+    cardsEl2.addEventListener('touchend', function(){ pausadoCombina = false; }, { passive: true });
+    cardsEl2.addEventListener('mousedown', function(){ pausadoCombina = true; });
+    cardsEl2.addEventListener('mouseup', function(){ pausadoCombina = false; });
+    if (cardsEl2._animFrame) cancelAnimationFrame(cardsEl2._animFrame);
+    function animarCombina() {
+      if (!pausadoCombina) {
+        cardsEl2.scrollLeft += 0.4;
+        if (cardsEl2.scrollLeft >= unidad * 2) cardsEl2.scrollLeft -= unidad;
       }
-    };
+      cardsEl2._animFrame = requestAnimationFrame(animarCombina);
+    }
+    cardsEl2._animFrame = requestAnimationFrame(animarCombina);
   }
 }
 
