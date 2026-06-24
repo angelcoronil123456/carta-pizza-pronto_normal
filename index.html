@@ -2001,21 +2001,26 @@ async function renderCombinaConWrap(itemPrincipal) {
 
   wrap.classList.add('show');
 
-  // Carrusel infinito: cuando llega al final, vuelve al principio
+  // Carrusel infinito: duplicar tarjetas para scroll continuo real
   var cardsEl2 = document.getElementById('combina-cards');
-  if (cardsEl2) {
-    cardsEl2.onscroll = null; // resetear listener previo
-    if (sugerencias.length >= 4) {
-      cardsEl2.onscroll = function() {
-        var maxScroll = cardsEl2.scrollWidth - cardsEl2.clientWidth;
-        if (cardsEl2.scrollLeft >= maxScroll - 5) {
-          // Llegó al final — volver al inicio sin animación para efecto infinito
-          cardsEl2.style.scrollBehavior = 'auto';
-          cardsEl2.scrollLeft = 0;
-          setTimeout(function(){ cardsEl2.style.scrollBehavior = 'smooth'; }, 50);
-        }
-      };
-    }
+  if (cardsEl2 && sugerencias.length >= 4) {
+    // Clonar todas las tarjetas y añadirlas al final para efecto infinito
+    var originales = Array.from(cardsEl2.children);
+    originales.forEach(function(card) {
+      var clon = card.cloneNode(true);
+      clon.setAttribute('aria-hidden', 'true');
+      cardsEl2.appendChild(clon);
+    });
+    // Cuando llega a la mitad (donde empiezan los clones), salta al inicio sin que se note
+    cardsEl2.onscroll = null;
+    cardsEl2.onscroll = function() {
+      var mitad = cardsEl2.scrollWidth / 2;
+      if (cardsEl2.scrollLeft >= mitad - 5) {
+        cardsEl2.style.scrollBehavior = 'auto';
+        cardsEl2.scrollLeft = 0;
+        setTimeout(function(){ cardsEl2.style.scrollBehavior = 'smooth'; }, 30);
+      }
+    };
   }
 }
 
@@ -2038,8 +2043,7 @@ function toggleGuardarDesdeCombina(id) {
 
 function closePlatoModal(e) {
   if (e && e.target !== document.getElementById('plato-modal')) return;
-  document.getElementById('plato-modal').classList.remove('open');
-  desbloquearScrollBody();
+  cerrarOVolverPlatoModal();
 }
 function modalGuardar() {
   if (!platoModalId) return;
