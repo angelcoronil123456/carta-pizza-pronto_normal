@@ -1748,16 +1748,17 @@ function cerrarOVolverPlatoModal() {
     var origen = platoModalOrigenId;
     platoModalOrigenId = null;
     var inner = document.getElementById('plato-modal-inner');
-    inner.style.transition = 'opacity 0.12s ease';
+    inner.style.transition = 'opacity 0.25s ease';
     inner.style.opacity = '0';
     setTimeout(function() {
       abrirPlatoModalContenido(origen);
       requestAnimationFrame(function() {
         requestAnimationFrame(function() {
+          inner.style.transition = 'opacity 0.25s ease';
           inner.style.opacity = '1';
         });
       });
-    }, 120);
+    }, 250);
   } else {
     document.getElementById('plato-modal').classList.remove('open');
     desbloquearScrollBody();
@@ -1996,6 +1997,15 @@ async function renderCombinaConWrap(itemPrincipal) {
   await cargarStatsProductos();
   var wrap = document.getElementById('combina-wrap');
   var cardsEl = document.getElementById('combina-cards');
+
+  // Cancelar auto-scroll anterior si existe
+  if (cardsEl && cardsEl._animFrame) {
+    cancelAnimationFrame(cardsEl._animFrame);
+    cardsEl._animFrame = null;
+  }
+  // Resetear wrap mientras se cargan los nuevos candidatos
+  if (wrap) wrap.classList.remove('show');
+  if (cardsEl) cardsEl.innerHTML = '';
 
   var catVista = categoriaDe(itemPrincipal.name);
   var excluir = [itemPrincipal.name];
