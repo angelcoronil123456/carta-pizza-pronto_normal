@@ -282,19 +282,25 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 /* ── MODAL PLATO: motor de animaciones unificado ── */
 .plato-modal{
   position:fixed;inset:0;z-index:850;
-  display:flex;                          /* siempre en DOM, nunca display:none */
+  display:flex;
   flex-direction:column;align-items:stretch;justify-content:flex-end;
-  background:rgba(0,0,0,0);             /* empieza transparente */
+  background:rgba(0,0,0,0);
   backdrop-filter:blur(0px);
   overscroll-behavior:contain;
-  pointer-events:none;                   /* ignorar toques cuando está cerrado */
+  pointer-events:none;
+  visibility:hidden;
   transition:background .32s cubic-bezier(.4,0,.2,1),
-             backdrop-filter .32s cubic-bezier(.4,0,.2,1);
+             backdrop-filter .32s cubic-bezier(.4,0,.2,1),
+             visibility 0s linear .32s;
 }
 .plato-modal.open{
   background:rgba(0,0,0,.55);
   backdrop-filter:blur(4px);
   pointer-events:auto;
+  visibility:visible;
+  transition:background .32s cubic-bezier(.4,0,.2,1),
+             backdrop-filter .32s cubic-bezier(.4,0,.2,1),
+             visibility 0s linear 0s;
 }
 .plato-modal-inner{
   background:#fff;border-radius:28px 28px 0 0;
