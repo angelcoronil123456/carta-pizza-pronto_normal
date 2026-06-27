@@ -787,6 +787,173 @@ function toggleGuardar(id) {
 // ══ PANTALLA FINAL DE RECOMENDACIÓN (al pulsar el carrito) ══
 var recomFinalActivas = []; // [{item, ...}]
 
+
+// ══ MOTOR DE RECOMENDACIONES — Scoring multifactor ══════════
+// SISTEMA DE RECOMENDACIONES — Motor de puntuación (scoring) multifactor
+// Pesos: conversión histórica 40%, popularidad por categoría 25%,
+// compatibilidad gastronómica 20%, diversidad 10%, exploración 5%
+// ════════════════════════════════════════════════════════════════════════
+
+var PALABRAS_NO_RECOMENDABLES = ['vino','botella','reserva','crianza','rioja','ribera','champan','champán','cava brut nature','magnum'];
+
+function esRecomendable(p) {
+  var nombreLower = p.name.toLowerCase();
+  return !PALABRAS_NO_RECOMENDABLES.some(function(palabra){ return nombreLower.indexOf(palabra) !== -1; });
+}
+
+// Estadísticas reales por producto, cargadas una vez desde recom_eventos (conversión real)
+// y carta_clics (popularidad general como respaldo si aún no hay datos de recomendaciones)
+var statsProductos = null; // { 'Nombre': { mostradas, añadidas, conversion, popularidadCategoria } }
+var contadorMostradoSesion = {}; // saturación dentro de esta sesión del navegador
+
+async function cargarStatsProductos() {
+  if (statsProductos) return statsProductos;
+  statsProductos = {};
+  try {
+    var hace30 = new Date();
+    hace30.setDate(hace30.getDate() - 30);
+
+    // 1) Conversión histórica real desde recom_eventos (lo más fiable: mostrado→añadido)
+    var rRecom = await sb.from('recom_eventos')
+      .select('producto_nombre, tipo_evento')
+      .eq('restaurante_id', RESTAURANTE_ID)
+      .gte('fecha', hace30.toISOString());
+
+    (rRecom.data || []).forEach(function(e) {
+      var n = e.producto_nombre;
+      if (!statsProductos[n]) statsProductos[n] = { mostradas: 0, añadidas: 0 };
+      if (e.tipo_evento === 'mostrada') statsProductos[n].mostradas++;
+      else statsProductos[n].añadidas++;
+    });
+
+    // 2) Popularidad general (clics+guardados) como señal complementaria, agrupada por categoría
+    var rClics = await sb.from('carta_clics')
+      .select('plato_nombre, categoria, tipo')
+      .eq('restaurante_id', RESTAURANTE_ID)
+      .in('tipo', ['ver_detalle', 'añadir'])
+      .gte('fecha', hace30.toISOString());
+
+    var popPorCategoria = {}; // { categoria: { nombre: puntos } }
+    (rClics.data || []).forEach(function(c) {
+      if (!c.plato_nombre) return;
+      var cat = c.categoria || 'otros';
+      if (!popPorCategoria[cat]) popPorCategoria[cat] = {};
+      var peso = c.tipo === 'añadir' ? 4 : 1;
+      popPorCategoria[cat][c.plato_nombre] = (popPorCategoria[cat][c.plato_nombre] || 0) + peso;
+    });
+    // Normalizar dentro de cada categoría (0 a 1, comparando solo contra su propia categoría)
+    var popNormalizada = {};
+    Object.keys(popPorCategoria).forEach(function(cat) {
+      var valores = Object.values(popPorCategoria[cat]);
+      var max = Math.max.apply(null, valores.concat([1]));
+      Object.keys(popPorCategoria[cat]).forEach(function(nombre) {
+        popNormalizada[nombre] = popPorCategoria[cat][nombre] / max;
+      });
+    });
+
+    // Combinar todo en statsProductos
+    Object.keys(popNormalizada).forEach(function(n) {
+      if (!statsProductos[n]) statsProductos[n] = { mostradas: 0, añadidas: 0 };
+      statsProductos[n].popularidadCategoria = popNormalizada[n];
+    });
+    Object.keys(statsProductos).forEach(function(n) {
+      var s = statsProductos[n];
+      s.conversion = s.mostradas > 0 ? (s.añadidas / s.mostradas) : null; // null = sin datos suficientes
+      if (s.popularidadCategoria === undefined) s.popularidadCategoria = 0;
+    });
+  } catch(e) {
+    statsProductos = {};
+  }
+  return statsProductos;
+}
+
+// Compatibilidad gastronómica: qué tan bien encaja recomendar `categoriaCandidata`
+// cuando el cliente está viendo `categoriaVista`
+function compatibilidadGastronomica(categoriaVista, categoriaCandidata) {
+  var prioridades = {
+    pizzas: ['postres','bebidas','entrantes'],
+    pastas: ['postres','bebidas','entrantes'],
+    ensaladas: ['postres','bebidas','entrantes'],
+    postres: ['bebidas'],
+    bebidas: ['pizzas','pastas','ensaladas','entrantes','postres'],
+    entrantes: ['pizzas','pastas','ensaladas','bebidas','postres']
+  };
+  var lista = prioridades[categoriaVista] || [];
+  var idx = lista.indexOf(categoriaCandidata);
+  if (idx === -1) return 0.3; // compatibilidad neutra/baja si no está en la lista de prioridad
+  // Primera posición = compatibilidad máxima, decae con la posición
+  return 1 - (idx / Math.max(lista.length, 1)) * 0.6;
+}
+
+function categoriaDe(nombrePlato) {
+  var cat = '';
+  Object.keys(MENU).forEach(function(c) {
+    if ((MENU[c]||[]).some(function(p){ return p.name === nombrePlato; })) cat = c;
+  });
+  return cat;
+}
+
+// Calcula el score final de un candidato según el sistema de pesos definido
+function calcularScore(producto, categoriaCandidata, categoriaVista, yaElegidosEnEsteLote) {
+  var stats = (statsProductos && statsProductos[producto.name]) || {};
+
+  // 1) Conversión histórica (40%) — si no hay datos suficientes (menos de 3 mostradas), neutral 0.5
+  var conversionScore = 0.5;
+  if (stats.mostradas >= 3 && stats.conversion !== null && stats.conversion !== undefined) {
+    conversionScore = Math.min(stats.conversion * 2, 1); // 50% conversión = score máximo
+  }
+
+  // 2) Popularidad dentro de su categoría (25%)
+  var popularidadScore = stats.popularidadCategoria || 0;
+
+  // 3) Compatibilidad gastronómica (20%)
+  var compatScore = compatibilidadGastronomica(categoriaVista, categoriaCandidata);
+
+  // 4) Diversidad (10%) — penaliza si ya hay un producto muy similar (misma categoría) en este lote
+  var mismaCategoriaYaElegida = yaElegidosEnEsteLote.some(function(p){ return categoriaDe(p.name) === categoriaCandidata; });
+  var diversidadScore = mismaCategoriaYaElegida ? 0.2 : 1;
+
+  // 5) Exploración (5%) — componente aleatorio para dar oportunidad a toda la carta
+  var exploracionScore = Math.random();
+
+  // Penalización por saturación reciente en esta sesión (no es un \"peso\" fijo, es un multiplicador suave)
+  var saturacion = contadorMostradoSesion[producto.name] || 0;
+  var factorSaturacion = Math.max(1 - saturacion * 0.18, 0.25); // baja gradualmente, nunca llega a 0
+
+  var scoreBase = conversionScore * 0.40
+    + popularidadScore * 0.25
+    + compatScore * 0.20
+    + diversidadScore * 0.10
+    + exploracionScore * 0.05;
+
+  return scoreBase * factorSaturacion;
+}
+
+// Elige el mejor candidato de una o varias categorías para un slot de recomendación
+function elegirCandidato(categorias, excluirNombres, categoriaVista, yaElegidosEnEsteLote) {
+  var pool = [];
+  (Array.isArray(categorias) ? categorias : [categorias]).forEach(function(cat) {
+    (MENU[cat] || []).forEach(function(p) {
+      if (excluirNombres.includes(p.name)) return;
+      if (listaGuardados[p.id]) return; // nunca recomendar algo ya en el pedido
+      if (!esRecomendable(p)) return;
+      pool.push({ item: p, categoria: cat });
+    });
+  });
+  if (!pool.length) return null;
+
+  var puntuados = pool.map(function(entry) {
+    return {
+      item: entry.item,
+      categoria: entry.categoria,
+      score: calcularScore(entry.item, entry.categoria, categoriaVista, yaElegidosEnEsteLote)
+    };
+  });
+  puntuados.sort(function(a, b) { return b.score - a.score; });
+  return puntuados[0].item;
+}
+
+
 function analizarPedidoYRecomendar() {
   var nombresEnPedido = Object.values(listaGuardados).map(function(g){ return g.name; });
   var categoriasEnPedido = {};
@@ -1645,16 +1812,6 @@ async function enviarMensajeAsistente() {
 }
 
 // ══ MODAL DETALLE PLATO ══
-var platoModalId = null;
-var platoModalOrigenId = null; // ID del plato original cuando se navega desde "combina"
-// ══════════════════════════════════════════════════════════════
-// MOTOR UNIFICADO DE ANIMACIONES — modal ficha de producto
-// Una sola curva, un solo sistema, cero tirones
-// ══════════════════════════════════════════════════════════════
-
-var scrollYGuardado = 0;
-var DURACION_MODAL = 380; // ms — debe coincidir con la transición CSS
-
 // ── Bloqueo de scroll (sin tirón: se aplica en rAF) ──────────
 function bloquearScrollBody() {
   scrollYGuardado = window.scrollY || window.pageYOffset || 0;
@@ -1679,6 +1836,80 @@ function desbloquearScrollBody() {
 }
 
 // ── Abrir modal ───────────────────────────────────────────────
+
+async function renderCombinaConWrap(itemPrincipal) {
+  await cargarStatsProductos();
+  var wrap = document.getElementById('combina-wrap');
+  var cardsEl = document.getElementById('combina-cards');
+
+  var catVista = categoriaDe(itemPrincipal.name);
+  var excluir = [itemPrincipal.name];
+  var sugerencias = [];
+
+  // Usar TODAS las categorías reales de la carta (dinámico, no hardcodeado a 6 nombres fijos),
+  // dejando que compatibilidadGastronomica penalice la categoría vista de forma proporcional,
+  // no que la excluya por completo en un "slot fijo".
+  var todasCategorias = Object.keys(MENU).filter(function(c){ return (MENU[c]||[]).length > 0; });
+
+  // Rellenar hasta 4 recomendaciones, dejando que el sistema de scoring elija libremente
+  // entre todas las categorías cada vez (compatibilidad gastronómica ya prioriza complementos)
+  for (var i = 0; i < 4; i++) {
+    var candidato = elegirCandidato(todasCategorias, excluir, catVista, sugerencias);
+    if (!candidato) break;
+    sugerencias.push(candidato);
+    excluir.push(candidato.name);
+  }
+
+  if (!sugerencias.length) { wrap.classList.remove('show'); return; }
+
+  sugerencias.forEach(function(p) {
+    contadorMostradoSesion[p.name] = (contadorMostradoSesion[p.name] || 0) + 1;
+    registrarEventoRecom('mostrada', p, 'zona1_ficha', itemPrincipal.name);
+  });
+
+  // Triplicar tarjetas para auto-scroll infinito sin salto visible
+  var cards = sugerencias.concat(sugerencias).concat(sugerencias);
+  cardsEl.innerHTML = cards.map(function(p) {
+    var guardado = !!listaGuardados[p.id];
+    var catLabel = { pizzas:'🍕', pastas:'🍝', entrantes:'🥗', ensaladas:'🥬', postres:'🍮', bebidas:'🥤' };
+    return '<div class="combina-card" onclick="abrirPlatoModal(&quot;' + p.id + '&quot;,&quot;' + itemPrincipal.id + '&quot;)">'
+      + '<img class="combina-card-img" src="' + p.img + '" alt="' + p.name + '" onerror="this.style.display=&quot;none&quot;">'
+      + '<div class="combina-card-body">'
+      + '<div class="combina-card-desc">' + (catLabel[categoriaDe(p.name)] || '') + '</div>'
+      + '<div class="combina-card-nombre">' + p.name + '</div>'
+      + '<div class="combina-card-precio">' + p.price.toFixed(2).replace('.',',') + '€</div>'
+      + '<button class="combina-card-btn' + (guardado?' added':'') + '" id="combina-btn-' + p.id + '" onclick="event.stopPropagation();toggleGuardar(&quot;' + p.id + '&quot;);actualizarBtnCombina(&quot;' + p.id + '&quot;)">' + (guardado?'✓ Añadido':'🛒 Añadir') + '</button>'
+      + '</div></div>';
+  }).join('');
+
+  wrap.classList.add('show');
+
+  // Auto-scroll infinito (misma lógica que carruseles principales)
+  if (cardsEl._animFrame) cancelAnimationFrame(cardsEl._animFrame);
+  var unidad = cardsEl.scrollWidth / 3;
+  cardsEl.scrollLeft = unidad;
+  var pausado = false;
+  cardsEl.addEventListener('touchstart', function(){ pausado=true; }, { passive:true });
+  cardsEl.addEventListener('touchend',   function(){ pausado=false; }, { passive:true });
+  cardsEl.addEventListener('mousedown',  function(){ pausado=true; });
+  cardsEl.addEventListener('mouseup',    function(){ pausado=false; });
+  (function animar() {
+    if (!pausado) {
+      cardsEl.scrollLeft += 0.4;
+      if (cardsEl.scrollLeft >= unidad * 2) cardsEl.scrollLeft -= unidad;
+    }
+    cardsEl._animFrame = requestAnimationFrame(animar);
+  })();
+}
+
+function actualizarBtnCombina(id) {
+  var btns = document.querySelectorAll('[id="combina-btn-' + id + '"]');
+  btns.forEach(function(btn) {
+    if (listaGuardados[id]) { btn.classList.add('added'); btn.textContent = '✓ Añadido'; }
+    else { btn.classList.remove('added'); btn.textContent = '🛒 Añadir'; }
+  });
+}
+
 // ══ SISTEMA DE MODAL — simple y fiable ══════════════════════
 var scrollYGuardado = 0;
 var platoModalId = null;
