@@ -287,28 +287,20 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
   background:rgba(0,0,0,0);
   backdrop-filter:blur(0px);
   overscroll-behavior:contain;
-  transition:background .32s cubic-bezier(.4,0,.2,1),
-             backdrop-filter .32s cubic-bezier(.4,0,.2,1);
 }
 .plato-modal.open{
   display:flex;
-  background:rgba(0,0,0,.55);
-  backdrop-filter:blur(4px);
 }
 .plato-modal-inner{
   background:#fff;border-radius:28px 28px 0 0;
   max-height:94vh;display:flex;flex-direction:column;
   overflow:hidden;box-shadow:0 -8px 40px rgba(0,0,0,.25);
-  transform:translateY(100%);            /* empieza fuera de pantalla */
-  transition:transform .38s cubic-bezier(.32,.72,0,1),
-             opacity .25s cubic-bezier(.4,0,.2,1);
-  will-change:transform,opacity;
-}
-.plato-modal.open .plato-modal-inner{
-  transform:translateY(0);
+  transform:translateY(100%);
+  transition:transform .36s cubic-bezier(.32,.72,0,1);
+  will-change:transform;
 }
 .plato-modal-inner.dragging{
-  transition:none;                       /* sin transición durante arrastre manual */
+  transition:none;
 }
 .plato-modal-img{width:100%;height:30vh;object-fit:cover;flex-shrink:0;touch-action:none}
 .plato-modal-body{padding:10px 18px 14px;overflow-y:auto;flex:1}
@@ -611,7 +603,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 </div>
 
 <!-- MODAL DETALLE PLATO -->
-<div class="plato-modal" id="plato-modal" onclick="closePlatoModal(event)" style="display:none">
+<div class="plato-modal" id="plato-modal" onclick="closePlatoModal(event)">
   <div class="plato-modal-inner" id="plato-modal-inner">
     <div style="position:relative">
       <img class="plato-modal-img" id="plato-modal-img" src="" alt="">
@@ -1707,13 +1699,15 @@ function desbloquearScrollBody() {
 // ── Abrir modal ───────────────────────────────────────────────
 function abrirModal() {
   var modal = document.getElementById('plato-modal');
-  var inner = document.getElementById('plato-modal-inner');
-  // Paso 1: hacer visible sin clase open (inner en translateY(100%))
-  modal.style.display = 'flex';
-  // Paso 2: forzar reflow para que la transición funcione
-  modal.offsetHeight; // eslint-disable-line
-  // Paso 3: añadir open para disparar animaciones CSS
   modal.classList.add('open');
+  // Forzar reflow para que la transición del inner arranque desde translateY(100%)
+  modal.offsetHeight; // eslint-disable-line no-unused-expressions
+  var inner = document.getElementById('plato-modal-inner');
+  inner.style.transform = 'translateY(0)';
+  // Fade del overlay
+  modal.style.transition = 'background .32s ease, backdrop-filter .32s ease';
+  modal.style.background = 'rgba(0,0,0,.55)';
+  modal.style.backdropFilter = 'blur(4px)';
   bloquearScrollBody();
 }
 
@@ -1721,20 +1715,17 @@ function abrirModal() {
 function cerrarModal(callback) {
   var modal = document.getElementById('plato-modal');
   var inner = document.getElementById('plato-modal-inner');
-  // Animar inner hacia abajo y overlay a transparente
-  inner.style.transition = 'transform .32s cubic-bezier(.32,.72,0,1), opacity .22s ease';
+  // Animar inner hacia abajo
+  inner.style.transition = 'transform .32s cubic-bezier(.32,.72,0,1)';
   inner.style.transform  = 'translateY(105%)';
-  inner.style.opacity    = '0.5';
+  // Fade overlay
+  modal.style.transition = 'background .28s ease, backdrop-filter .28s ease';
   modal.style.background = 'rgba(0,0,0,0)';
   modal.style.backdropFilter = 'blur(0px)';
-  modal.style.transition = 'background .32s ease, backdrop-filter .32s ease';
-  // Solo cuando termina la animación: ocultar realmente
+  // Solo cuando termina: ocultar y limpiar
   setTimeout(function() {
     modal.classList.remove('open');
-    modal.style.display = 'none';
-    // Limpiar estilos inline para que CSS tome el control de nuevo
-    inner.style.transform  = '';
-    inner.style.opacity    = '';
+    inner.style.transform  = 'translateY(100%)'; // resetear para próxima apertura
     inner.style.transition = '';
     modal.style.background = '';
     modal.style.backdropFilter = '';
@@ -1803,21 +1794,18 @@ function transicionContenido(callback) {
     if (seMovio && e && e.cancelable) e.preventDefault();
     var delta = currentY - startY;
     if (delta > UMBRAL_CIERRE) {
-      // Supera umbral: completar animación de cierre
       inner.style.transition = 'transform .28s cubic-bezier(.32,.72,0,1)';
       inner.style.transform  = 'translateY(110%)';
       setTimeout(function() {
         inner.style.transition = '';
-        inner.style.transform  = '';
+        inner.style.transform  = 'translateY(100%)';
         cerrarOVolverPlatoModal();
       }, 280);
     } else {
-      // No supera: volver con rebote elástico
       inner.style.transition = 'transform .42s cubic-bezier(.34,1.56,.64,1)';
       inner.style.transform  = 'translateY(0)';
       setTimeout(function() {
         inner.style.transition = '';
-        inner.style.transform  = '';
       }, 420);
     }
   }
