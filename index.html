@@ -282,25 +282,18 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 /* ── MODAL PLATO: motor de animaciones unificado ── */
 .plato-modal{
   position:fixed;inset:0;z-index:850;
-  display:flex;
+  display:none;
   flex-direction:column;align-items:stretch;justify-content:flex-end;
   background:rgba(0,0,0,0);
   backdrop-filter:blur(0px);
   overscroll-behavior:contain;
-  pointer-events:none;
-  visibility:hidden;
   transition:background .32s cubic-bezier(.4,0,.2,1),
-             backdrop-filter .32s cubic-bezier(.4,0,.2,1),
-             visibility 0s linear .32s;
+             backdrop-filter .32s cubic-bezier(.4,0,.2,1);
 }
 .plato-modal.open{
+  display:flex;
   background:rgba(0,0,0,.55);
   backdrop-filter:blur(4px);
-  pointer-events:auto;
-  visibility:visible;
-  transition:background .32s cubic-bezier(.4,0,.2,1),
-             backdrop-filter .32s cubic-bezier(.4,0,.2,1),
-             visibility 0s linear 0s;
 }
 .plato-modal-inner{
   background:#fff;border-radius:28px 28px 0 0;
@@ -618,7 +611,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
 </div>
 
 <!-- MODAL DETALLE PLATO -->
-<div class="plato-modal" id="plato-modal" onclick="closePlatoModal(event)">
+<div class="plato-modal" id="plato-modal" onclick="closePlatoModal(event)" style="display:none">
   <div class="plato-modal-inner" id="plato-modal-inner">
     <div style="position:relative">
       <img class="plato-modal-img" id="plato-modal-img" src="" alt="">
@@ -1714,6 +1707,12 @@ function desbloquearScrollBody() {
 // ── Abrir modal ───────────────────────────────────────────────
 function abrirModal() {
   var modal = document.getElementById('plato-modal');
+  var inner = document.getElementById('plato-modal-inner');
+  // Paso 1: hacer visible sin clase open (inner en translateY(100%))
+  modal.style.display = 'flex';
+  // Paso 2: forzar reflow para que la transición funcione
+  modal.offsetHeight; // eslint-disable-line
+  // Paso 3: añadir open para disparar animaciones CSS
   modal.classList.add('open');
   bloquearScrollBody();
 }
@@ -1722,20 +1721,24 @@ function abrirModal() {
 function cerrarModal(callback) {
   var modal = document.getElementById('plato-modal');
   var inner = document.getElementById('plato-modal-inner');
-  // Animar el inner hacia abajo
+  // Animar inner hacia abajo y overlay a transparente
   inner.style.transition = 'transform .32s cubic-bezier(.32,.72,0,1), opacity .22s ease';
-  inner.style.transform  = 'translateY(100%)';
-  inner.style.opacity    = '0.6';
-  // Fade del overlay
+  inner.style.transform  = 'translateY(105%)';
+  inner.style.opacity    = '0.5';
   modal.style.background = 'rgba(0,0,0,0)';
   modal.style.backdropFilter = 'blur(0px)';
+  modal.style.transition = 'background .32s ease, backdrop-filter .32s ease';
+  // Solo cuando termina la animación: ocultar realmente
   setTimeout(function() {
     modal.classList.remove('open');
+    modal.style.display = 'none';
+    // Limpiar estilos inline para que CSS tome el control de nuevo
     inner.style.transform  = '';
     inner.style.opacity    = '';
     inner.style.transition = '';
     modal.style.background = '';
     modal.style.backdropFilter = '';
+    modal.style.transition = '';
     desbloquearScrollBody();
     if (callback) callback();
   }, 320);
